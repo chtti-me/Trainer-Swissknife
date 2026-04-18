@@ -1,0 +1,88 @@
+# Render Blueprint：培訓師瑞士刀 v4.0
+# 部署：把 Next.js 跑在 Render Web Service，資料庫由 Supabase 提供
+# 文件：https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: trainer-swissknife
+    runtime: node
+    plan: starter # 升級到 standard 可避免 spin-down；free 方案閒置 15 分鐘會休眠
+    region: singapore # 對齊 Supabase ap-southeast-1
+    branch: main
+    buildCommand: |
+      npm ci && \
+      npx prisma generate && \
+      npm run build
+    startCommand: npx next start -H 0.0.0.0 -p $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXTAUTH_URL
+        sync: false # 部署後手動填入：https://<service>.onrender.com
+      - key: NEXTAUTH_SECRET
+        generateValue: true # Render 自動生成隨機字串
+      - key: AUTH_TRUST_HOST
+        value: "true"
+
+      # ============ Supabase ============
+      # ⚠ 請從 Supabase Dashboard → Settings → Database → Connection string 區塊
+      #   複製 Connection pooling 整段 URI（user 必須是 postgres.<project_ref>，
+      #   主機可能是 aws-0/aws-1/aws-2-<region>.pooler.supabase.com，請以 Dashboard 為準）。
+      #   密碼若含 @、#、!、/、: 等特殊字元，務必先 URL encode 再貼進來。
+      - key: DATABASE_URL
+        sync: false # pooler，6543 port，?pgbouncer=true&connection_limit=1
+      - key: DIRECT_URL
+        sync: false # 同主機但用 5432 port（session mode），prisma migrate / db push 用
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+
+      # ============ AI ============
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_BASE_URL
+        value: https://generativelanguage.googleapis.com/v1beta/openai
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_MODEL_PLANNING
+        value: gemini-2.5-flash
+      # ⚠ Gemini OpenAI-compatible 端點僅接受 "gemini-embedding-001"（預設 3072 維，
+      # 我們透過 dimensions 參數截斷成 768 以符合 pgvector HNSW 上限 2000）。
+      - key: GEMINI_EMBEDDING_MODEL
+        value: gemini-embedding-001
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_EMBEDDING_MODEL
+        value: text-embedding-3-small
+
+      # ============ 工具 ============
+      - key: TAVILY_API_KEY
+        sync: false
+
+      # ============ 相似度 ============
+      - key: SIMILARITY_THRESHOLD
+        value: "0.75"
+      - key: SIMILARITY_LEXICAL_WEIGHT
+        value: "0.4"
+      - key: SIMILARITY_VECTOR_WEIGHT
+        value: "0.6"
+      # 與 prisma/schema.prisma 的 vector(N) 保持一致：
+      # - Gemini gemini-embedding-001 ➜ 768（預設）
+      # - OpenAI text-embedding-3-small ➜ 1536（同時要把 schema 改 vector(1536) 再 db push）
+      - key: EMBEDDING_DIMENSION
+        value: "768"
+
+      - key: APP_VERSION
+        value: v4.0
+
+      # ============ 提醒 ============
+      # ⚠ Render 檔案系統為臨時的（ephemeral filesystem），
+      # `agent-workspace/` 在每次部署或重啟後會清空。
+      # 若要永久保存使用者上傳檔，請改用 Supabase Storage（v5 規劃）。

@@ -1,0 +1,35 @@
+{
+  "sources": [
+    {
+      "id": "hq",
+      "tisDepartmentCode": "P",
+      "campusLabelZh": "板橋院本部",
+      "inputHtml": "docs/reference-materials/「教室預約建議」模組/預約教室需使用的網頁/板橋院本部各大樓教室設備列表.html",
+      "outputJson": "src/data/classroom-inventory/hq.json",
+      "buildingTisCodeByNameZh": {
+        "綜合大樓": "0",
+        "實驗大樓": "1",
+        "文康中心": "12",
+        "國際學苑": "13",
+        "教學大樓": "6",
+        "板橋會館": "7"
+      }
+    },
+    {
+      "id": "taichung",
+      "tisDepartmentCode": "T",
+      "campusLabelZh": "台中所",
+      "inputHtml": null,
+      "outputJson": "src/data/classroom-inventory/taichung.json",
+      "buildingTisCodeByNameZh": {}
+    },
+    {
+      "id": "kaohsiung",
+      "tisDepartmentCode": "K",
+      "campusLabelZh": "高雄所",
+      "inputHtml": null,
+      "outputJson": "src/data/classroom-inventory/kaohsiung.json",
+      "buildingTisCodeByNameZh": {}
+    }
+  ]
+}

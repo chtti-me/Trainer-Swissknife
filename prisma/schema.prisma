@@ -1,0 +1,421 @@
+// 【Prisma 資料庫綱要／對齊產品 v4.0】
+// v4 變更：SQLite → PostgreSQL（Supabase），新增 pgvector 向量欄位支援語意相似度比對。
+// 用宣告式語法定義資料表；`prisma db push` 會依此同步 Supabase PostgreSQL schema。
+// 比喻：建築平面圖——工人（Prisma）依圖施工，程式用 `prisma.xxx` 存取資料。
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x", "windows"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [vector, pg_trgm]
+}
+
+// ============================================================
+// 使用者
+// ============================================================
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  department String?
+  role       String   @default("trainer") // trainer | admin
+  campus     String?  // 院本部 | 台中所 | 高雄所
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  trainingClasses         TrainingClass[]
+  planningRequests        PlanningRequest[]
+  planningDrafts          PlanningDraft[]
+  similarityChecks        SimilarityCheck[]
+  /// 對應培訓師名冊（可選，與 Trainer.linkedUser 雙向）
+  trainerDirectoryProfile Trainer?
+  /// 個人 AI 技能脈絡（版本化內容，供全系統生成式 AI 參考）
+  aiTrainerSkillDefinition AiTrainerSkillDefinition?
+  /// 個人師資人脈（培訓師自行維護之講師聯絡資料，非 TIS 正式主檔）
+  personalInstructorContacts PersonalInstructorContact[]
+  /// Agent 對話
+  agentConversations AgentConversation[]
+  /// 使用者自定義 Agent 工具
+  customTools CustomTool[]
+
+  @@map("users")
+}
+
+// ============================================================
+// 班次（開班資料）
+// ============================================================
+model TrainingClass {
+  id               String    @id @default(uuid())
+  sourceSystemId   String?   @map("source_system_id") // TIS 原始 ID（如 seq）
+  /// 完整班代號；TIS 常見為九碼「五碼 classid + 場域碼 P|T|K|E + 三位期別」，例：CR24CE014
+  classCode        String?   @map("class_code")
+  /// TIS 班代號前五碼（classid）
+  tisClassId5      String?   @map("tis_class_id_5")
+  /// 第六碼場域：P 板橋院本部、T 台中所、K 高雄所、E 全 e 課程
+  tisVenueCode     String?   @map("tis_venue_code")
+  /// 三位數期別（sessions）
+  tisSessionCode   String?   @map("tis_session_code")
+  /// 若代號含難易度數字（擴充十碼格式）：1 基礎、2 進階、3 高級、4 專精
+  tisDifficultyDigit Int?    @map("tis_difficulty_digit")
+  className        String    @map("class_name")        // 班名
+  campus           String?                             // 院所別
+  category         String?                             // 課程類別（可自班名推論）
+  classType        String?   @map("class_type")        // 年度計畫班 / 臨時需求專案班 / 學程班
+  difficultyLevel  String?   @map("difficulty_level")   // 基礎 / 進階 / 高級 / 專精
+  deliveryMode     String?   @map("delivery_mode")      // 課堂 / 直播 / 遠距 / 混成
+  startDatetime    DateTime? @map("start_datetime")
+  endDatetime      DateTime? @map("end_datetime")
+  checkinDatetime  DateTime? @map("checkin_datetime")   // 報到時間
+  graduationDatetime DateTime? @map("graduation_datetime") // 結訓時間
+  trainerUserId    String?   @map("trainer_user_id")
+  trainer          User?     @relation(fields: [trainerUserId], references: [id])
+  /// TIS「導師」＝本系統培訓師（開班導師）姓名快照；對應培訓師名冊 Trainer，非登入帳號本身
+  mentorName       String?   @map("mentor_name")
+  /// 授課講師姓名（課程附屬文字，逗號分隔）；無獨立主檔，可自 CSV「講師」等欄匯入
+  instructorNames  String?   @map("instructor_names")
+  location         String?                             // 開班地點
+  roomName         String?   @map("room_name")          // 教室名稱
+  summary          String?                             // 課程內容摘要
+  audience         String?                             // 培訓對象
+  status           String    @default("規劃中")          // 規劃中 / 已排定 / 即將開班 / 已結訓
+  requestSource    String?   @map("request_source")     // 需求來源
+  maxStudents      Int?      @map("max_students")       // 名額
+  materialLink     String?   @map("material_link")      // 教材連結
+  notes            String?                             // 備註
+  sourceType       String?   @map("source_type")        // manual_import / tis_sync / manual_input
+  importedAt       DateTime? @map("imported_at")
+  rawPayload       String?   @map("raw_payload")        // 原始資料 JSON
+
+  /// 相似度比對用合併文字（字詞引擎輸入）
+  embeddingText    String?   @map("embedding_text")
+  /// v4：向量嵌入（pgvector；768 維對應 Gemini gemini-embedding-001（Matryoshka 截斷）；
+  /// 改用 OpenAI text-embedding-3-small 時請改 vector(1536) 並重新 prisma db push）
+  embedding        Unsupported("vector(768)")?
+  /// v4：嵌入來源模型名稱，便於判斷是否需要重新產生
+  embeddingModel   String?   @map("embedding_model")
+  /// v4：嵌入產生時間
+  embeddingUpdatedAt DateTime? @map("embedding_updated_at")
+
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@index([trainerUserId])
+  @@index([startDatetime])
+  @@index([status])
+  @@index([campus])
+  @@index([classCode])
+  @@map("training_classes")
+}
+
+// ============================================================
+// 培訓師／導師（Trainer，本系統主要使用者之一；可與 User 綁定）
+// ============================================================
+model Trainer {
+  id              String   @id @default(uuid())
+  name            String
+  trainerType     String?  @map("trainer_type")     // 內聘 / 外聘 等
+  expertiseTags   String?  @map("expertise_tags")
+  teachingTopics  String?  @map("teaching_topics")
+  email           String?
+  phone           String?
+  organization    String?
+  notes           String?
+  dataSource      String?  @map("data_source")
+  active          Boolean  @default(true)
+  linkedUserId    String?  @unique @map("linked_user_id")
+  linkedUser      User?    @relation(fields: [linkedUserId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("trainers")
+}
+
+// ============================================================
+// 課程規劃需求
+// ============================================================
+model PlanningRequest {
+  id             String   @id @default(uuid())
+  createdBy      String   @map("created_by")
+  creator        User     @relation(fields: [createdBy], references: [id])
+  title          String
+  rawInputText   String?  @map("raw_input_text")     // 原始貼入文字
+  sourceFiles    String?  @map("source_files")        // 上傳檔案路徑 JSON
+  parsedSummary  String?  @map("parsed_summary_json") // AI 解析後摘要 JSON
+  status         String   @default("draft")           // draft / completed / archived
+
+  drafts         PlanningDraft[]
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("planning_requests")
+}
+
+// ============================================================
+// 課程規劃草案
+// ============================================================
+model PlanningDraft {
+  id               String   @id @default(uuid())
+  requestId        String   @map("request_id")
+  request          PlanningRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  versionNo        Int      @map("version_no")
+  aiOutputJson     String?  @map("ai_output_json")      // AI 原始輸出 JSON
+  editedOutputJson String?  @map("edited_output_json")   // 人工修訂 JSON
+  exportedMarkdown String?  @map("exported_markdown")
+  createdBy        String   @map("created_by")
+  creator          User     @relation(fields: [createdBy], references: [id])
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("planning_drafts")
+}
+
+// ============================================================
+// 相似度檢測紀錄
+// ============================================================
+model SimilarityCheck {
+  id            String   @id @default(uuid())
+  createdBy     String   @map("created_by")
+  creator       User     @relation(fields: [createdBy], references: [id])
+  queryPayload  String   @map("query_payload")   // 查詢內容 JSON
+  filterPayload String?  @map("filter_payload")  // 篩選條件 JSON
+  threshold     Float    @default(0.75)
+  resultJson    String?  @map("result_json")      // 結果 JSON
+  status        String   @default("pending")      // pending / completed / failed
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@map("similarity_checks")
+}
+
+// ============================================================
+// 資料同步任務
+// ============================================================
+model SyncJob {
+  id           String    @id @default(uuid())
+  sourceName   String    @map("source_name")    // excel / csv / tis_sync
+  syncMode     String    @map("sync_mode")      // manual_import / auto_sync
+  startedAt    DateTime  @default(now()) @map("started_at")
+  finishedAt   DateTime? @map("finished_at")
+  status       String    @default("running")    // running / success / failed / partial
+  totalCount   Int       @default(0) @map("total_count")
+  successCount Int       @default(0) @map("success_count")
+  failedCount  Int       @default(0) @map("failed_count")
+  logText      String?   @map("log_text")
+
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@map("sync_jobs")
+}
+
+// ============================================================
+// AI 技能脈絡（全院共用 + 個人；多版本，僅最新版預設寫入 Prompt）
+// ============================================================
+model AiGlobalSkillDefinition {
+  id        String   @id @default(uuid())
+  /// 英數小寫底線，例如 course_planning、edm、instructor_search
+  slug      String   @unique @map("slug")
+  title     String   @map("title")
+  sortOrder Int      @default(0) @map("sort_order")
+  /// 綁定的 Agent 工具名稱（JSON 陣列，例如 ["course_plan","web_search"]）
+  toolBinding      String? @map("tool_binding")
+  /// 觸發條件描述（當使用者意圖符合此描述時，Agent 自動套用此技能脈絡）
+  triggerCondition String? @map("trigger_condition")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  versions AiGlobalSkillVersion[]
+
+  @@map("ai_global_skill_definitions")
+}
+
+model AiGlobalSkillVersion {
+  id           String                  @id @default(uuid())
+  definitionId String                  @map("definition_id")
+  definition   AiGlobalSkillDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  /// 注入各 AI 功能之長文脈絡（PostgreSQL TEXT，無長度限制）
+  content      String                  @map("content")
+  versionNo    Int                     @map("version_no")
+  createdAt    DateTime                @default(now()) @map("created_at")
+
+  @@unique([definitionId, versionNo])
+  @@index([definitionId, versionNo(sort: Desc)])
+  @@map("ai_global_skill_versions")
+}
+
+model AiTrainerSkillDefinition {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String   @default("個人培訓師 AI 脈絡") @map("title")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  versions AiTrainerSkillVersion[]
+
+  @@map("ai_trainer_skill_definitions")
+}
+
+model AiTrainerSkillVersion {
+  id           String                   @id @default(uuid())
+  definitionId String                   @map("definition_id")
+  definition   AiTrainerSkillDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  /// 個人技能長文（PostgreSQL TEXT）
+  content      String                   @map("content")
+  versionNo    Int                      @map("version_no")
+  createdAt    DateTime                 @default(now()) @map("created_at")
+
+  @@unique([definitionId, versionNo])
+  @@index([definitionId, versionNo(sort: Desc)])
+  @@map("ai_trainer_skill_versions")
+}
+
+// ============================================================
+// 個人師資人脈（培訓師私有聯絡簿，供課程規劃師資建議等用途）
+// ============================================================
+model PersonalInstructorContact {
+  id               String   @id @default(uuid())
+  ownerId          String   @map("owner_id")
+  owner            User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  displayName      String   @map("display_name")
+  title            String?
+  organization     String?
+  expertiseDomains String?  @map("expertise_domains")
+  email            String?
+  lineId           String?  @map("line_id")
+  address          String?
+  phone            String?
+  notes            String?
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@index([ownerId, sortOrder])
+  @@map("personal_instructor_contacts")
+}
+
+// ============================================================
+// AI Agent 對話
+// ============================================================
+model AgentConversation {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String   @default("新對話")
+  status    String   @default("active") // active | archived
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  messages AgentMessage[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@map("agent_conversations")
+}
+
+model AgentMessage {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  conversation   AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String   // user | assistant | tool
+  content        String   // 訊息文字或工具回傳結果
+  /// 工具呼叫紀錄 JSON（toolName, params, result, durationMs）
+  toolCalls      String?  @map("tool_calls")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([conversationId, createdAt])
+  @@map("agent_messages")
+}
+
+// ============================================================
+// AI Agent 行為規則
+// ============================================================
+model AgentRule {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  title     String
+  content   String
+  scope     String   @default("global") // global | user
+  isActive  Boolean  @default(true) @map("is_active")
+  priority  Int      @default(0)
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([scope, isActive])
+  @@map("agent_rules")
+}
+
+// ============================================================
+// 使用者自定義 Agent 工具
+// ============================================================
+model CustomTool {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  /// HTTP 端點 URL，Agent 會以 POST 呼叫此端點
+  endpointUrl String   @map("endpoint_url")
+  /// JSON Schema 字串，描述輸入參數
+  inputSchema String   @map("input_schema")
+  /// 請求標頭 JSON（可存 Authorization 等）
+  headers     String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, name])
+  @@index([userId, isActive])
+  @@map("custom_tools")
+}
+
+// ============================================================
+// 班次備註與鬧鈴提醒
+// ============================================================
+model ClassNote {
+  id        String   @id @default(uuid())
+  /// null 表示「個人獨立鬧鈴」，非 null 表示附屬於某班次
+  classId   String?  @map("class_id")
+  userId    String   @map("user_id")
+  content   String
+  /// 鬧鈴日期時間（null 表示不設定鬧鈴）
+  alarmAt   DateTime? @map("alarm_at")
+  /// 是否已發送鬧鈴通知
+  alarmFired Boolean @default(false) @map("alarm_fired")
+  /// 重要性：normal（一般）| important（重要）| critical（極重要）
+  importance String  @default("normal")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([classId, userId])
+  @@index([alarmAt, alarmFired])
+  @@index([userId])
+  @@map("class_notes")
+}
+
+// ============================================================
+// 操作日誌
+// ============================================================
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?  @map("user_id")
+  action    String
+  target    String?
+  detail    String?
+  ipAddress String?  @map("ip_address")
+  /// Agent 對話 ID（Agent 動作追蹤用）
+  agentConversationId String? @map("agent_conversation_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("audit_logs")
+}

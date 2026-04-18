@@ -1,0 +1,31 @@
+# 培訓師瑞士刀 v4.0 — 本機 PostgreSQL（含 pgvector）
+# 用途：不想用 Supabase 的時候，可以本機跑一個含 pgvector 的 Postgres 替代。
+# 啟動：docker compose up -d
+#
+# 然後 .env：
+#   DATABASE_URL="postgresql://postgres:postgres@localhost:5432/trainer_swissknife"
+#   DIRECT_URL="postgresql://postgres:postgres@localhost:5432/trainer_swissknife"
+version: "3.9"
+
+services:
+  db:
+    image: pgvector/pgvector:pg17 # 官方 pgvector 映像，內建 v0.7+
+    container_name: trainer-swissknife-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: trainer_swissknife
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./scripts/postgres-init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:

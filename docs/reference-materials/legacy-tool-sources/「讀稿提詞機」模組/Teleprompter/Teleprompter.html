@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>讀稿提詞機</title>
+  <style>
+    :root {
+      --bg-a: #0d1024;
+      --bg-b: #1a2044;
+      --text-main: #eef2ff;
+      --text-sub: #c7d0ff;
+      --panel: rgba(14, 17, 36, 0.75);
+      --line: rgba(255, 255, 255, 0.2);
+      --shadow: 0 22px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(1000px 700px at -10% -30%, #2c3e85 0%, transparent 60%),
+        radial-gradient(900px 700px at 120% -35%, #12607e 0%, transparent 60%),
+        linear-gradient(145deg, var(--bg-a), var(--bg-b));
+      overflow: hidden;
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    /* ===== 步驟一：設定頁 ===== */
+    .setup-screen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .setup-card {
+      width: min(980px, 100%);
+      max-height: calc(100vh - 36px);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 1.7rem;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    .subtitle {
+      margin: 0;
+      text-align: center;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
+
+    .step-box {
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .step-label {
+      margin: 0 0 8px;
+      color: #d8e0ff;
+      font-weight: 700;
+    }
+
+    textarea {
+      width: 100%;
+      height: min(34vh, 270px);
+      resize: none;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(8, 11, 25, 0.7);
+      color: #f4f7ff;
+      padding: 12px;
+      line-height: 1.7;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field label {
+      font-size: 0.9rem;
+      color: #dbe3ff;
+    }
+
+    .input-pair {
+      display: grid;
+      grid-template-columns: 1fr 70px;
+      gap: 6px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #77a7ff;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(8, 11, 25, 0.7);
+      color: #f4f7ff;
+      border-radius: 10px;
+      padding: 7px 8px;
+      text-align: center;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .step2-area {
+      width: min(520px, 100%);
+      margin-left: auto;
+      display: grid;
+      gap: 8px;
+    }
+
+    button {
+      border: none;
+      border-radius: 11px;
+      color: #fff;
+      padding: 11px 12px;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.07);
+    }
+
+    .btn-main {
+      background: linear-gradient(135deg, #3a68ff, #5ea6ff);
+      border-radius: 7px; /* 讓按鈕更方正一點 */
+    }
+    .btn-success { background: linear-gradient(135deg, #29b778, #4ad79c); }
+    .btn-danger { background: linear-gradient(135deg, #db4f4f, #ff7a7a); }
+    .btn-ghost { background: linear-gradient(135deg, #54618e, #6f7cb0); }
+
+    .hint {
+      text-align: right;
+      color: var(--text-sub);
+      font-size: 0.9rem;
+    }
+
+    /* ===== 步驟二：提詞畫面 ===== */
+    .teleprompter {
+      position: fixed;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      background: #070b1c;
+      z-index: 20;
+    }
+
+    .teleprompter.show {
+      display: flex;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(7, 9, 23, 0.72);
+      backdrop-filter: blur(6px);
+    }
+
+    .status-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #f1f5ff;
+      font-size: 0.86rem;
+      padding: 4px 10px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mini-btns {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mini-btns button {
+      padding: 8px 10px;
+      font-size: 0.92rem;
+    }
+
+    .viewport {
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+      padding: 44vh 9% 44vh;
+      background: var(--prompt-bg, #080b1a);
+    }
+
+    .prompt {
+      width: min(96vw, 1320px);
+      margin: 0 auto;
+      color: var(--prompt-text, #ffffff);
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: var(--line-height, 1.6);
+      font-size: var(--font-size, 54px);
+    }
+
+    .guide-line {
+      position: sticky;
+      top: 50%;
+      transform: translateY(-50%);
+      margin: 0 5%;
+      height: 2px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    @media (max-width: 900px) {
+      .option-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .setup-card {
+        padding: 14px;
+      }
+      .option-grid {
+        grid-template-columns: 1fr;
+      }
+      .btn-row {
+        grid-template-columns: 1fr;
+      }
+      .step2-area {
+        width: 100%;
+        margin-left: 0;
+      }
+      .hint {
+        text-align: center;
+      }
+      textarea {
+        height: min(30vh, 220px);
+      }
+      .title {
+        font-size: 1.4rem;
+      }
+      .topbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .mini-btns {
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section id="setupScreen" class="setup-screen">
+    <div class="setup-card">
+      <h1 class="title">讀稿提詞機</h1>
+      <p class="subtitle">兩步驟：先貼稿件，再進入全螢幕提詞。所有元件都置中，單頁可直接操作。</p>
+
+      <div class="step-box">
+        <p class="step-label">步驟 1：貼上稿件</p>
+        <textarea id="scriptInput" placeholder="請貼上你的講稿內容..."></textarea>
+      </div>
+
+      <div class="step-box">
+        <p class="step-label">請先設定提詞樣式</p>
+        <div class="option-grid">
+          <div class="field">
+            <label for="themeSelect">配色主題</label>
+            <select id="themeSelect">
+              <option value="dark">深色夜幕（建議）</option>
+              <option value="light">明亮白板</option>
+              <option value="warm">暖色舞台</option>
+              <option value="mint">薄荷霓光</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="fontRange">字體大小</label>
+            <div class="input-pair">
+              <input id="fontRange" type="range" min="30" max="110" value="56">
+              <input id="fontNumber" type="number" min="30" max="110" value="56">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="speedRange">捲動速度</label>
+            <div class="input-pair">
+              <input id="speedRange" type="range" min="1" max="80" value="14">
+              <input id="speedNumber" type="number" min="1" max="80" value="14">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="lineHeightRange">行距</label>
+            <div class="input-pair">
+              <input id="lineHeightRange" type="range" min="12" max="24" value="16">
+              <input id="lineHeightNumber" type="number" min="12" max="24" value="16">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step2-area">
+        <div class="step-box">
+          <p class="step-label">步驟 2：進入提詞機畫面</p>
+          <div class="btn-row">
+            <button id="pageFullBtn" class="btn-main">網頁全螢幕</button>
+            <button id="screenFullBtn" class="btn-main">畫面全螢幕</button>
+          </div>
+        </div>
+        <p class="hint">快捷鍵：<strong>Space</strong> 開始/暫停，<strong>Esc</strong> 退出提詞畫面</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="teleprompterScreen" class="teleprompter">
+    <div class="topbar">
+      <div class="status-group">
+        <span id="stateBadge" class="badge">狀態：暫停</span>
+        <span id="timeBadge" class="badge">預估：0m 00s</span>
+      </div>
+      <div class="mini-btns">
+        <button id="playBtn" class="btn-success">開始</button>
+        <button id="resetBtn" class="btn-ghost">回到開頭</button>
+        <button id="exitBtn" class="btn-danger">退出</button>
+      </div>
+    </div>
+    <div class="guide-line"></div>
+    <div id="promptViewport" class="viewport">
+      <div id="promptInner" class="prompt">請先貼上稿件再開始。</div>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      "use strict";
+
+      const setupScreen = document.getElementById("setupScreen");
+      const teleprompterScreen = document.getElementById("teleprompterScreen");
+      const scriptInput = document.getElementById("scriptInput");
+      const promptViewport = document.getElementById("promptViewport");
+      const promptInner = document.getElementById("promptInner");
+      const stateBadge = document.getElementById("stateBadge");
+      const timeBadge = document.getElementById("timeBadge");
+
+      const themeSelect = document.getElementById("themeSelect");
+      const fontRange = document.getElementById("fontRange");
+      const fontNumber = document.getElementById("fontNumber");
+      const speedRange = document.getElementById("speedRange");
+      const speedNumber = document.getElementById("speedNumber");
+      const lineHeightRange = document.getElementById("lineHeightRange");
+      const lineHeightNumber = document.getElementById("lineHeightNumber");
+
+      const pageFullBtn = document.getElementById("pageFullBtn");
+      const screenFullBtn = document.getElementById("screenFullBtn");
+      const playBtn = document.getElementById("playBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const exitBtn = document.getElementById("exitBtn");
+
+      let isPlaying = false;
+      let rafId = null;
+      let lastTs = 0;
+      let usingScreenFullscreen = false;
+
+      const themes = {
+        dark: { bg: "#070b1c", text: "#f5f8ff" },
+        light: { bg: "#f6f8ff", text: "#0f1424" },
+        warm: { bg: "#2b160c", text: "#ffe9d4" },
+        mint: { bg: "#0c2823", text: "#defff6" }
+      };
+
+      function clamp(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function syncInput(a, b, min, max) {
+        const safe = clamp(Number(a.value || b.value), min, max);
+        a.value = String(safe);
+        b.value = String(safe);
+      }
+
+      function pixelsPerSecond() {
+        return clamp(Number(speedRange.value), 1, 80) * 4.5;
+      }
+
+      function updateThemeAndTextStyle() {
+        const theme = themes[themeSelect.value] || themes.dark;
+        const fontSize = clamp(Number(fontRange.value), 30, 110);
+        const lineHeight = clamp(Number(lineHeightRange.value), 12, 24) / 10;
+
+        promptViewport.style.setProperty("--prompt-bg", theme.bg);
+        promptInner.style.setProperty("--prompt-text", theme.text);
+        promptInner.style.setProperty("--font-size", fontSize + "px");
+        promptInner.style.setProperty("--line-height", String(lineHeight));
+        updateEstimate();
+      }
+
+      function updatePromptText() {
+        const text = scriptInput.value.trim();
+        promptInner.textContent = text || "（尚未貼上稿件）";
+        updateEstimate();
+      }
+
+      function updateEstimate() {
+        const maxScroll = Math.max(0, promptViewport.scrollHeight - promptViewport.clientHeight);
+        const remain = Math.max(0, maxScroll - promptViewport.scrollTop);
+        const sec = Math.ceil(remain / pixelsPerSecond());
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        timeBadge.textContent = "預估：" + m + "m " + String(s).padStart(2, "0") + "s";
+      }
+
+      function setPlay(nextState) {
+        isPlaying = nextState;
+        stateBadge.textContent = isPlaying ? "狀態：播放中" : "狀態：暫停";
+        playBtn.textContent = isPlaying ? "暫停" : "開始";
+        playBtn.className = isPlaying ? "btn-danger" : "btn-success";
+
+        if (isPlaying) {
+          lastTs = 0;
+          rafId = requestAnimationFrame(tick);
+        } else if (rafId) {
+          cancelAnimationFrame(rafId);
+          rafId = null;
+        }
+      }
+
+      function tick(ts) {
+        if (!isPlaying) return;
+        if (!lastTs) lastTs = ts;
+        const dt = (ts - lastTs) / 1000;
+        lastTs = ts;
+
+        promptViewport.scrollTop += pixelsPerSecond() * dt;
+        updateEstimate();
+
+        const maxScroll = promptViewport.scrollHeight - promptViewport.clientHeight;
+        if (promptViewport.scrollTop >= maxScroll) {
+          setPlay(false);
+          return;
+        }
+        rafId = requestAnimationFrame(tick);
+      }
+
+      function enterTeleprompter(openScreenFullscreen) {
+        // 修正偏左關鍵：進入提詞時只顯示單一全版面容器，不再保留雙欄佈局。
+        usingScreenFullscreen = openScreenFullscreen;
+        setupScreen.style.display = "none";
+        teleprompterScreen.classList.add("show");
+        promptViewport.scrollTop = 0;
+        updatePromptText();
+        updateThemeAndTextStyle();
+        setPlay(false);
+
+        if (openScreenFullscreen && document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen();
+        }
+      }
+
+      function exitTeleprompter() {
+        setPlay(false);
+        teleprompterScreen.classList.remove("show");
+        setupScreen.style.display = "grid";
+
+        if (document.fullscreenElement && document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+        usingScreenFullscreen = false;
+      }
+
+      pageFullBtn.addEventListener("click", function () {
+        enterTeleprompter(false);
+      });
+
+      screenFullBtn.addEventListener("click", function () {
+        enterTeleprompter(true);
+      });
+
+      playBtn.addEventListener("click", function () {
+        setPlay(!isPlaying);
+      });
+
+      resetBtn.addEventListener("click", function () {
+        promptViewport.scrollTop = 0;
+        updateEstimate();
+      });
+
+      exitBtn.addEventListener("click", function () {
+        exitTeleprompter();
+      });
+
+      scriptInput.addEventListener("input", updatePromptText);
+
+      fontRange.addEventListener("input", function () {
+        syncInput(fontRange, fontNumber, 30, 110);
+        updateThemeAndTextStyle();
+      });
+      fontNumber.addEventListener("input", function () {
+        syncInput(fontNumber, fontRange, 30, 110);
+        updateThemeAndTextStyle();
+      });
+
+      speedRange.addEventListener("input", function () {
+        syncInput(speedRange, speedNumber, 1, 80);
+        updateEstimate();
+      });
+      speedNumber.addEventListener("input", function () {
+        syncInput(speedNumber, speedRange, 1, 80);
+        updateEstimate();
+      });
+
+      lineHeightRange.addEventListener("input", function () {
+        syncInput(lineHeightRange, lineHeightNumber, 12, 24);
+        updateThemeAndTextStyle();
+      });
+      lineHeightNumber.addEventListener("input", function () {
+        syncInput(lineHeightNumber, lineHeightRange, 12, 24);
+        updateThemeAndTextStyle();
+      });
+
+      themeSelect.addEventListener("change", updateThemeAndTextStyle);
+
+      promptViewport.addEventListener("scroll", updateEstimate);
+      window.addEventListener("resize", updateEstimate);
+
+      document.addEventListener("keydown", function (event) {
+        if (!teleprompterScreen.classList.contains("show")) return;
+
+        if (event.code === "Space") {
+          event.preventDefault();
+          setPlay(!isPlaying);
+        }
+
+        if (event.key === "Escape") {
+          event.preventDefault();
+          exitTeleprompter();
+        }
+      });
+
+      document.addEventListener("fullscreenchange", function () {
+        // 若是螢幕全螢幕模式被使用者直接退出，回到設定頁，避免狀態不一致。
+        if (usingScreenFullscreen && !document.fullscreenElement && teleprompterScreen.classList.contains("show")) {
+          exitTeleprompter();
+        }
+      });
+
+      syncInput(fontRange, fontNumber, 30, 110);
+      syncInput(speedRange, speedNumber, 1, 80);
+      syncInput(lineHeightRange, lineHeightNumber, 12, 24);
+      updatePromptText();
+      updateThemeAndTextStyle();
+      updateEstimate();
+    })();
+  </script>
+</body>
+</html>

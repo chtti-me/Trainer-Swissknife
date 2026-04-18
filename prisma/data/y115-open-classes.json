@@ -1,0 +1,3149 @@
+[
+  {
+    "classCode": "CB41EE013",
+    "className": "中華電信資料治理學程-資料治理宣導教材",
+    "rocDate": "01/02",
+    "seq": "164253",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 9,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41FE014",
+    "className": "中華電信資料治理學程-資料治理基礎理論課程",
+    "rocDate": "01/02",
+    "seq": "164254",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 8,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK27XP015",
+    "className": "Github Copilot實務研習班",
+    "rocDate": "01/02",
+    "seq": "164269",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 2,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP001",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "01/07",
+    "seq": "164249",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 19,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI29KP004",
+    "className": "微軟 M365 Copilot 應用研習班",
+    "rocDate": "01/07",
+    "seq": "164258",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "游進泓",
+    "enrolledCount": 990,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB22NP001",
+    "className": "Oracle Linux Virtualization Manager 4.4 管理員課程",
+    "rocDate": "01/08",
+    "seq": "164261",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 20,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI39CP003",
+    "className": "Microsoft 365 Copilot Chat進階研習班",
+    "rocDate": "01/09",
+    "seq": "164268",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 22,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR291E012",
+    "className": "個資管理師證照更新(Renew)研習班",
+    "rocDate": "01/09",
+    "seq": "164164",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 1138,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR292E011",
+    "className": "個資內評師證照更新(Renew)研習班",
+    "rocDate": "01/09",
+    "seq": "164165",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 1083,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI29KP007",
+    "className": "微軟 M365 Copilot 應用研習班",
+    "rocDate": "01/12",
+    "seq": "164288",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "游進泓",
+    "enrolledCount": 1006,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI2A5P001",
+    "className": "2025 AWS 雲端技術發表研討會 recap 中華電信專場",
+    "rocDate": "01/13",
+    "seq": "164280",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 156,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI2A5P002",
+    "className": "2025 AWS 雲端技術發表研討會 recap 中華電信專場",
+    "rocDate": "01/13",
+    "seq": "164282",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 2,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12IP005",
+    "className": "n8n+MCP無程式碼AI自動化基礎班",
+    "rocDate": "01/14",
+    "seq": "164088",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 15,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP002",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "01/14",
+    "seq": "164250",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 11,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI28SP002",
+    "className": "Microsoft Azure 雲端新技術應用分享會-中華電信專場",
+    "rocDate": "01/15",
+    "seq": "164283",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 38,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR25BP001",
+    "className": "iOS程式開發基礎班",
+    "rocDate": "01/19",
+    "seq": "164112",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 7,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12RP001",
+    "className": "n8n no code應用-LINE AI Agents實作",
+    "rocDate": "01/20",
+    "seq": "164089",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 21,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP003",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "01/21",
+    "seq": "164251",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 8,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI27XP014",
+    "className": "AWS助理級架構師認證輔導班",
+    "rocDate": "01/21",
+    "seq": "163984",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 6,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI29KP005",
+    "className": "微軟 M365 Copilot 應用研習班",
+    "rocDate": "01/21",
+    "seq": "164259",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "游進泓",
+    "enrolledCount": 1044,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR25AP001",
+    "className": "Vibe Coding 初體驗",
+    "rocDate": "01/23",
+    "seq": "164090",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 22,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT258P016",
+    "className": "人工智慧系列直播課程",
+    "rocDate": "01/23",
+    "seq": "163905",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 13,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CH213P001",
+    "className": "欠費催收作業",
+    "rocDate": "01/26",
+    "seq": "164377",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 97,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI29KP008",
+    "className": "微軟 M365 Copilot 應用研習班",
+    "rocDate": "01/26",
+    "seq": "164312",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "游進泓",
+    "enrolledCount": 1003,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR25CP001",
+    "className": "iOS影音串流與錄播功能實作開發班",
+    "rocDate": "01/26",
+    "seq": "164117",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 6,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP004",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "01/28",
+    "seq": "164252",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 14,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB22OP001",
+    "className": "Oracle APEX Developer Professional",
+    "rocDate": "01/29",
+    "seq": "164262",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 20,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR21OP012",
+    "className": "網分新進人員資安個資保護宣導班",
+    "rocDate": "01/30",
+    "seq": "164434",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 13,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年1 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41EE014",
+    "className": "中華電信資料治理學程-資料治理宣導教材",
+    "rocDate": "02/02",
+    "seq": "164450",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 28,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41FE015",
+    "className": "中華電信資料治理學程-資料治理基礎理論課程",
+    "rocDate": "02/02",
+    "seq": "164451",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 27,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41GE012",
+    "className": "中華電信資料治理學程-資料目錄(EDC)的建立與操作使用",
+    "rocDate": "02/02",
+    "seq": "164452",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 3,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41HE014",
+    "className": "中華電信資料治理學程-資料標準規則建立與品質檢測",
+    "rocDate": "02/02",
+    "seq": "164453",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 2,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT40BP001",
+    "className": "ISO27017/27018雲服務資安與個資保護管理主導稽核員班",
+    "rocDate": "02/02",
+    "seq": "164440",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "余東諺",
+    "enrolledCount": 18,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR27AP055",
+    "className": "個資管理師學程認證班",
+    "rocDate": "02/03",
+    "seq": "164159",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 40,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP005",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "02/04",
+    "seq": "164271",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 7,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CH214P001",
+    "className": "發票作業研習班",
+    "rocDate": "02/04",
+    "seq": "164433",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 122,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI29KP006",
+    "className": "微軟 M365 Copilot 應用研習班",
+    "rocDate": "02/04",
+    "seq": "164260",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "游進泓",
+    "enrolledCount": 1057,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB24GP001",
+    "className": "GitHub Copilot 進階功能工作坊",
+    "rocDate": "02/05",
+    "seq": "164411",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 72,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI29KP009",
+    "className": "微軟 M365 Copilot 應用研習班",
+    "rocDate": "02/09",
+    "seq": "164313",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "游進泓",
+    "enrolledCount": 1001,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP006",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "02/11",
+    "seq": "164272",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 9,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CH111P001",
+    "className": "AI與SQL實務應用班",
+    "rocDate": "02/11",
+    "seq": "164422",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 68,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT40CP001",
+    "className": "AI 工作流程整合X腦力激盪-案例分享",
+    "rocDate": "02/12",
+    "seq": "165186",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 12,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI2CMP001",
+    "className": "AWS AI 驅動的應用系統現代化工作坊",
+    "rocDate": "02/24",
+    "seq": "164438",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 62,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP007",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "02/25",
+    "seq": "164273",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 8,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CW23JP015",
+    "className": "ISO 27001內稽教育訓練班",
+    "rocDate": "02/25",
+    "seq": "165024",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 20,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年2 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41EE015",
+    "className": "中華電信資料治理學程-資料治理宣導教材",
+    "rocDate": "03/02",
+    "seq": "165370",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 8,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41FE016",
+    "className": "中華電信資料治理學程-資料治理基礎理論課程",
+    "rocDate": "03/02",
+    "seq": "165371",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 8,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41GE013",
+    "className": "中華電信資料治理學程-資料目錄(EDC)的建立與操作使用",
+    "rocDate": "03/02",
+    "seq": "165372",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 10,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41HE015",
+    "className": "中華電信資料治理學程-資料標準規則建立與品質檢測",
+    "rocDate": "03/02",
+    "seq": "165373",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 10,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI29KP010",
+    "className": "微軟 M365 Copilot 應用研習班",
+    "rocDate": "03/02",
+    "seq": "165271",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "游進泓",
+    "enrolledCount": 10,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR24CE014",
+    "className": "安全程式碼撰寫基礎訓練班",
+    "rocDate": "03/02",
+    "seq": "164677",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 19,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK27XP016",
+    "className": "Github Copilot實務研習班",
+    "rocDate": "03/03",
+    "seq": "164412",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 34,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程",
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR27AP056",
+    "className": "個資管理師學程認證班",
+    "rocDate": "03/03",
+    "seq": "164213",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 40,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT40DP001",
+    "className": "AI 工作流程整合X腦力激盪-實戰工作坊",
+    "rocDate": "03/03",
+    "seq": "165214",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 22,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP008",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "03/04",
+    "seq": "164274",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 5,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CH109P001",
+    "className": "AI資料治理宣導系列課程",
+    "rocDate": "03/04",
+    "seq": "165320",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 105,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CH109P002",
+    "className": "AI資料治理宣導系列課程",
+    "rocDate": "03/04",
+    "seq": "165321",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 105,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CH109P003",
+    "className": "AI資料治理宣導系列課程",
+    "rocDate": "03/05",
+    "seq": "165322",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 21,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI493P001",
+    "className": "Google Cloud上的AI與機器學習",
+    "rocDate": "03/05",
+    "seq": "165405",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 26,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI29KP011",
+    "className": "微軟 M365 Copilot 應用研習班",
+    "rocDate": "03/09",
+    "seq": "165334",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 12,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI39GP001",
+    "className": "M365 Copilot 應用實戰工作坊",
+    "rocDate": "03/09",
+    "seq": "165333",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "游進泓",
+    "enrolledCount": 40,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR25AP002",
+    "className": "Vibe Coding 初體驗",
+    "rocDate": "03/10",
+    "seq": "165462",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 228,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP009",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "03/11",
+    "seq": "164275",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 12,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI2CGP004",
+    "className": "中華電信雲化與 AWS 財務管理實務班",
+    "rocDate": "03/11",
+    "seq": "165517",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 2,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI494P001",
+    "className": "AI公雲(Google Cloud)技術與應用-資料倉儲學程",
+    "rocDate": "03/12",
+    "seq": "165518",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 20,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CL304P016",
+    "className": "APM監測實務訓練班",
+    "rocDate": "03/12",
+    "seq": "165531",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "夏少強",
+    "enrolledCount": 71,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN203P001",
+    "className": "Oracle Database：Security Fundamentals",
+    "rocDate": "03/12",
+    "seq": "165437",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 16,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR21NP008",
+    "className": "資安與個資隱私風險管理實作訓練班",
+    "rocDate": "03/12",
+    "seq": "164481",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 544,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT35XP002",
+    "className": "Agentic AI技術與應用發展研討",
+    "rocDate": "03/12",
+    "seq": "165533",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CX210P037",
+    "className": "資安系列直播課程",
+    "rocDate": "03/12",
+    "seq": "165502",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "余東諺",
+    "enrolledCount": 5,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB24FP001",
+    "className": "Github Copilot認證輔導班",
+    "rocDate": "03/13",
+    "seq": "164414",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 34,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB2F1P005",
+    "className": "Tableau視覺化分析入門研習班",
+    "rocDate": "03/16",
+    "seq": "164630",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 57,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT35XP001",
+    "className": "Agentic AI技術與應用發展研討",
+    "rocDate": "03/16",
+    "seq": "165316",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 21,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP010",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "03/18",
+    "seq": "164276",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 9,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CW282P003",
+    "className": "資安專業訓練班",
+    "rocDate": "03/18",
+    "seq": "165466",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "余東諺",
+    "enrolledCount": 11,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB116P008",
+    "className": "數位筆記術應用-以常用筆記軟體為例",
+    "rocDate": "03/19",
+    "seq": "165008",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 82,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15FP001",
+    "className": "Antigravity：從 AI 協作寫程式到可上線產品的實戰",
+    "rocDate": "03/19",
+    "seq": "165525",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 1,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR22IP001",
+    "className": "「ISMS」與「PIMS」驗證研討會",
+    "rocDate": "03/19",
+    "seq": "165534",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 285,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CW27CP001",
+    "className": "BCM AI自動化應用實務推廣班",
+    "rocDate": "03/19",
+    "seq": "165486",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "夏少強",
+    "enrolledCount": 40,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CH215P001",
+    "className": "帳單合併、轉帳代繳、專案預繳作業說明",
+    "rocDate": "03/20",
+    "seq": "165523",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 105,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK32VP005",
+    "className": "使用者需求探索工作坊",
+    "rocDate": "03/20",
+    "seq": "165113",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 39,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT21XP013",
+    "className": "Excel x AI 商務數據分析實戰",
+    "rocDate": "03/20",
+    "seq": "165319",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李效寬",
+    "enrolledCount": 139,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CG125P006",
+    "className": "企業直播實務班-使用OBS直播串流工具",
+    "rocDate": "03/23",
+    "seq": "164684",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 12,
+    "isPlanClass": true,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI31DP001",
+    "className": "Kubernetes 程設/維運工程師核心技術班",
+    "rocDate": "03/23",
+    "seq": "164878",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 23,
+    "isPlanClass": true,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT35RP008",
+    "className": "財政部AI訓練專案",
+    "rocDate": "03/23",
+    "seq": "165087",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 227,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP011",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "03/25",
+    "seq": "164277",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 8,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI37SP008",
+    "className": "AWS認證解決方案架構師-專家級認證輔導班",
+    "rocDate": "03/25",
+    "seq": "165590",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 2,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK22MP008",
+    "className": "Scrum敏捷軟體開發專案工作坊-樂高積木實作",
+    "rocDate": "03/25",
+    "seq": "165011",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 32,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15DP001",
+    "className": "Agentic AI 加速工作流",
+    "rocDate": "03/25",
+    "seq": "165503",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 5,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB319P001",
+    "className": "SQL Server AI應用實務班",
+    "rocDate": "03/26",
+    "seq": "165424",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 47,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI2CMP002",
+    "className": "AWS AI 驅動的應用系統現代化工作坊",
+    "rocDate": "03/26",
+    "seq": "165576",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 13,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK32ZP008",
+    "className": "Google創新寶劍: 設計衝刺體驗營",
+    "rocDate": "03/26",
+    "seq": "165012",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 28,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN204P001",
+    "className": "Oracle Database： Data Confidentiality",
+    "rocDate": "03/26",
+    "seq": "165435",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 14,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR21NP007",
+    "className": "資安與個資隱私風險管理實作訓練班",
+    "rocDate": "03/26",
+    "seq": "164480",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 365,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB319P002",
+    "className": "SQL Server AI應用實務班",
+    "rocDate": "03/27",
+    "seq": "165425",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 12,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15FP002",
+    "className": "Antigravity：從 AI 協作寫程式到可上線產品的實戰",
+    "rocDate": "03/27",
+    "seq": "165526",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 1,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN205P001",
+    "className": "Oracle Database：監控和維護安全環境",
+    "rocDate": "03/27",
+    "seq": "165451",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 16,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR20XP006",
+    "className": "資安個資法遵與標準基礎班",
+    "rocDate": "03/27",
+    "seq": "164172",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 595,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT21LP001",
+    "className": "看板(Kanban)方法進階工作坊",
+    "rocDate": "03/31",
+    "seq": "164444",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 20,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年3 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41EE016",
+    "className": "中華電信資料治理學程-資料治理宣導教材",
+    "rocDate": "04/01",
+    "seq": "165613",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 15,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41GE014",
+    "className": "中華電信資料治理學程-資料目錄(EDC)的建立與操作使用",
+    "rocDate": "04/01",
+    "seq": "165614",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 5,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41HE016",
+    "className": "中華電信資料治理學程-資料標準規則建立與品質檢測",
+    "rocDate": "04/01",
+    "seq": "165615",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 6,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CC33CP012",
+    "className": "Vibe Coding AI輔助程式設計開發",
+    "rocDate": "04/01",
+    "seq": "164278",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 4,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR24WE014",
+    "className": "安全程式碼撰寫進階課程（Python）",
+    "rocDate": "04/01",
+    "seq": "164676",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 17,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR27BE005",
+    "className": "電腦終端設備維護管理班",
+    "rocDate": "04/01",
+    "seq": "164841",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 14,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB116P007",
+    "className": "數位筆記術應用-以常用筆記軟體為例",
+    "rocDate": "04/02",
+    "seq": "164671",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 34,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15FP003",
+    "className": "Antigravity：從 AI 協作寫程式到可上線產品的實戰",
+    "rocDate": "04/02",
+    "seq": "165527",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 6,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR28AP018",
+    "className": "個資內評師學程認證班",
+    "rocDate": "04/02",
+    "seq": "164237",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 40,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB41FE017",
+    "className": "中華電信資料治理學程-資料治理基礎理論課程",
+    "rocDate": "04/06",
+    "seq": "165638",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 14,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CH216E001",
+    "className": "資料治理學程",
+    "rocDate": "04/07",
+    "seq": "165578",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 50,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI28PP012",
+    "className": "微軟 Azure AI 基礎知識認證輔導班",
+    "rocDate": "04/07",
+    "seq": "164465",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 59,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程",
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN31DP001",
+    "className": "Google Cloud Vertex AI企業智慧代理與雲端自動化簡介",
+    "rocDate": "04/07",
+    "seq": "164454",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 12,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15DP002",
+    "className": "Agentic AI 加速工作流",
+    "rocDate": "04/08",
+    "seq": "165504",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 15,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR22HP001",
+    "className": "客網裝移機作業個資委外管理訓練班",
+    "rocDate": "04/08",
+    "seq": "165513",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 47,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB24FP005",
+    "className": "Github Copilot認證輔導班",
+    "rocDate": "04/09",
+    "seq": "165490",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 79,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB24FP004",
+    "className": "Github Copilot認證輔導班",
+    "rocDate": "04/09",
+    "seq": "165489",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 98,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI495P001",
+    "className": "AI公雲(Google Cloud)技術與應用-機器學習學程",
+    "rocDate": "04/09",
+    "seq": "165593",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 18,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN206P001",
+    "className": "Oracle Database Select AI",
+    "rocDate": "04/09",
+    "seq": "165492",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 14,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12PP002",
+    "className": "Power Automate 與Microsoft 365整合應用班",
+    "rocDate": "04/10",
+    "seq": "165619",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "林志榮",
+    "enrolledCount": 22,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15FP004",
+    "className": "Antigravity：從 AI 協作寫程式到可上線產品的實戰",
+    "rocDate": "04/10",
+    "seq": "165528",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 3,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CG20XP001",
+    "className": "Libreoffice Writer文書處理",
+    "rocDate": "04/13",
+    "seq": "165577",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "賴瓊惠",
+    "enrolledCount": 57,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI31EP001",
+    "className": "Kubernetes 最佳企業服務典範實戰",
+    "rocDate": "04/13",
+    "seq": "164879",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 15,
+    "isPlanClass": true,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI39GP002",
+    "className": "M365 Copilot 應用實戰工作坊",
+    "rocDate": "04/14",
+    "seq": "165646",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "游進泓",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK336P009",
+    "className": "新產品開發規劃研習班",
+    "rocDate": "04/14",
+    "seq": "165013",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 37,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB23EP001",
+    "className": "PostgreSQL 維運管理班",
+    "rocDate": "04/15",
+    "seq": "164209",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 37,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CG126P008",
+    "className": "文宣簡報視覺圖表輕鬆做-使用Canva製圖設計工具",
+    "rocDate": "04/15",
+    "seq": "164683",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 95,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI383P001",
+    "className": "Gemini Enterprise企業級應用實戰工作坊",
+    "rocDate": "04/15",
+    "seq": "165647",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB116P006",
+    "className": "數位筆記術應用-以常用筆記軟體為例",
+    "rocDate": "04/16",
+    "seq": "164670",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 36,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12KP004",
+    "className": "AI職場工作術手法篇-以NotebookLM為例",
+    "rocDate": "04/16",
+    "seq": "164608",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 520,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB24FP002",
+    "className": "Github Copilot認證輔導班",
+    "rocDate": "04/16",
+    "seq": "165448",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 34,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK32WP005",
+    "className": "使用者旅程地圖工作坊",
+    "rocDate": "04/16",
+    "seq": "165282",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 20,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB3F1P003",
+    "className": "Tableau視覺化分析進階研習班",
+    "rocDate": "04/20",
+    "seq": "164631",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃鴻儒",
+    "enrolledCount": 27,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI27WP006",
+    "className": "微軟 Azure 資料庫解決方案認證輔導班",
+    "rocDate": "04/20",
+    "seq": "164467",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 1,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK330P001",
+    "className": "微軟 Azure AI 資訊擷取解決方案研習班",
+    "rocDate": "04/20",
+    "seq": "164769",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 31,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程",
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN31DP003",
+    "className": "Google Cloud Vertex AI企業智慧代理與雲端自動化簡介",
+    "rocDate": "04/21",
+    "seq": "164456",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 7,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT35YP001",
+    "className": "AI技術應用成果分享",
+    "rocDate": "04/21",
+    "seq": "165645",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "林志榮",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR21ZP001",
+    "className": "資安與個資領域專題演講",
+    "rocDate": "04/22",
+    "seq": "165302",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 90,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK32XP006",
+    "className": "App/Web介面易用性測試工作坊",
+    "rocDate": "04/23",
+    "seq": "165284",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 38,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK334P001",
+    "className": "微軟 Azure AI 自然語言處理解決方案研習班",
+    "rocDate": "04/23",
+    "seq": "165491",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 27,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15EP001",
+    "className": "RAG 精準搜尋實戰：打造能自己變準的 AI 搜尋系統",
+    "rocDate": "04/23",
+    "seq": "165505",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 7,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN207P001",
+    "className": "Oracle AI Vector Search Deep Dive",
+    "rocDate": "04/23",
+    "seq": "165493",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB24FP003",
+    "className": "Github Copilot認證輔導班",
+    "rocDate": "04/24",
+    "seq": "165447",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 37,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK32VP006",
+    "className": "使用者需求探索工作坊",
+    "rocDate": "04/24",
+    "seq": "165112",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 24,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT21XP014",
+    "className": "Excel x AI 商務數據分析實戰",
+    "rocDate": "04/24",
+    "seq": "165318",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李效寬",
+    "enrolledCount": 143,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CW46JP002",
+    "className": "中華電信科技日(CHT Tech Day)",
+    "rocDate": "04/24",
+    "seq": "165650",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CG123P009",
+    "className": "Google Analytics數據分析入門班",
+    "rocDate": "04/28",
+    "seq": "164686",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 63,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI28YP005",
+    "className": "AWS 雲端維運(Cloud Operations on AWS)認證輔導班",
+    "rocDate": "04/28",
+    "seq": "165653",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK22MP009",
+    "className": "Scrum敏捷軟體開發專案工作坊-樂高積木實作",
+    "rocDate": "04/28",
+    "seq": "165010",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 36,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR30DP009",
+    "className": "Linux惡意程式分析基礎班",
+    "rocDate": "04/28",
+    "seq": "164873",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 34,
+    "isPlanClass": true,
+    "tags": [
+      "三所遠距"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT35WP001",
+    "className": "AI應用規畫師證照培訓班",
+    "rocDate": "04/29",
+    "seq": "165639",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李效寬",
+    "enrolledCount": 13,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距"
+    ],
+    "sourceFile": "115 年4 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12NP001",
+    "className": "AI 簡報與行銷設計應用班",
+    "rocDate": "05/04",
+    "seq": "164707",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 67,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK33AP001",
+    "className": "微軟 Azure AI 視覺解決方案研習班",
+    "rocDate": "05/04",
+    "seq": "165494",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 22,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR24XE011",
+    "className": "安全程式碼撰寫進階課程（PHP）",
+    "rocDate": "05/04",
+    "seq": "164675",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 4,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15EP002",
+    "className": "RAG 精準搜尋實戰：打造能自己變準的 AI 搜尋系統",
+    "rocDate": "05/05",
+    "seq": "165506",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 3,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR27AP057",
+    "className": "個資管理師學程認證班",
+    "rocDate": "05/05",
+    "seq": "164300",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 41,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12JP003",
+    "className": "AI職場工作術心法篇-以NotebookLM為例",
+    "rocDate": "05/07",
+    "seq": "164689",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 181,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI496P001",
+    "className": "AI公雲(Google Cloud)技術與應用-生成式AI學程",
+    "rocDate": "05/07",
+    "seq": "165630",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK17QP009",
+    "className": "Git 入門",
+    "rocDate": "05/07",
+    "seq": "164681",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 36,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程",
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK33BP001",
+    "className": "微軟 Azure 開發 AI 應用程式研習班",
+    "rocDate": "05/08",
+    "seq": "165496",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 27,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR29YP003",
+    "className": "風險評鑑系統機構幫手教育訓練",
+    "rocDate": "05/08",
+    "seq": "164901",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 49,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程",
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12OP001",
+    "className": "Power BI × AI 數據洞察與儀表板設計班",
+    "rocDate": "05/11",
+    "seq": "164709",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 76,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI31GP001",
+    "className": "Kubernetes 最佳 DevOps 典範實戰班",
+    "rocDate": "05/11",
+    "seq": "164882",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 8,
+    "isPlanClass": true,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR151E002",
+    "className": "行動裝置資安防護研習班",
+    "rocDate": "05/11",
+    "seq": "165104",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "余東諺",
+    "enrolledCount": 46,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK27QP008",
+    "className": "Git 進階",
+    "rocDate": "05/14",
+    "seq": "164680",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 28,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程",
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15EP003",
+    "className": "RAG 精準搜尋實戰：打造能自己變準的 AI 搜尋系統",
+    "rocDate": "05/14",
+    "seq": "165507",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": 2,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN208P001",
+    "className": "JDBC High Availability with Oracle RAC",
+    "rocDate": "05/15",
+    "seq": "165497",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI39GP003",
+    "className": "M365 Copilot 應用實戰工作坊",
+    "rocDate": "05/18",
+    "seq": "165648",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "游進泓",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK22SP001",
+    "className": "Scrum Product Owner認證輔導班",
+    "rocDate": "05/18",
+    "seq": "165575",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "莊國志",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN31DP005",
+    "className": "Google Cloud Vertex AI企業智慧代理與雲端自動化簡介",
+    "rocDate": "05/19",
+    "seq": "164458",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 1,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK32WP006",
+    "className": "使用者旅程地圖工作坊",
+    "rocDate": "05/20",
+    "seq": "165281",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 4,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK33CP001",
+    "className": "微軟 Azure 開發 AI 代理程式研習班",
+    "rocDate": "05/20",
+    "seq": "165501",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": 30,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12JP004",
+    "className": "AI職場工作術心法篇-以NotebookLM為例",
+    "rocDate": "05/21",
+    "seq": "164688",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 168,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB2CRP007",
+    "className": "Redis維運管理入門班",
+    "rocDate": "05/21",
+    "seq": "164785",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 22,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK32XP007",
+    "className": "App/Web介面易用性測試工作坊",
+    "rocDate": "05/21",
+    "seq": "165283",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 12,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN15EP004",
+    "className": "RAG 精準搜尋實戰：打造能自己變準的 AI 搜尋系統",
+    "rocDate": "05/21",
+    "seq": "165508",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李誠偉",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR21NP009",
+    "className": "資安與個資隱私風險管理實作訓練班",
+    "rocDate": "05/21",
+    "seq": "165168",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 21,
+    "isPlanClass": true,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN209P001",
+    "className": "Machine Learning in Oracle AI Database",
+    "rocDate": "05/22",
+    "seq": "165498",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 1,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR108P014",
+    "className": "弱點掃描暨滲透測試基礎實務",
+    "rocDate": "05/22",
+    "seq": "164937",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 52,
+    "isPlanClass": true,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CT21XP015",
+    "className": "Excel x AI 商務數據分析實戰",
+    "rocDate": "05/22",
+    "seq": "165317",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "李效寬",
+    "enrolledCount": 154,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI27ZP014",
+    "className": "AWS雲端從業者基礎班(Cloud Practitioner Essentials)",
+    "rocDate": "05/26",
+    "seq": "165177",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": 21,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程",
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK22MP010",
+    "className": "Scrum敏捷軟體開發專案工作坊-樂高積木實作",
+    "rocDate": "05/27",
+    "seq": "165009",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃敏純",
+    "enrolledCount": 10,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK32UP009",
+    "className": "看板(Kanban)工作坊",
+    "rocDate": "05/27",
+    "seq": "165602",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "莊國志",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年5 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CG20YP001",
+    "className": "Libreoffice Calc試算表",
+    "rocDate": "06/01",
+    "seq": "165579",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "賴瓊惠",
+    "enrolledCount": 8,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR24YE013",
+    "className": "安全程式碼撰寫進階課程（C#）",
+    "rocDate": "06/01",
+    "seq": "164674",
+    "department": "E",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR27AP058",
+    "className": "個資管理師學程認證班",
+    "rocDate": "06/02",
+    "seq": "165165",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 39,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12JP005",
+    "className": "AI職場工作術心法篇-以NotebookLM為例",
+    "rocDate": "06/04",
+    "seq": "164687",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI39GP004",
+    "className": "M365 Copilot 應用實戰工作坊",
+    "rocDate": "06/04",
+    "seq": "165649",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "游進泓",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12MP001",
+    "className": "AI 設計力養成班：從 Canva 入門到社群行銷班",
+    "rocDate": "06/11",
+    "seq": "164704",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB2COP006",
+    "className": "Apache Kafka維運管理班",
+    "rocDate": "06/11",
+    "seq": "164784",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR20XP007",
+    "className": "資安個資法遵與標準基礎班",
+    "rocDate": "06/12",
+    "seq": "165007",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "史明德",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR24EP066",
+    "className": "安全程式碼撰寫基礎測驗班",
+    "rocDate": "06/12",
+    "seq": "165515",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 42,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12LP001",
+    "className": "Notion × AI 雙效整合：筆記、資料庫與自動化一次搞定應用班",
+    "rocDate": "06/15",
+    "seq": "164693",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN31DP002",
+    "className": "Google Cloud Vertex AI企業智慧代理與雲端自動化簡介",
+    "rocDate": "06/16",
+    "seq": "164455",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 1,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CK326P004",
+    "className": "敏捷開發Certified Scrum Master(CSM)認證班",
+    "rocDate": "06/17",
+    "seq": "165594",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "莊國志",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB23DP001",
+    "className": "PostgreSQL 基礎管理入門班",
+    "rocDate": "06/24",
+    "seq": "164725",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB23EP002",
+    "className": "PostgreSQL 維運管理班",
+    "rocDate": "06/26",
+    "seq": "165611",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CI2C5P004",
+    "className": "AWS Certified AI Practitioner輔導認證班",
+    "rocDate": "06/30",
+    "seq": "165610",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "鄭宗建",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年6 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR27AP059",
+    "className": "個資管理師學程認證班",
+    "rocDate": "07/02",
+    "seq": "165605",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "史明德",
+    "enrolledCount": 14,
+    "isPlanClass": false,
+    "tags": [
+      "三所遠距",
+      "中央端"
+    ],
+    "sourceFile": "115 年7 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB12PP001",
+    "className": "Power Automate 與Microsoft 365整合應用班",
+    "rocDate": "07/14",
+    "seq": "164716",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年7 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN31DP004",
+    "className": "Google Cloud Vertex AI企業智慧代理與雲端自動化簡介",
+    "rocDate": "07/14",
+    "seq": "164457",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 1,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年7 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CB2CYP004",
+    "className": "普羅米修斯Prometheus監控與警報維運管理基礎班",
+    "rocDate": "07/23",
+    "seq": "164786",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": null,
+    "isPlanClass": true,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年7 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CG20ZP001",
+    "className": "Libreoffice Impress簡報",
+    "rocDate": "07/23",
+    "seq": "165580",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "未核定",
+    "mentorName": "賴瓊惠",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年7 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR24JP024",
+    "className": "委外安全程式碼撰寫基礎訓練班",
+    "rocDate": "08/11",
+    "seq": "165514",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": null,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年8 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CN31DP006",
+    "className": "Google Cloud Vertex AI企業智慧代理與雲端自動化簡介",
+    "rocDate": "08/18",
+    "seq": "164459",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "郭雅菁",
+    "enrolledCount": 2,
+    "isPlanClass": false,
+    "tags": [
+      "純直播課程"
+    ],
+    "sourceFile": "115 年8 月 開班計畫表.html"
+  },
+  {
+    "classCode": "CR24EP067",
+    "className": "安全程式碼撰寫基礎測驗班",
+    "rocDate": "09/11",
+    "seq": "165516",
+    "department": "P",
+    "campusFromSection": "院本部",
+    "statusRaw": "已核定",
+    "mentorName": "黃建豪",
+    "enrolledCount": 10,
+    "isPlanClass": false,
+    "tags": [],
+    "sourceFile": "115 年9 月 開班計畫表.html"
+  }
+]

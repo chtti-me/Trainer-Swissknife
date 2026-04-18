@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 安裝依賴
+        run: npm ci
+
+      - name: Prisma Generate
+        run: npx prisma generate
+
+      - name: TypeScript 型別檢查
+        run: npx tsc --noEmit
+
+      - name: ESLint 檢查
+        run: npm run lint
+
+      - name: 建置
+        run: npm run build
+        env:
+          DATABASE_URL: "file:./dev.db"
+          NEXTAUTH_SECRET: "ci-test-secret"
+          NEXTAUTH_URL: "http://localhost:3000"

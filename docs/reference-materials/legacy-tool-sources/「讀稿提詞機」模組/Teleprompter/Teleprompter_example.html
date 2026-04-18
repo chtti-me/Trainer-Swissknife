@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>線上讀稿提詞機 • Online Teleprompter</title>
+    <link rel="icon" type="image/png" href="https://deanlin.net/images/favicon.png">
+    <meta name="description" content="讀稿提詞機（Teleprompter）是一款簡單易用的線上提詞工具，支援多語言、全螢幕顯示與自訂顏色，適合演講、錄影、直播使用。">
+    <meta property="og:image" content="https://deanlin.net/teleprompter/preview.png">
+    <meta property="og:title" content="線上讀稿提詞機 • Online Teleprompter">
+    <meta property="og:description" content="讀稿提詞機（Teleprompter）是一款簡單易用的線上提詞工具，支援多語言、全螢幕顯示與自訂顏色，適合演講、錄影、直播使用。">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deanlin.net/teleprompter/">
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      :root {
+        --control-bg: #222;
+        --control-color: #fff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", "PingFang TC", sans-serif;
+        background: #f7f7f7;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* ===== 首頁區塊 ===== */
+      #home {
+        padding: 2rem 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      h1 {
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        font-size: 2rem;
+        text-align: center;
+      }
+
+      .creator {
+        font-size: 1.3rem;
+        color: #444;
+        margin-bottom: 0.7em;
+        text-align: center;
+        font-weight: 500;
+      }
+      .creator a {
+        color: #007aff;
+        text-decoration: none;
+      }
+      .creator a:hover {
+        text-decoration: underline;
+      }
+      @media (max-width: 600px) {
+        .creator {
+          font-size: 1.1rem;
+        }
+      }
+
+      /* LangSelect 美化樣式 */
+      .lang-select {
+        position: relative;
+        min-width: 160px;
+        user-select: none;
+      }
+      .lang-select__selected {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.4em 1em;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 1.5px solid #ccc;
+        background: #fff;
+        color: #333;
+        box-shadow: 0 2px 8px #0001;
+        font-size: 1.08em;
+        transition: border 0.2s, box-shadow 0.2s;
+      }
+      .lang-select__selected:hover {
+        border: 1.5px solid #007aff;
+        box-shadow: 0 4px 16px #007aff22;
+      }
+      .lang-select__icon {
+        margin-left: 0.7em;
+        font-size: 1.2em;
+        pointer-events: none;
+        color: #888;
+        transition: color 0.2s;
+      }
+      .lang-select__dropdown {
+        position: absolute;
+        top: 110%;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        border: 1.5px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px #0002;
+        z-index: 1001;
+        max-height: 220px;
+        overflow-y: auto;
+        margin-top: 0.2em;
+      }
+      .lang-select__option {
+        padding: 0.6em 1em;
+        cursor: pointer;
+        font-size: 1.05em;
+        border-radius: 6px;
+        transition: background 0.2s, color 0.2s;
+      }
+      .lang-select__option:hover {
+        background: #f0f6ff;
+        color: #007aff;
+      }
+
+      textarea {
+        width: 100%;
+        max-width: 720px;
+        height: 200px;
+        padding: 1rem;
+        resize: vertical;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 1rem;
+        line-height: 1.5;
+        margin-bottom: 2rem;
+      }
+
+      .home-btns {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .primary-btn {
+        align-self: center;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background: #000;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background 0.3s;
+      }
+      .primary-btn:hover {
+        background: #222;
+        box-shadow: 0 2px 8px 0 #0006;
+      }
+
+      /* ===== 全螢幕樣式 ===== */
+      :fullscreen body {
+        background: var(--bg-color, #000);
+      }
+
+      .page-full-container {
+        position: fixed;
+        inset: 0;
+        background: var(--bg-color, #000);
+        display: flex;
+        flex-direction: column;
+        z-index: 998;
+      }
+
+      .prompt-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 6rem 2rem 2rem;
+        margin: 0 auto;
+        overflow-y: auto;
+        height: 100vh;
+      }
+
+      .prompt-text {
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.6;
+      }
+
+      /* 控制列 */
+      .controls {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: var(--control-bg);
+        color: var(--control-color);
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+        padding: 0.5rem 1rem;
+        z-index: 1000;
+        font-size: 1rem;
+      }
+      :fullscreen .controls {
+        font-size: 2rem;
+        background: rgba(34,34,34,0.7);
+        transition: background 0.3s;
+      }
+
+      .page-full-container .controls {
+        background: rgba(34,34,34,0.7);
+        transition: background 0.3s;
+      }
+
+      .controls button,
+      .controls select,
+      .controls input[type="range"] {
+        font: inherit;
+      }
+
+      .controls button {
+        border: none;
+        border-radius: 4px;
+        padding: 0.4em 0.8em;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background 0.3s;
+      }
+      .controls button.play {
+        background: #28a745;
+        color: #fff;
+      }
+      .controls button.play:hover {
+        background: #208838;
+      }
+      .controls button.pause {
+        background: #dc3545;
+        color: #fff;
+      }
+      .controls button.pause:hover {
+        background: #b52a37;
+      }
+      .controls button.exit {
+        background: #000;
+        color: #fff;
+      }
+      .controls button.exit:hover {
+        background: #222;
+        box-shadow: 0 2px 8px 0 #0006;
+      }
+
+      .controls label {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+      }
+      .controls input[type="number"] {
+        background: #fff;
+        border: 1.5px solid #ccc;
+        border-radius: 5px;
+        padding: 0.15em 0.5em;
+        font-size: 1em;
+        transition: border 0.2s;
+        box-shadow: 0 1px 2px #0001;
+      }
+      .controls input[type="number"]:focus {
+        border: 1.5px solid #007aff;
+        outline: none;
+      }
+
+      /* 色票選單 */
+      .color-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 1.5em;
+      }
+
+      /* 新增 ColorSelect 樣式 */
+      .color-select {
+        position: relative;
+        min-width: 84px;
+        user-select: none;
+      }
+      .color-select__selected {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.4em 0.8em;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 1px solid #ccc;
+        background: #fff;
+        color: #333;
+        min-width: 70px;
+        gap: 0.5em;
+        height: 1.5em;
+      }
+      .color-select__icon {
+        margin-left: 0.5em;
+        font-size: 1.2em;
+        pointer-events: none;
+        transition: color 0.2s;
+      }
+      .color-select__dropdown {
+        position: absolute;
+        top: 110%;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px #0001;
+        z-index: 1001;
+        max-height: 220px;
+        overflow-y: auto;
+      }
+      .color-select__option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.4em 0.8em;
+        cursor: pointer;
+        gap: 0.5em;
+      }
+      .color-select__option:hover {
+        background: #eee;
+      }
+
+      /* RWD */
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 1.5rem;
+        }
+        .controls {
+          gap: 0.5rem;
+        }
+      }
+      .shortcut-hint {
+        margin-top: 2.5rem;
+        display: inline-block;
+        background: #fffbe7;
+        border: 1.5px solid #ffe066;
+        border-radius: 14px;
+        box-shadow: 0 2px 12px #0001;
+        padding: 1.2em 2em 1.1em 2em;
+        text-align: center;
+        font-size: 1.08rem;
+        color: #555;
+        user-select: none;
+        min-width: 260px;
+        max-width: 90vw;
+      }
+      .shortcut-title {
+        font-weight: bold;
+        color: #b8860b;
+        margin-bottom: 0.5em;
+        font-size: 1.13em;
+        letter-spacing: 0.04em;
+      }
+      .shortcut-keys {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1.2em;
+        flex-wrap: wrap;
+      }
+      .keycap {
+        display: inline-block;
+        background: #f5f5f5;
+        border: 1.5px solid #ccc;
+        border-radius: 6px;
+        box-shadow: 0 1px 2px #0001;
+        padding: 0.18em 0.85em;
+        margin: 0 0.2em;
+        font-family: 'Menlo', 'Consolas', 'monospace';
+        font-size: 1.08em;
+        color: #222;
+        vertical-align: middle;
+      }
+      .key-desc {
+        margin-left: 0.3em;
+        color: #666;
+        font-size: 0.98em;
+      }
+      .key-sep {
+        width: 2em;
+        display: inline-block;
+      }
+      @media (max-width: 600px) {
+        .shortcut-hint {
+          padding: 1em 0.5em;
+          font-size: 0.98rem;
+        }
+        .shortcut-keys {
+          gap: 0.5em;
+        }
+      }
+      .follow-block {
+        display: flex;
+        align-items: center;
+        gap: 0.7em;
+        margin-bottom: 1.5rem;
+        justify-content: center;
+      }
+      .follow-label {
+        font-size: 1rem;
+        color: #555;
+        font-weight: 500;
+      }
+      .follow-block a {
+        color: #555;
+        transition: color 0.2s;
+      }
+      .follow-block a:hover {
+        color: #007aff;
+      }
+      /* 移除 .author-card 外框樣式 */
+      .author-card {
+        /* background: #fff; */
+        /* border-radius: 16px; */
+        /* box-shadow: 0 4px 24px #0001, 0 1.5px 6px #0001; */
+        /* padding: 1.2em 2em 1.1em 2em; */
+        /* margin-bottom: 2rem; */
+        /* min-width: 260px; */
+        /* max-width: 90vw; */
+        /* display: flex; */
+        /* flex-direction: column; */
+        /* align-items: center; */
+      }
+      
+      /* 讓 .follow-block a 沒有底線 */
+      .follow-block a {
+        color: #555;
+        transition: color 0.2s, transform 0.2s;
+        font-size: 1.25em;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+      }
+      .follow-block a:hover {
+        color: #007aff;
+        transform: scale(1.18) rotate(-6deg);
+        text-decoration: none;
+      }
+      @media (max-width: 600px) {
+        .author-card {
+          padding: 1em 0.5em;
+          font-size: 0.98rem;
+        }
+        .creator {
+          font-size: 0.98rem;
+        }
+        .follow-label {
+          font-size: 0.95rem;
+        }
+      }
+      /* 柱子繞字排版樣式 */
+      .pillar-visual {
+        position: absolute;
+        top: 6rem;
+        bottom: 2rem;
+        background: rgba(0,0,0,0.13);
+        border-radius: 30px;
+        z-index: 5;
+        pointer-events: none;
+        transition: width 0.2s;
+        left: 50%;
+        transform: translateX(-50%);
+        width: inherit;
+      }
+      .prompt-lines {
+        position: relative;
+        color: inherit;
+        font-size: inherit;
+        line-height: 1.6;
+        font-family: inherit;
+        max-width: 100vw;
+        margin: 0 auto;
+        padding: 0;
+        min-height: 85vh;
+        box-sizing: border-box;
+        z-index: 2;
+      }
+      .line-row {
+        display: flex;
+        align-items: flex-start;
+        width: 100%;
+        min-height: 1em;
+        margin-bottom: 0.10em;
+        flex-wrap: nowrap;
+        overflow: hidden;
+      }
+      .left-seg, .right-seg {
+        display: inline-block;
+        white-space: pre;
+        max-width: 48vw;
+        overflow-wrap: break-word;
+        word-break: break-all;
+      }
+      .pillar-gap {
+        display: inline-block;
+        height: 1em;
+        flex-shrink: 0;
+      }
+      @media (min-width: 901px) {
+        .page-full-container .controls {
+          font-size: 1.3rem;
+        }
+      }
+      @media (min-width: 901px) {
+        .page-full-container .controls {
+          font-size: 1.08rem;
+        }
+      }
+      @media (max-width: 900px) and (min-width: 601px) {
+        .page-full-container .controls {
+          font-size: 1rem;
+        }
+      }
+      @media (max-width: 600px) {
+        .page-full-container .controls {
+          font-size: 0.95rem;
+        }
+      }
+      .page-full-container .controls input[type="number"] {
+        width: 4.5em;
+        min-width: 3.5em;
+        font-size: 1em;
+      }
+      @media (min-width: 901px) {
+        .page-full-container .controls input[type="number"] {
+          width: 5.5em;
+          min-width: 4.5em;
+          font-size: 1.2em;
+        }
+      }
+      .page-full-container .controls input[type="range"] {
+        width: 6em;
+        min-width: 4em;
+      }
+      @media (min-width: 901px) {
+        .page-full-container .controls input[type="number"] {
+          width: 4.5em;
+          font-size: 1.2em;
+        }
+        .page-full-container .controls input[type="range"] {
+          width: 8em;
+        }
+      }
+      :fullscreen .controls input[type="number"] {
+        width: 4.5em;
+        min-width: 3.5em;
+        font-size: 1em;
+      }
+      @media (min-width: 901px) {
+        :fullscreen .controls input[type="number"] {
+          width: 5.5em;
+          min-width: 4.5em;
+          font-size: 1.2em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 首頁區 -->
+      <section id="home" v-if="!isAnyFull">
+        <h1>{{ langPack.title }}</h1>
+        <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <i class="fa-solid fa-globe" aria-label="language" style="font-size:1.1em;"></i>
+          <lang-select
+            v-model="language"
+            :options="[
+              { value: 'zh', label: '中文 / Chinese' },
+              { value: 'en', label: '英文 / English' }
+            ]"
+          ></lang-select>
+        </div>
+        <div class="author-card">
+          <p class="creator">
+            {{ langPack.createdBy }}
+            <a href="https://facebook.com/deanlinbao" target="_blank">林鼎淵 Dean Lin</a>
+          </p>
+          <div class="follow-block">
+            <span class="follow-label">{{ langPack.follow }}</span>
+            <a href="https://facebook.com/deanlinbao" target="_blank" aria-label="Facebook">
+              <i class="fab fa-facebook fa-lg"></i>
+            </a>
+            <a href="https://github.com/dean9703111" target="_blank" aria-label="GitHub">
+              <i class="fab fa-github fa-lg"></i>
+            </a>
+            <a href="https://medium.com/@dean-lin" target="_blank" aria-label="Medium">
+              <i class="fab fa-medium fa-lg"></i>
+            </a>
+            <a href="https://youtube.com/@dlcorner" target="_blank" aria-label="YouTube">
+              <i class="fab fa-youtube fa-lg"></i>
+            </a>
+          </div>
+        </div>
+        <textarea v-model="script" :placeholder="langPack.placeholder"></textarea>
+        <div class="home-btns">
+          <button class="primary-btn" @click="enterPageFull"><i class="fa-solid fa-up-right-and-down-left-from-center"></i> {{ langPack.pageFull }}</button>
+          <button class="primary-btn" @click="enterScreenFull"><i class="fa-solid fa-expand"></i> {{ langPack.screenFull }}</button>
+        </div>
+        <!-- 美化後的快捷鍵提示 -->
+        <div class="shortcut-hint">
+          <div class="shortcut-title">{{ langPack.shortcutTitle }}</div>
+          <div class="shortcut-keys">
+            <span class="keycap">ESC</span>
+            <span class="key-desc">{{ langPack.exit }}</span>
+            <span class="key-sep"></span>
+            <span class="keycap">Space</span>
+            <span class="key-desc">{{ langPack.play }}/{{ langPack.pause }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 全螢幕區（兩種模式共用） -->
+      <div :class="{ 'page-full-container': isPageFull }" v-if="isAnyFull">
+        <!-- 控制列 -->
+        <div class="controls">
+          <button :class="playState === 'pause' ? 'play' : 'pause'" @click="togglePlay">
+            <i v-if="playState === 'pause'" class="fa-solid fa-play"></i>
+            <i v-else class="fa-solid fa-pause"></i>
+            {{ playState === 'pause' ? langPack.play : langPack.pause }}
+          </button>
+          <label>
+            <i class="fa-solid fa-font"></i> {{ langPack.font }}
+            <input type="range" min="35" max="100" step="1" v-model.number="fontSize" style="width: 90px;" />
+            <input type="number" min="35" max="100" step="1" v-model.number="fontSize" style="width: 60px; margin-left: 0.5em;" @blur="checkFontSizeRange" @keyup.enter="checkFontSizeRange" />
+          </label>
+          <label>
+            <i class="fa-solid fa-rocket"></i> {{ langPack.speed }}
+            <input type="range" min="1" max="40" step="1" v-model.number="speed" style="width: 90px;" />
+            <input type="number" min="1" max="40" step="1" v-model.number="speed" style="width: 60px; margin-left: 0.5em;" @blur="checkSpeedRange" @keyup.enter="checkSpeedRange" />
+          </label>
+          <label style="gap:0.3rem;">
+            <i class="fa-solid fa-palette"></i> {{ langPack.color }}
+            <color-select v-model="bgColor" :colors="colors" :language="language"></color-select>
+          </label>
+          <label>
+            <i class="fa-solid fa-grip-lines-vertical"></i> {{ langPack.gap }}
+            <input type="range" min="0" max="50" step="1" v-model.number="pillarWidthPercent" style="width: 90px;" />
+            <input type="number" min="0" max="50" step="1" v-model.number="pillarWidthPercent" style="width: 60px; margin-left: 0.5em;" />
+            <span style="margin-left:0.3em;">%</span>
+          </label>
+          <button class="exit" @click="exitFull">
+            <i class="fa-solid fa-xmark"></i>
+            {{ langPack.exit }}
+          </button>
+        </div>
+        <!-- 文字區 -->
+        <div
+          class="prompt-container"
+          :style="{ backgroundColor: bgColor, color: textColor, fontSize: fontSize + 'px', position: 'relative' }"
+          ref="promptBox"
+        >
+          <div class="pillar-visual" :style="pillarVisualStyle"></div>
+          <div style="position:relative;z-index:2;">
+            <div style="height: 50vh; pointer-events: none; background: transparent;"></div>
+            <div v-if="pillarWidthPercent > 0" class="prompt-lines" v-html="linesHtml"></div>
+            <div v-else class="prompt-text">{{ script }}</div>
+            <div style="height: 50vh; pointer-events: none; background: transparent;"></div>
+          </div>
+        </div>
+        <span id="measure-span" style="visibility:hidden;position:fixed;left:-9999px;top:0;white-space:pre;font-size:inherit;font-family:inherit;z-index:-99;pointer-events:none;"></span>
+        <!-- 右上角顯示預計秒數 -->
+        <div style="position: fixed; top: 60px; right: 32px; z-index: 1100; font-size: 2.2rem; color: #fff; background: rgba(0,0,0,0.35); border-radius: 1em; padding: 0.3em 1.1em; pointer-events: none; text-align: center; min-width: 3.5em;">
+          {{ formattedTime }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Vue 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script>
+      const { createApp, onMounted, ref, watch, nextTick } = Vue;
+
+      // 新增 ColorSelect 元件
+      const ColorSelect = {
+        props: {
+          modelValue: String,
+          colors: Array,
+          language: String
+        },
+        emits: ['update:modelValue'],
+        template: `
+          <div class="color-select">
+            <div
+              class="color-select__selected"
+              @click="open = !open"
+              :style="{background: selectedColor.hex, color: selectedColor.isLight ? '#000' : '#fff'}"
+            >
+              
+            </div>
+            <div v-if="open" class="color-select__dropdown">
+              <div
+                v-for="c in colors"
+                :key="c.hex"
+                class="color-select__option"
+                :style="{background: c.hex, color: c.isLight ? '#000' : '#fff'}"
+                @click="selectColor(c.hex)"
+              >
+              </div>
+            </div>
+          </div>
+        `,
+        data() {
+          return { open: false };
+        },
+        computed: {
+          selectedColor() {
+            return this.colors.find(c => c.hex === this.modelValue) || this.colors[0];
+          }
+        },
+        methods: {
+          selectColor(hex) {
+            this.$emit('update:modelValue', hex);
+            this.open = false;
+          },
+          handleClickOutside(e) {
+            if (!this.$el.contains(e.target)) {
+              this.open = false;
+            }
+          }
+        },
+        mounted() {
+          document.addEventListener('click', this.handleClickOutside);
+        },
+        beforeUnmount() {
+          document.removeEventListener('click', this.handleClickOutside);
+        }
+      };
+
+      // 新增 LangSelect 組件
+      const LangSelect = {
+        props: {
+          modelValue: String,
+          options: Array
+        },
+        emits: ['update:modelValue'],
+        template: `
+          <div class="lang-select">
+            <div
+              class="lang-select__selected"
+              @click="open = !open"
+            >
+              <span>{{ selectedOption.label }}</span>
+              <i class="fa-solid fa-chevron-down lang-select__icon"></i>
+            </div>
+            <div v-if="open" class="lang-select__dropdown">
+              <div
+                v-for="opt in options"
+                :key="opt.value"
+                class="lang-select__option"
+                @click="selectOption(opt.value)"
+              >
+                {{ opt.label }}
+              </div>
+            </div>
+          </div>
+        `,
+        data() {
+          return { open: false };
+        },
+        computed: {
+          selectedOption() {
+            return this.options.find(o => o.value === this.modelValue) || this.options[0];
+          }
+        },
+        methods: {
+          selectOption(val) {
+            this.$emit('update:modelValue', val);
+            this.open = false;
+          },
+          handleClickOutside(e) {
+            if (!this.$el.contains(e.target)) {
+              this.open = false;
+            }
+          }
+        },
+        mounted() {
+          document.addEventListener('click', this.handleClickOutside);
+        },
+        beforeUnmount() {
+          document.removeEventListener('click', this.handleClickOutside);
+        }
+      };
+
+      createApp({
+        setup() {
+          // state
+          const script = ref('');
+          const isFullScreen = ref(false); // 瀏覽器 fullscreen
+          const isPageFull = ref(false);   // 佔據頁面 but 非瀏覽器 fullscreen
+          const playState = ref('pause');
+          const fontSize = ref(48);
+          const speed = ref(10);
+          const bgColor = ref('#000000');
+          const promptBox = ref(null);
+          // 強制刷新用 key
+          const refreshKey = ref(0);
+          // 語言切換
+          const language = ref('zh');
+          const langPacks = {
+            zh: {
+              title: '讀稿提詞機',
+              language: '語言',
+              createdBy: '作者',
+              placeholder: '請貼上稿件...',
+              pageFull: '網頁全螢幕',
+              screenFull: '畫面全螢幕',
+              play: '開始',
+              pause: '暫停',
+              font: '字體',
+              speed: '速度',
+              exit: '退出',
+              color: '顏色',
+              shortcutTitle: '進入全螢幕後可用快捷鍵',
+              follow: '追蹤我學習更多資訊',
+              gap: '間隔',
+            },
+            en: {
+              title: 'Teleprompter',
+              language: 'Language',
+              createdBy: 'created by',
+              placeholder: 'Paste your script here...',
+              pageFull: 'Page Fullscreen',
+              screenFull: 'Screen Fullscreen',
+              play: 'Play',
+              pause: 'Pause',
+              font: 'Font Size',
+              speed: 'Speed',
+              exit: 'Exit',
+              color: 'Color',
+              shortcutTitle: 'Shortcuts in fullscreen',
+              follow: 'Follow me for more tips',
+              gap: 'Gap',
+            }
+          };
+          const langPack = Vue.computed(() => langPacks[language.value]);
+
+          const colors = [
+            { hex: '#000000', isLight: false },
+            { hex: '#ffffff', isLight: true },
+            { hex: '#FF3B30', isLight: false },
+            { hex: '#FF9500', isLight: false },
+            { hex: '#FFCC00', isLight: true },
+            { hex: '#34C759', isLight: false },
+            { hex: '#007AFF', isLight: false },
+            { hex: '#5856D6', isLight: false },
+            { hex: '#AF52DE', isLight: false },
+            { hex: '#5AC8FA', isLight: false },
+            { hex: '#FF2D55', isLight: false },
+            { hex: '#8E8E93', isLight: false },
+            { hex: '#D1D1D6', isLight: true },
+            { hex: '#A2845E', isLight: false },
+            { hex: '#DAA520', isLight: false },
+            { hex: '#C0C0C0', isLight: true },
+          ];
+
+          // 計算文字顏色
+          const textColor = Vue.computed(() => {
+            const c = colors.find((c) => c.hex === bgColor.value);
+            return c && c.isLight ? '#000' : '#fff';
+          });
+
+          // 任意全螢幕狀態
+          const isAnyFull = Vue.computed(() => isFullScreen.value || isPageFull.value);
+
+          let rafId = null;
+          const scrollStep = () => {
+            if (playState.value === 'play' && promptBox.value) {
+              promptBox.value.scrollTop += speed.value * 0.1;
+              const maxScroll = promptBox.value.scrollHeight - promptBox.value.clientHeight;
+              if (promptBox.value.scrollTop >= maxScroll) {
+                playState.value = 'pause';
+                return;
+              }
+              rafId = requestAnimationFrame(scrollStep);
+            }
+          };
+
+          const togglePlay = () => {
+            playState.value = playState.value === 'pause' ? 'play' : 'pause';
+          };
+
+          // 進入畫面（瀏覽器）全螢幕
+          const enterScreenFull = () => {
+            const el = document.documentElement;
+            if (el.requestFullscreen) el.requestFullscreen();
+            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+          };
+
+          // 進入網頁全螢幕
+          const enterPageFull = () => {
+            isPageFull.value = true;
+            playState.value = 'pause';
+          };
+
+          // 離開全螢幕
+          const exitFull = () => {
+            if (isFullScreen.value) {
+              if (document.exitFullscreen) document.exitFullscreen();
+              else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            } else if (isPageFull.value) {
+              isPageFull.value = false;
+            }
+          };
+
+          // 監聽瀏覽器 fullscreen 變化
+          const fsHandler = () => {
+            isFullScreen.value = !!document.fullscreenElement;
+            playState.value = 'pause';
+          };
+
+          const keyHandler = (e) => {
+            if (e.key === 'Escape') {
+              exitFull();
+            }
+            // 新增：空白鍵切換開始/暫停
+            if ((e.key === ' ' || e.code === 'Space') && isAnyFull.value) {
+              e.preventDefault(); // 防止空白鍵造成頁面捲動
+              togglePlay();
+            }
+          };
+
+          watch(playState, (val) => {
+            if (val === 'play') {
+              rafId = requestAnimationFrame(scrollStep);
+            } else if (val === 'pause' && rafId) {
+              cancelAnimationFrame(rafId);
+              rafId = null;
+            }
+          });
+
+          // 監聽 fontSize 變化
+          watch(fontSize, () => {
+            refreshKey.value++;
+          });
+
+          // 監聽 speed 變化
+          watch(speed, () => {
+            refreshKey.value++;
+          });
+
+          // 監聽 window resize
+          const resizeHandler = () => {
+            refreshKey.value++;
+          };
+          onMounted(() => {
+            document.addEventListener('fullscreenchange', fsHandler);
+            document.addEventListener('keydown', keyHandler);
+            window.addEventListener('resize', resizeHandler);
+            // 不要在這裡啟動 rafId，等 playState 變 'play' 再啟動
+          });
+
+          Vue.onUnmounted(() => {
+            if (rafId) {
+              cancelAnimationFrame(rafId);
+              rafId = null;
+            }
+            document.removeEventListener('fullscreenchange', fsHandler);
+            document.removeEventListener('keydown', keyHandler);
+            window.removeEventListener('resize', resizeHandler);
+          });
+
+          // 新增 totalSeconds 計算
+          const totalSeconds = Vue.computed(() => {
+            refreshKey.value;
+            // 取得實際內容高度
+            if (!promptBox.value) return 0;
+            let contentEl;
+            if (pillarWidthPercent.value > 0) {
+              // 有柱子時，內容在 .prompt-lines
+              contentEl = promptBox.value.querySelector('.prompt-lines');
+            } else {
+              // 無柱子時，內容在 .prompt-text
+              contentEl = promptBox.value.querySelector('.prompt-text');
+            }
+            if (!contentEl) return 0;
+            const total = contentEl.scrollHeight;
+            const visible = promptBox.value.clientHeight;
+            const pxPerSec = speed.value * 0.1 * 60;
+            if (pxPerSec <= 0) return 0;
+            return Math.max(0, Math.ceil((total - visible) / pxPerSec));
+          });
+
+          // 新增 formattedTime 計算
+          const formattedTime = Vue.computed(() => {
+            const sec = totalSeconds.value;
+            if (sec >= 60) {
+              const m = Math.floor(sec / 60);
+              const s = sec % 60;
+              return `${m}m ${s}s`;
+            } else {
+              return `${sec}s`;
+            }
+          });
+
+          // 柱子寬度
+          const pillarWidthPercent = ref(0); // 0~50，預設0不顯示
+          // 動態計算柱子寬度 px
+          const pillarWidthPx = Vue.computed(() => {
+            if (!promptBox.value) return 0;
+            return promptBox.value.offsetWidth * (pillarWidthPercent.value / 100);
+          });
+          // 讓稿件內容繞柱子排版
+          const linesHtml = ref('');
+          // 動態計算柱子寬度 px
+          const pillarVisualStyle = Vue.computed(() => ({
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: pillarWidthPx.value + 'px',
+          }));
+          function getPaddingPx(el) {
+            const cs = getComputedStyle(el);
+            return [
+              parseFloat(cs.paddingLeft) || 0,
+              parseFloat(cs.paddingRight) || 0
+            ];
+          }
+          function escapeHtml(text) {
+            return (text ?? '').replace(/[<>&"]/g, c => ({
+              '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;'
+            }[c]));
+          }
+          function renderLinesWithPillar({
+            text,
+            fontSize,
+            fontFamily,
+            promptBox,
+            promptLines,
+            pillarWidthPx
+          }) {
+            if (!promptBox || !promptLines) return '';
+            const containerWidth = promptBox.offsetWidth;
+            const [padL, padR] = getPaddingPx(promptLines);
+            const contentWidth = containerWidth - padL - padR;
+            const pillarWidth = pillarWidthPx;
+            const centerX = padL + contentWidth / 2;
+            const pillarLeft = centerX - pillarWidth / 2;
+            const pillarRight = centerX + pillarWidth / 2;
+            const margin = 8;
+            let measureSpan = document.getElementById('measure-span');
+            if (!measureSpan) {
+              measureSpan = document.createElement('span');
+              measureSpan.id = 'measure-span';
+              document.body.appendChild(measureSpan);
+            }
+            measureSpan.style.fontSize = fontSize + 'px';
+            measureSpan.style.fontFamily = fontFamily;
+            let html = '';
+            const paras = text.replace(/\r/g, '').split('\n');
+            for (let pi = 0; pi < paras.length; ++pi) {
+              let para = paras[pi];
+              if (!para) {
+                html += '<div class="line-row"><span class="left-seg">&nbsp;</span><span class="pillar-gap"></span><span class="right-seg"></span></div>';
+                continue;
+              }
+              while (para.length > 0) {
+                let left = '', right = '';
+                let i = 1;
+                for (; i <= para.length; ++i) {
+                  measureSpan.textContent = para.slice(0, i);
+                  if (measureSpan.offsetWidth < pillarLeft - padL - margin) {
+                    left = para.slice(0, i);
+                  } else {
+                    left = para.slice(0, i-1);
+                    right = para.slice(i-1);
+                    break;
+                  }
+                }
+                if (right === '' && left !== para) {
+                  right = para;
+                  left = '';
+                }
+                let rightSeg = '';
+                if (right) {
+                  let j = 1;
+                  for (; j <= right.length; ++j) {
+                    measureSpan.textContent = right.slice(0, j);
+                    if (measureSpan.offsetWidth < (contentWidth - (pillarRight - padL) - margin)) {
+                      rightSeg = right.slice(0, j);
+                    } else {
+                      rightSeg = right.slice(0, j-1);
+                      break;
+                    }
+                  }
+                }
+                if (right && rightSeg === '' && right.length > 0) rightSeg = right;
+                html += `<div class="line-row">`
+                  + `<span class="left-seg">${escapeHtml(left)}</span>`
+                  + `<span class="pillar-gap" style="width:${pillarWidth}px;min-width:${pillarWidth}px;"></span>`
+                  + `<span class="right-seg">${escapeHtml(rightSeg)}</span></div>`;
+                if (right) para = right.slice(rightSeg.length);
+                else para = '';
+              }
+            }
+            return html;
+          }
+          function updateLinesHtml() {
+            nextTick(() => {
+              linesHtml.value = renderLinesWithPillar({
+                text: script.value,
+                fontSize: fontSize.value,
+                fontFamily: "'Segoe UI', 'PingFang TC', sans-serif",
+                promptBox: promptBox.value,
+                promptLines: promptBox.value,
+                pillarWidthPx: pillarWidthPx.value
+              });
+            });
+          }
+          watch([script, fontSize, pillarWidthPercent, isAnyFull], () => {
+            if (isAnyFull.value) updateLinesHtml();
+          });
+          onMounted(() => {
+            document.addEventListener('fullscreenchange', fsHandler);
+            document.addEventListener('keydown', keyHandler);
+            window.addEventListener('resize', () => {
+              if (isAnyFull.value) {
+                updateLinesHtml();
+              }
+            });
+          });
+
+          Vue.onUnmounted(() => {
+            if (rafId) {
+              cancelAnimationFrame(rafId);
+              rafId = null;
+            }
+            document.removeEventListener('fullscreenchange', fsHandler);
+            document.removeEventListener('keydown', keyHandler);
+            window.removeEventListener('resize', resizeHandler);
+          });
+
+          const checkFontSizeRange = () => {
+            if (fontSize.value < 35) fontSize.value = 35;
+            if (fontSize.value > 100) fontSize.value = 100;
+          };
+          const checkSpeedRange = () => {
+            if (speed.value < 1) speed.value = 1;
+            if (speed.value > 40) speed.value = 40;
+          };
+
+          return {
+            script,
+            isFullScreen,
+            isPageFull,
+            isAnyFull,
+            playState,
+            fontSize,
+            speed,
+            bgColor,
+            togglePlay,
+            enterScreenFull,
+            enterPageFull,
+            exitFull,
+            colors,
+            textColor,
+            promptBox,
+            // 語言切換
+            language,
+            langPack,
+            totalSeconds,
+            formattedTime,
+            checkFontSizeRange,
+            checkSpeedRange,
+            // 柱子
+            pillarWidthPercent,
+            linesHtml,
+            pillarVisualStyle,
+          };
+        },
+        components: {
+          ColorSelect,
+          LangSelect
+        }
+      }).mount('#app');
+    </script>
+  </body>
+</html>

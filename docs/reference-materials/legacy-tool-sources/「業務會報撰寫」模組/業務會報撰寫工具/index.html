@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <title>業務會報撰寫工具 v2.2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== 側邊欄導覽 ===== -->
+  <nav id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">📊</span>
+      <span class="sidebar-title">業務會報</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li>
+        <button class="nav-btn active" data-tab="editor" title="畫布編輯">
+          <span class="nav-icon">✏️</span>
+          <span class="nav-label">畫布編輯</span>
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-tab="preview" title="簡報預覽">
+          <span class="nav-icon">📽️</span>
+          <span class="nav-label">簡報預覽</span>
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-tab="combine" title="合併管理">
+          <span class="nav-icon">🔗</span>
+          <span class="nav-label">合併管理</span>
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-tab="settings" title="設定">
+          <span class="nav-icon">⚙️</span>
+          <span class="nav-label">設定</span>
+        </button>
+      </li>
+    </ul>
+    <button id="sidebarToggle" class="sidebar-toggle" title="收合側邊欄">◀</button>
+  </nav>
+
+  <!-- ===== 主內容區 ===== -->
+  <main id="mainContent">
+
+    <!-- ============================== -->
+    <!-- 功能區 1：畫布編輯             -->
+    <!-- ============================== -->
+    <section id="tab-editor" class="tab-panel active">
+
+      <!-- 頂部工具列 -->
+      <div class="editor-toolbar">
+        <div class="toolbar-group">
+          <span class="toolbar-label">投影片：</span>
+          <button id="btnAddSlide" class="tb-btn" title="新增投影片">＋ 新增</button>
+          <button id="btnDupSlide" class="tb-btn" title="複製目前投影片">📋 複製</button>
+          <button id="btnDelSlide" class="tb-btn tb-danger" title="刪除目前投影片">🗑️ 刪除</button>
+        </div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">插入：</span>
+          <button id="btnAddText" class="tb-btn" title="插入文字方塊">📝 文字</button>
+          <button id="btnAddImage" class="tb-btn" title="插入圖片">🖼️ 圖片</button>
+          <button id="btnAddTable" class="tb-btn" title="插入表格">📊 表格</button>
+        </div>
+        <div class="toolbar-group" id="toolbarTextStyle">
+          <span class="toolbar-label">文字樣式：</span>
+          <label class="toolbar-color-label" title="文字顏色"><span>文字</span><input type="color" id="toolbarTextColor" value="#22263a" /></label>
+          <label class="toolbar-color-label" title="背景色"><span>背景</span><input type="color" id="toolbarBgColor" value="#ffffff" /></label>
+        </div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">框線：</span>
+          <select id="toolbarBorderWidth" title="框線粗細">
+            <option value="0">無</option>
+            <option value="1">1px</option>
+            <option value="2">2px</option>
+            <option value="3">3px</option>
+          </select>
+          <label class="toolbar-color-label" title="框線顏色"><span>色</span><input type="color" id="toolbarBorderColor" value="#cccccc" /></label>
+        </div>
+        <div class="toolbar-group">
+          <span class="toolbar-label">快速模板：</span>
+          <button class="tb-btn tb-preset" data-preset="reason" title="插入「案由」文字方塊">案由</button>
+          <button class="tb-btn tb-preset" data-preset="target" title="插入「培訓對象」文字方塊">培訓對象</button>
+          <button class="tb-btn tb-preset" data-preset="situation" title="插入「辦理情形」文字方塊">辦理情形</button>
+          <button class="tb-btn tb-preset" data-preset="performance" title="插入「績效與貢獻」文字方塊">績效與貢獻</button>
+          <button class="tb-btn tb-preset" data-preset="followup" title="插入「後續推廣作為」文字方塊">後續推廣</button>
+        </div>
+        <div class="toolbar-group toolbar-right">
+          <button id="btnAiPanel" class="tb-btn tb-ai" title="開啟 AI 輔助面板">🤖 AI 輔助</button>
+          <button id="btnExportJson" class="tb-btn tb-primary" title="匯出 JSON">💾 匯出</button>
+          <label class="tb-btn" title="載入 JSON">
+            📂 載入
+            <input id="btnLoadJson" type="file" accept=".json,application/json" hidden />
+          </label>
+        </div>
+      </div>
+
+      <!-- 中間主要區域：投影片列表 + 畫布 -->
+      <div class="editor-body">
+        <!-- 左側：投影片縮圖列表 -->
+        <div id="slideList" class="slide-list">
+          <div class="slide-list-header">
+            <span>投影片</span>
+          </div>
+          <div id="slideListItems" class="slide-list-items"></div>
+        </div>
+
+        <!-- 中間：畫布編輯區域 -->
+        <div class="canvas-area">
+          <!-- 投影片後設資料列 -->
+          <div class="slide-meta-bar">
+            <label>標題：<input id="slideTitle" type="text" placeholder="工作項目標題（12字以內）" /></label>
+            <label>主辦人：
+              <select id="slideHostSelect">
+                <option value="">— 請選擇 —</option>
+              </select>
+            </label>
+            <input id="slideHostText" type="text" placeholder="主辦人 / 協辦人（用 / 分隔）" />
+          <button id="applyMetaAll" class="tb-btn" type="button">套用到全部投影片</button>
+          <button id="applyMetaFromCurrent" class="tb-btn" type="button">套用到此頁與之後</button>
+          </div>
+          <!-- 畫布容器（1280x720 等比縮放） -->
+          <div id="canvasWrapper" class="canvas-wrapper">
+            <div id="canvas" class="canvas">
+              <!-- 畫布即時標題列（與簡報預覽同層、同位置） -->
+              <div class="canvas-header-overlay" aria-hidden="true">
+                <h2 id="canvasHeaderTitle" class="canvas-header-title">未命名</h2>
+                <div id="canvasHeaderHost" class="canvas-header-host"></div>
+              </div>
+              <div class="canvas-empty-hint">請點擊上方工具列的「插入」按鈕，新增文字方塊、圖片或表格</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右側：屬性面板 / AI 面板 -->
+        <div id="rightPanel" class="right-panel" style="display:none;">
+          <div class="right-panel-header">
+            <span id="rightPanelTitle">屬性</span>
+            <button id="rightPanelClose" class="panel-close-btn">✕</button>
+          </div>
+          <div id="rightPanelBody" class="right-panel-body"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- 功能區 2：簡報預覽             -->
+    <!-- ============================== -->
+    <section id="tab-preview" class="tab-panel">
+      <div class="preview-toolbar">
+        <div class="toolbar-group">
+          <label class="tb-btn">
+            載入 JSON
+            <input id="previewLoadJson" type="file" accept=".json,application/json" hidden />
+          </label>
+          <button id="btnPreviewPdf" class="tb-btn">匯出 PDF</button>
+          <button id="btnPreviewPptx" class="tb-btn">匯出成 PPTX</button>
+          <button id="btnPreviewPptxEditable" class="tb-btn">匯出成可編輯 PPTX</button>
+          <button id="btnPreviewFs" class="tb-btn">全螢幕播放</button>
+          <button id="btnPreviewTheme" class="tb-btn">切換主題</button>
+        </div>
+      </div>
+      <div class="preview-stage">
+        <div class="preview-nav preview-nav-left">
+          <button type="button" class="preview-nav-btn" id="previewBtnFirst" title="最前頁" aria-label="最前頁">&laquo;</button>
+          <button type="button" class="preview-nav-btn" id="previewBtnPrev" title="上一頁" aria-label="上一頁">&lsaquo;</button>
+        </div>
+        <div class="preview-stage-inner">
+          <div id="previewFrame" class="slide-frame" aria-live="polite"></div>
+        </div>
+        <div class="preview-nav preview-nav-right">
+          <button type="button" class="preview-nav-btn" id="previewBtnNext" title="下一頁" aria-label="下一頁">&rsaquo;</button>
+          <button type="button" class="preview-nav-btn" id="previewBtnLast" title="最後頁" aria-label="最後頁">&raquo;</button>
+        </div>
+      </div>
+      <div class="preview-footer-hint">←/→/Space 換頁｜Home/End 首末頁｜F 全螢幕｜T 主題</div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- 功能區 3：合併管理             -->
+    <!-- ============================== -->
+    <section id="tab-combine" class="tab-panel">
+      <div class="combine-container">
+        <h2>合併管理</h2>
+        <p class="muted">將多位同仁的報告 JSON 合併為一份，並可調整工作項目順序。</p>
+
+        <div class="combine-drop-zone" id="combineDropZone" tabindex="0">
+          拖放多個 <code>[人名].json</code> 到這裡，或點擊此處選擇檔案
+          <br><small class="muted">支援多選；全部在瀏覽器內完成，不上傳到網路</small>
+        </div>
+        <input id="combineFileInput" type="file" accept=".json,application/json" multiple hidden />
+
+        <div class="combine-options">
+          <label><input type="checkbox" id="combSortByHost" checked /> 依主辦人與標題排序</label>
+          <label><input type="checkbox" id="combDedupe" /> 移除重複</label>
+          <label><input type="checkbox" id="combKeepImage" checked /> 保留圖片資料</label>
+        </div>
+
+        <div class="combine-actions">
+          <button id="combMergeDownload" class="tb-btn tb-primary">合併並下載</button>
+          <button id="combMergeOnly" class="tb-btn">僅合併（顯示分組）</button>
+          <button id="combClear" class="tb-btn">清空</button>
+        </div>
+
+        <!-- 工作項目排序表格 -->
+        <div id="combTasksPanel" class="combine-tasks" style="display:none;">
+          <h3>工作項目順序（可拖曳調整）</h3>
+          <div class="combine-task-actions">
+            <button id="combDownloadOrdered" class="tb-btn tb-primary">下載（依目前順序）</button>
+            <button id="combExportCsv" class="tb-btn">匯出 CSV</button>
+            <button id="combSendToEditor" class="tb-btn">送入編輯器</button>
+          </div>
+          <div class="combine-table-wrap">
+            <table id="combTasksTable">
+              <thead>
+                <tr>
+                  <th style="width:46px;">排序</th>
+                  <th>工作項目</th>
+                  <th style="width:80px;">頁數</th>
+                  <th>主辦人</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="combLog" class="combine-log"></div>
+      </div>
+    </section>
+
+    <!-- ============================== -->
+    <!-- 功能區 4：設定                 -->
+    <!-- ============================== -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="settings-container">
+        <h2>設定</h2>
+        <p class="settings-notice">API Key 與主辦人清單僅儲存在本機瀏覽器，不會上傳至任何伺服器。</p>
+
+        <!-- AI API Key 設定（供「生成」未設 Key 時捲動導向） -->
+        <div id="settingsAiSection" class="settings-section">
+          <h3>🤖 AI 輔助設定</h3>
+          <p class="muted">API Key 僅儲存在您的瀏覽器中，不會上傳到任何伺服器。</p>
+
+          <div class="settings-field">
+            <label>AI 供應商：</label>
+            <select id="settAiProvider">
+              <option value="gemini">Google Gemini</option>
+              <option value="openrouter">OpenRouter</option>
+              <option value="openai">OpenAI</option>
+            </select>
+          </div>
+
+          <div class="settings-field" id="settOpenaiGroup">
+            <label>OpenAI API Key：</label>
+            <input id="settOpenaiKey" type="password" placeholder="sk-..." />
+            <div class="settings-field-inline">
+              <select id="settOpenaiModel">
+                <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo（聊天／一般文字）</option>
+                <option value="gpt-3.5-turbo-instruct">gpt-3.5-turbo-instruct（指令式補完）</option>
+              </select>
+              <button type="button" id="settOpenaiLoadModels" class="tb-btn">載入最新模型列表</button>
+            </div>
+            <div class="settings-field-inline" style="margin-top:6px;">
+              <label style="min-width:auto;">
+                <input type="checkbox" id="settOpenaiUseProxy" />
+                使用 Supabase 代理（推薦，可串流且不暴露 Key）
+              </label>
+              <input id="settOpenaiProxyUrl" type="url" placeholder="https://xxx.supabase.co/functions/v1/openai" style="flex:1;min-width:260px;" />
+            </div>
+            <span id="settOpenaiModelStatus" class="muted" style="display:block;margin-top:4px;"></span>
+          </div>
+
+          <div class="settings-field" id="settOpenRouterGroup" style="display:none;">
+            <label>OpenRouter API Key：</label>
+            <input id="settOpenRouterKey" type="password" placeholder="sk-or-..." />
+            <div class="settings-field-inline">
+              <select id="settOpenRouterModel">
+                <option value="openrouter/free">openrouter/free（免費路由器，自動選模型）</option>
+                <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B（免費）</option>
+                <option value="google/gemini-2.0-flash-001:free">Gemini 2.0 Flash（免費）</option>
+                <option value="mistralai/mistral-small-3.1-24b-instruct:free">Mistral Small 3.1（免費）</option>
+              </select>
+              <button type="button" id="settOpenRouterLoadModels" class="tb-btn">載入最新模型列表</button>
+            </div>
+            <span id="settOpenRouterModelStatus" class="muted" style="display:block;margin-top:4px;"></span>
+            <p class="muted" style="margin-top:4px;">Key 可於 <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener">openrouter.ai</a> 取得，免費額度有限制。</p>
+          </div>
+
+          <div class="settings-field" id="settGeminiGroup" style="display:none;">
+            <label>Gemini API Key：</label>
+            <input id="settGeminiKey" type="password" placeholder="AI..." />
+            <div class="settings-field-inline">
+              <select id="settGeminiModel">
+                <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+              </select>
+              <button type="button" id="settGeminiLoadModels" class="tb-btn">載入最新模型列表</button>
+            </div>
+            <span id="settGeminiModelStatus" class="muted" style="display:block;margin-top:4px;"></span>
+          </div>
+
+          <h4 style="margin:16px 0 8px;font-size:14px;">🖼️ 文生圖（插圖）</h4>
+          <p class="muted" style="margin-bottom:8px;">在畫布上對文字方塊右鍵可選「依此內容生圖」，依目前設定的供應商與模型生成插圖並插入畫布。</p>
+          <div class="settings-field">
+            <label>文生圖供應商：</label>
+            <select id="settImageProvider">
+              <option value="google">Google AI Studio</option>
+              <option value="openai">OpenAI（DALL·E）</option>
+              <option value="openrouter">OpenRouter</option>
+            </select>
+          </div>
+          <div class="settings-field" id="settImageGoogleGroup">
+            <label>生圖模型：</label>
+            <select id="settImageGoogleModel">
+              <option value="gemini-2.5-flash-image" selected>gemini-2.5-flash-image（免費）</option>
+            </select>
+            <span class="muted" style="margin-left:8px;">使用上方 Gemini API Key</span>
+          </div>
+          <div class="settings-field" id="settImageOpenaiGroup" style="display:none;">
+            <label>生圖模型：</label>
+            <select id="settImageOpenaiModel">
+              <option value="dall-e-2">DALL·E 2</option>
+              <option value="dall-e-3">DALL·E 3</option>
+            </select>
+            <span class="muted" style="margin-left:8px;">使用上方 OpenAI API Key</span>
+          </div>
+          <div class="settings-field" id="settImageOpenRouterGroup" style="display:none;">
+            <label>生圖模型：</label>
+            <input type="text" id="settImageOpenRouterModel" placeholder="例：black-forest-labs/flux.2-pro" style="flex:1;min-width:200px;" />
+            <span class="muted" style="display:block;margin-top:6px;">使用上方 OpenRouter API Key。請至 <a href="https://openrouter.ai/models" target="_blank" rel="noopener">openrouter.ai/models</a> 篩選可輸出 image 的模型，並複製列表上的<strong>完整</strong>模型 ID。<strong>勿自行加上 :free</strong>（例如 <code>flux.2-pro:free</code> 常會出現 No endpoints found）。免費模型請以官網列表為準。建議可用：<br/>
+            bytedance-seed/seedream-4.5、  black-forest-labs/flux.2-pro、black-forest-labs/flux.2-flex、black-forest-labs/flux.2-klein-4b、sourceful/riverflow-v2-fast</span>
+          </div>
+
+          <button id="settSaveAi" class="tb-btn tb-primary">儲存 AI 設定</button>
+        </div>
+
+        <!-- 主辦人清單設定 -->
+        <div class="settings-section">
+          <h3>👥 主辦人清單</h3>
+          <p class="muted">每行一位，修改後按「儲存」。</p>
+          <textarea id="settHostList" rows="10" placeholder="黃振生&#10;李誠偉&#10;..."></textarea>
+          <button id="settSaveHosts" class="tb-btn tb-primary">儲存主辦人清單</button>
+        </div>
+
+        <div class="settings-section">
+          <h3>📁 匯出檔名設定</h3>
+          <p class="muted">可使用變數：{rocYear}、{year}、{month}。例如：資訊學系{rocYear}年{month}月份業務會報</p>
+          <div class="settings-field">
+            <label>匯出檔名格式：</label>
+            <input id="settExportNameTemplate" type="text" placeholder="資訊學系{rocYear}年{month}月份業務會報" />
+          </div>
+          <p id="settExportNamePreview" class="muted"></p>
+          <button id="settSaveExportName" class="tb-btn tb-primary">儲存匯出檔名設定</button>
+        </div>
+
+        <div class="settings-section">
+          <h3>📋 草稿還原提示</h3>
+          <p class="muted">若您曾勾選「不再顯示」草稿還原提示，可按下方按鈕恢復詢問。</p>
+          <button id="settRestoreDraftPrompt" class="tb-btn">恢復草稿還原提示</button>
+        </div>
+
+        <!-- 版本資訊 / 更新記錄：放在設定最底部 -->
+        <div class="settings-section">
+          <h3>🧾 版本資訊 / 更新記錄</h3>
+          <p class="muted" style="margin:0 0 10px;">
+            版本：<strong>v2.2</strong><br />
+            日期時間：<strong>2026/3/20 13:40</strong>
+          </p>
+
+          <details id="changelogDetails">
+            <summary class="tb-btn">更新記錄（點此展開 / 收合）</summary>
+            <div style="margin-top:10px;">
+              <pre class="muted" style="white-space:pre-wrap;word-break:break-word;margin:0;font-size:13px;line-height:1.6;"><code># 更新紀錄（Changelog）
+## v2.2
+#作者：黃建豪 with Vibe Coding
+
+- 新增左側投影片「即時頁面預覽縮圖」功能（以 `html2canvas` 擷取、等比例縮小顯示），並採用延後更新策略：編輯中不更新，滑鼠離開畫布後點擊外部才更新目前頁，切換頁時同步更新鄰近頁以降低負載。
+</code></pre>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast 短暫提示容器（不擋畫面） -->
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+  <!-- 確認框 Modal（取代 confirm） -->
+  <dialog id="confirmDialog" class="confirm-dialog">
+    <div class="confirm-dialog-inner">
+      <h3 id="confirmDialogTitle" class="confirm-dialog-title">確認</h3>
+      <p id="confirmDialogMessage" class="confirm-dialog-message"></p>
+      <label id="confirmDialogDontShowWrap" class="confirm-dialog-dont-show" style="display:none;">
+        <input type="checkbox" id="confirmDialogDontShow" />
+        <span>不再顯示此提示</span>
+      </label>
+      <div class="confirm-dialog-actions">
+        <button type="button" id="confirmDialogCancel" class="tb-btn">取消</button>
+        <button type="button" id="confirmDialogOk" class="tb-btn tb-primary">確定</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- AI 輔助浮動面板 -->
+  <dialog id="aiDialog">
+    <div class="ai-dialog-header">
+      <h3>🤖 AI 輔助撰寫</h3>
+      <button id="aiDialogClose" class="panel-close-btn">✕</button>
+    </div>
+    <!-- 專供 AI 對話框使用的 Toast 容器，避免被 backdrop 蓋住 -->
+    <div id="toastContainerDialog" class="toast-container" aria-live="polite"></div>
+    <div class="ai-dialog-body">
+      <div class="ai-input-section">
+        <label>參考資料輸入方式：</label>
+        <div class="ai-input-tabs">
+          <button class="ai-tab active" data-aitab="text">貼上文字</button>
+          <button class="ai-tab" data-aitab="image">上傳截圖</button>
+          <button class="ai-tab" data-aitab="html">上傳 HTML</button>
+          <button class="ai-tab" data-aitab="url">提供 URL</button>
+        </div>
+
+        <div class="ai-tab-panel active" data-aitab="text">
+          <textarea id="aiRefText" rows="6" placeholder="貼上參考資料文字（如課程資訊、班名、日期等）..."></textarea>
+        </div>
+        <div class="ai-tab-panel" data-aitab="image">
+          <div id="aiImageDrop" class="ai-image-drop">拖放或點擊上傳截圖</div>
+          <input id="aiImageFile" type="file" accept="image/*" hidden />
+          <img id="aiImagePreview" class="ai-image-preview" style="display:none;" />
+        </div>
+        <div class="ai-tab-panel" data-aitab="html">
+          <label class="tb-btn" style="display:inline-block;">
+            選擇 HTML 檔案
+            <input id="aiHtmlFile" type="file" accept=".html,.htm,text/html" hidden />
+          </label>
+          <span id="aiHtmlFileName" class="muted"></span>
+        </div>
+        <div class="ai-tab-panel" data-aitab="url">
+          <input id="aiUrlInput" type="url" placeholder="貼上要抓取的網址，例如：https://example.com/page" />
+          <div class="ai-url-auth">
+            <label>Cookie / Session（選填，用於需登入的頁面）：</label>
+            <textarea id="aiUrlCookie" rows="2" placeholder="貼上 Cookie 字串（例如：session=abc123; token=xyz）或 Session ID"></textarea>
+            <span class="muted ai-url-auth-note">因瀏覽器安全限制，跨網域時自訂 Cookie 可能無法生效；若需登入後內容，建議在已登入的分頁「另存網頁」為完整網頁，再改用「上傳 HTML」匯入。</span>
+          </div>
+          <div class="ai-url-actions">
+            <button id="aiFetchUrl" class="tb-btn">抓取網址內容</button>
+            <span id="aiUrlStatus" class="muted"></span>
+          </div>
+          <textarea id="aiUrlFetched" rows="6" placeholder="抓取後的網頁文字會顯示在這裡，可再手動補充或刪減。"></textarea>
+        </div>
+      </div>
+
+      <div class="ai-prompt-section">
+        <label>生成指令：</label>
+        <select id="aiPromptTemplate">
+          <option value="full">完整報告（辦理情形＋績效與貢獻＋後續推廣作為）</option>
+          <option value="situation">僅生成「辦理情形」</option>
+          <option value="performance">僅生成「績效與貢獻」</option>
+          <option value="followup">僅生成「後續推廣作為」</option>
+          <option value="custom">自訂提示詞</option>
+        </select>
+        <textarea id="aiCustomPrompt" rows="3" placeholder="自訂提示詞..." style="display:none;"></textarea>
+      </div>
+
+      <div class="ai-style-section">
+        <label>寫作風格與長度：</label>
+        <div class="settings-field" style="margin-top:4px;">
+          <label style="min-width:auto;">字數：</label>
+          <select id="aiLength">
+            <option value="auto">自動判斷</option>
+            <option value="short">簡短（約 100 字）</option>
+            <option value="medium" selected>適中（約 200 字）</option>
+            <option value="long">較詳細（約 300 字以上）</option>
+          </select>
+        </div>
+        <div class="settings-field" style="margin-top:4px;">
+          <label style="min-width:auto;">語氣：</label>
+          <select id="aiTone">
+            <option value="balanced" selected>正式但精簡（推薦）</option>
+            <option value="formal">較正式、完整敘述</option>
+            <option value="concise">非常精簡、重點條列</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="aiGenerate" class="tb-btn tb-primary" style="width:100%;">🚀 生成內容</button>
+      <button id="aiLoadLast" class="tb-btn" style="width:100%;margin-top:6px;">載入上一次結果</button>
+
+      <div class="ai-result-section" style="display:none;">
+        <label>AI 生成結果：</label>
+        <div id="aiResult" class="ai-result"></div>
+        <div class="ai-insert-plan">
+          <div class="ai-insert-plan-title">插入前預覽勾選清單：</div>
+          <div id="aiInsertChecklist" class="ai-insert-checklist"></div>
+        </div>
+        <div class="ai-result-actions">
+          <button id="aiInsertResult" class="tb-btn tb-primary">插入到畫布</button>
+          <button id="aiCopyResult" class="tb-btn">複製到剪貼簿</button>
+        </div>
+      </div>
+
+      <div id="aiLoading" class="ai-loading" style="display:none;">
+        <div class="spinner"></div>
+        <span>AI 正在生成內容，請稍候...</span>
+      </div>
+    </div>
+  </dialog>
+
+  <script src="script.js"></script>
+</body>
+</html>

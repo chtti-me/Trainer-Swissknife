@@ -1,0 +1,651 @@
+/* 【全站樣式】Tailwind 基底 + 多主題 CSS 變數（shadcn + 六色系 × 明暗）。v3.0 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "react-day-picker/style.css";
+
+/* ================================================================
+   全域捲軸樣式（確保可拖曳 + 美觀）
+   ================================================================ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(140, 140, 160, 0.3);
+  border-radius: 9999px;
+  min-height: 40px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 120, 0.55);
+}
+::-webkit-scrollbar-thumb:active {
+  background-color: rgba(80, 80, 100, 0.7);
+}
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgba(180, 180, 200, 0.25);
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(200, 200, 220, 0.45);
+}
+.dark ::-webkit-scrollbar-thumb:active {
+  background-color: rgba(210, 210, 230, 0.6);
+}
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 140, 160, 0.3) transparent;
+}
+.dark * {
+  scrollbar-color: rgba(180, 180, 200, 0.25) transparent;
+}
+
+/* ================================================================
+   主題色系定義（HSL 格式，供 Tailwind hsl(var(--xxx)) 使用）
+   每個 [data-theme="xxx"] 配合 .dark 覆蓋暗色版本
+   ================================================================ */
+
+@layer base {
+  /* ---- 預設（藍白） ---- */
+  :root,
+  [data-theme="default"] {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+    --sidebar-bg-from: 210 40% 98%;
+    --sidebar-bg-to: 0 0% 100%;
+  }
+
+  [data-theme="default"].dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+    --sidebar-bg-from: 222 40% 8%;
+    --sidebar-bg-to: 222 50% 6%;
+  }
+
+  /* ---- Nord ---- */
+  [data-theme="nord"] {
+    --background: 220 16% 96%;
+    --foreground: 220 16% 22%;
+    --card: 220 16% 100%;
+    --card-foreground: 220 16% 22%;
+    --popover: 220 16% 100%;
+    --popover-foreground: 220 16% 22%;
+    --primary: 213 32% 52%;
+    --primary-foreground: 220 16% 96%;
+    --secondary: 220 16% 92%;
+    --secondary-foreground: 220 16% 22%;
+    --muted: 220 16% 92%;
+    --muted-foreground: 220 8% 50%;
+    --accent: 179 25% 65%;
+    --accent-foreground: 220 16% 22%;
+    --destructive: 354 42% 56%;
+    --destructive-foreground: 220 16% 96%;
+    --border: 220 16% 87%;
+    --input: 220 16% 87%;
+    --ring: 213 32% 52%;
+    --sidebar-bg-from: 220 16% 94%;
+    --sidebar-bg-to: 220 16% 97%;
+  }
+
+  [data-theme="nord"].dark {
+    --background: 220 16% 14%;
+    --foreground: 219 28% 88%;
+    --card: 220 16% 18%;
+    --card-foreground: 219 28% 88%;
+    --popover: 220 16% 18%;
+    --popover-foreground: 219 28% 88%;
+    --primary: 213 32% 52%;
+    --primary-foreground: 220 16% 96%;
+    --secondary: 220 16% 22%;
+    --secondary-foreground: 219 28% 88%;
+    --muted: 220 16% 22%;
+    --muted-foreground: 219 14% 60%;
+    --accent: 179 25% 65%;
+    --accent-foreground: 220 16% 14%;
+    --destructive: 354 42% 56%;
+    --destructive-foreground: 219 28% 88%;
+    --border: 220 16% 24%;
+    --input: 220 16% 24%;
+    --ring: 213 32% 52%;
+    --sidebar-bg-from: 220 16% 12%;
+    --sidebar-bg-to: 220 16% 10%;
+  }
+
+  /* ---- Rosé Pine ---- */
+  [data-theme="rose-pine"] {
+    --background: 32 57% 95%;
+    --foreground: 248 12% 36%;
+    --card: 32 57% 98%;
+    --card-foreground: 248 12% 36%;
+    --popover: 32 57% 98%;
+    --popover-foreground: 248 12% 36%;
+    --primary: 280 36% 54%;
+    --primary-foreground: 32 57% 95%;
+    --secondary: 32 30% 90%;
+    --secondary-foreground: 248 12% 36%;
+    --muted: 32 30% 90%;
+    --muted-foreground: 248 8% 52%;
+    --accent: 343 35% 55%;
+    --accent-foreground: 32 57% 95%;
+    --destructive: 343 35% 55%;
+    --destructive-foreground: 32 57% 95%;
+    --border: 32 25% 85%;
+    --input: 32 25% 85%;
+    --ring: 280 36% 54%;
+    --sidebar-bg-from: 32 40% 93%;
+    --sidebar-bg-to: 32 50% 96%;
+  }
+
+  [data-theme="rose-pine"].dark {
+    --background: 249 22% 12%;
+    --foreground: 245 6% 80%;
+    --card: 249 22% 15%;
+    --card-foreground: 245 6% 80%;
+    --popover: 249 22% 15%;
+    --popover-foreground: 245 6% 80%;
+    --primary: 280 36% 62%;
+    --primary-foreground: 249 22% 12%;
+    --secondary: 249 15% 20%;
+    --secondary-foreground: 245 6% 80%;
+    --muted: 249 15% 20%;
+    --muted-foreground: 245 6% 56%;
+    --accent: 343 35% 55%;
+    --accent-foreground: 245 6% 80%;
+    --destructive: 343 35% 55%;
+    --destructive-foreground: 245 6% 80%;
+    --border: 249 15% 22%;
+    --input: 249 15% 22%;
+    --ring: 280 36% 62%;
+    --sidebar-bg-from: 249 22% 10%;
+    --sidebar-bg-to: 249 22% 8%;
+  }
+
+  /* ---- Monokai ---- */
+  [data-theme="monokai"] {
+    --background: 60 6% 95%;
+    --foreground: 60 2% 20%;
+    --card: 60 6% 98%;
+    --card-foreground: 60 2% 20%;
+    --popover: 60 6% 98%;
+    --popover-foreground: 60 2% 20%;
+    --primary: 80 76% 44%;
+    --primary-foreground: 60 2% 14%;
+    --secondary: 60 6% 90%;
+    --secondary-foreground: 60 2% 20%;
+    --muted: 60 6% 90%;
+    --muted-foreground: 60 2% 48%;
+    --accent: 338 95% 56%;
+    --accent-foreground: 60 6% 95%;
+    --destructive: 6 72% 57%;
+    --destructive-foreground: 60 6% 95%;
+    --border: 60 6% 84%;
+    --input: 60 6% 84%;
+    --ring: 80 76% 44%;
+    --sidebar-bg-from: 60 6% 93%;
+    --sidebar-bg-to: 60 6% 96%;
+  }
+
+  [data-theme="monokai"].dark {
+    --background: 70 8% 15%;
+    --foreground: 60 30% 96%;
+    --card: 70 8% 18%;
+    --card-foreground: 60 30% 96%;
+    --popover: 70 8% 18%;
+    --popover-foreground: 60 30% 96%;
+    --primary: 80 76% 53%;
+    --primary-foreground: 70 8% 12%;
+    --secondary: 70 8% 22%;
+    --secondary-foreground: 60 30% 96%;
+    --muted: 70 8% 22%;
+    --muted-foreground: 60 12% 58%;
+    --accent: 338 95% 56%;
+    --accent-foreground: 60 30% 96%;
+    --destructive: 6 72% 57%;
+    --destructive-foreground: 60 30% 96%;
+    --border: 70 8% 24%;
+    --input: 70 8% 24%;
+    --ring: 80 76% 53%;
+    --sidebar-bg-from: 70 8% 12%;
+    --sidebar-bg-to: 70 8% 10%;
+  }
+
+  /* ---- Gruvbox ---- */
+  [data-theme="gruvbox"] {
+    --background: 44 87% 94%;
+    --foreground: 0 0% 24%;
+    --card: 44 87% 97%;
+    --card-foreground: 0 0% 24%;
+    --popover: 44 87% 97%;
+    --popover-foreground: 0 0% 24%;
+    --primary: 24 88% 45%;
+    --primary-foreground: 44 87% 94%;
+    --secondary: 44 50% 88%;
+    --secondary-foreground: 0 0% 24%;
+    --muted: 44 50% 88%;
+    --muted-foreground: 0 0% 44%;
+    --accent: 61 66% 44%;
+    --accent-foreground: 0 0% 24%;
+    --destructive: 6 96% 44%;
+    --destructive-foreground: 44 87% 94%;
+    --border: 44 40% 82%;
+    --input: 44 40% 82%;
+    --ring: 24 88% 45%;
+    --sidebar-bg-from: 44 70% 92%;
+    --sidebar-bg-to: 44 80% 95%;
+  }
+
+  [data-theme="gruvbox"].dark {
+    --background: 0 0% 16%;
+    --foreground: 48 87% 86%;
+    --card: 0 0% 20%;
+    --card-foreground: 48 87% 86%;
+    --popover: 0 0% 20%;
+    --popover-foreground: 48 87% 86%;
+    --primary: 27 82% 51%;
+    --primary-foreground: 0 0% 16%;
+    --secondary: 0 0% 24%;
+    --secondary-foreground: 48 87% 86%;
+    --muted: 0 0% 24%;
+    --muted-foreground: 40 12% 58%;
+    --accent: 61 66% 44%;
+    --accent-foreground: 0 0% 16%;
+    --destructive: 6 96% 44%;
+    --destructive-foreground: 48 87% 86%;
+    --border: 0 0% 26%;
+    --input: 0 0% 26%;
+    --ring: 27 82% 51%;
+    --sidebar-bg-from: 0 0% 13%;
+    --sidebar-bg-to: 0 0% 10%;
+  }
+
+  /* ---- 高對比 ---- */
+  [data-theme="high-contrast"] {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 240 100% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 93%;
+    --secondary-foreground: 0 0% 0%;
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 30%;
+    --accent: 240 100% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 100% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 70%;
+    --input: 0 0% 70%;
+    --ring: 240 100% 40%;
+    --sidebar-bg-from: 0 0% 96%;
+    --sidebar-bg-to: 0 0% 100%;
+  }
+
+  [data-theme="high-contrast"].dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 100%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 0 0% 70%;
+    --accent: 210 100% 56%;
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 30%;
+    --input: 0 0% 30%;
+    --ring: 210 100% 56%;
+    --sidebar-bg-from: 0 0% 4%;
+    --sidebar-bg-to: 0 0% 0%;
+  }
+
+  /* ---- 赤紅 Crimson ---- */
+  [data-theme="crimson"] {
+    --background: 0 0% 98%;
+    --foreground: 228 7% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 228 7% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 228 7% 15%;
+    --primary: 4 71% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 4 30% 94%;
+    --secondary-foreground: 228 7% 15%;
+    --muted: 0 10% 94%;
+    --muted-foreground: 228 5% 42%;
+    --accent: 4 40% 93%;
+    --accent-foreground: 228 7% 15%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 10% 88%;
+    --input: 0 10% 88%;
+    --ring: 4 71% 58%;
+    --radius: 0.5rem;
+    --sidebar-bg-from: 4 20% 96%;
+    --sidebar-bg-to: 0 0% 100%;
+  }
+
+  [data-theme="crimson"].dark {
+    --background: 228 7% 15%;
+    --foreground: 0 10% 92%;
+    --card: 228 6% 19%;
+    --card-foreground: 0 10% 92%;
+    --popover: 228 6% 19%;
+    --popover-foreground: 0 10% 92%;
+    --primary: 4 71% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 228 5% 25%;
+    --secondary-foreground: 0 10% 92%;
+    --muted: 228 5% 25%;
+    --muted-foreground: 0 8% 62%;
+    --accent: 4 30% 25%;
+    --accent-foreground: 0 10% 92%;
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 228 5% 28%;
+    --input: 228 5% 28%;
+    --ring: 4 71% 58%;
+    --sidebar-bg-from: 228 7% 12%;
+    --sidebar-bg-to: 228 7% 15%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* 明暗模式過渡動畫 */
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* FullCalendar 自訂樣式 */
+.fc {
+  font-family: inherit !important;
+}
+.fc .fc-toolbar-title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: hsl(var(--foreground)) !important;
+}
+.fc .fc-button {
+  font-size: 0.8rem !important;
+  padding: 0.3em 0.6em !important;
+  background-color: hsl(var(--primary)) !important;
+  border-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+}
+.fc .fc-button:hover {
+  opacity: 0.85;
+}
+.fc .fc-button:disabled {
+  opacity: 0.5;
+}
+.fc .fc-button-active {
+  background-color: hsl(var(--primary)) !important;
+  border-color: hsl(var(--primary)) !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+.fc .fc-event {
+  border-radius: 3px !important;
+  padding: 1px 3px !important;
+  font-size: 0.625rem !important;
+  line-height: 1.3 !important;
+  cursor: pointer !important;
+}
+.fc .fc-event .fc-event-title {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.fc .fc-daygrid-day-number {
+  font-size: 0.75rem !important;
+  color: hsl(var(--foreground)) !important;
+}
+.fc .fc-daygrid-event-harness {
+  margin-bottom: 1px !important;
+}
+.fc .fc-more-link {
+  font-size: 0.6rem !important;
+}
+
+/* 週六日欄位縮窄（月曆模式） */
+.calendar-weekday-wide .fc-scrollgrid-sync-table {
+  table-layout: fixed !important;
+}
+.calendar-weekday-wide .fc-scrollgrid-sync-table col {
+  width: auto !important;
+}
+.calendar-weekday-wide .fc-col-header-cell[data-day="0"],
+.calendar-weekday-wide .fc-col-header-cell[data-day="6"] {
+  width: 7% !important;
+}
+.calendar-weekday-wide .fc-daygrid-day.fc-day-sat,
+.calendar-weekday-wide .fc-daygrid-day.fc-day-sun {
+  max-width: 7% !important;
+}
+.calendar-weekday-wide .fc-col-header {
+  table-layout: fixed !important;
+}
+.calendar-weekday-wide .fc th.fc-day-sat,
+.calendar-weekday-wide .fc th.fc-day-sun {
+  width: 7% !important;
+}
+
+/* 利用 colgroup 控制週六日寬度 */
+.calendar-weekday-wide .fc table colgroup col:first-child,
+.calendar-weekday-wide .fc table colgroup col:last-child {
+  width: 7% !important;
+}
+.calendar-weekday-wide .fc table colgroup col:nth-child(2),
+.calendar-weekday-wide .fc table colgroup col:nth-child(3),
+.calendar-weekday-wide .fc table colgroup col:nth-child(4),
+.calendar-weekday-wide .fc table colgroup col:nth-child(5),
+.calendar-weekday-wide .fc table colgroup col:nth-child(6) {
+  width: 17.2% !important;
+}
+
+/* FullCalendar 捲軸修正：避免內部 scroller 攔截頁面滾動 */
+.fc .fc-scroller {
+  overflow: visible !important;
+}
+.fc .fc-scroller-liquid-absolute {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+/* FullCalendar hover 日期格效果 */
+.fc .fc-daygrid-day:hover {
+  background-color: hsl(var(--accent)) !important;
+  transition: background-color 0.15s ease;
+}
+
+/* 單日展開按鈕（月曆與週曆共用） */
+.cal-day-expand-btn {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: none;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: opacity 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  z-index: 5;
+}
+/* 月曆用：絕對定位在日期文字左側 + hover 才顯示 */
+.fc .cal-day-expand-btn {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  opacity: 0;
+}
+.fc .fc-daygrid-day:hover .cal-day-expand-btn {
+  opacity: 0.85;
+}
+.cal-day-expand-btn:hover {
+  opacity: 1 !important;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+/* 雙擊游標提示 */
+.fc .fc-daygrid-day {
+  cursor: default;
+}
+
+/* FullCalendar 主題適配：標頭、背景、邊框 */
+.fc .fc-col-header {
+  background-color: hsl(var(--muted)) !important;
+}
+.fc .fc-col-header-cell {
+  border-color: hsl(var(--border)) !important;
+}
+.fc .fc-col-header-cell-cushion {
+  color: hsl(var(--foreground)) !important;
+  font-size: 0.75rem !important;
+  white-space: nowrap !important;
+}
+.fc .fc-scrollgrid {
+  border-color: hsl(var(--border)) !important;
+}
+.fc .fc-scrollgrid td,
+.fc .fc-scrollgrid th {
+  border-color: hsl(var(--border)) !important;
+}
+.fc .fc-daygrid-body,
+.fc .fc-timegrid-body {
+  background-color: hsl(var(--card)) !important;
+}
+.fc .fc-daygrid-day {
+  background-color: hsl(var(--card)) !important;
+}
+.fc .fc-day-today {
+  background-color: hsl(var(--accent)) !important;
+}
+.fc .fc-daygrid-day-frame {
+  background-color: transparent !important;
+}
+.fc .fc-timegrid-slot {
+  background-color: hsl(var(--card)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+.fc .fc-timegrid-col {
+  background-color: transparent !important;
+}
+.fc .fc-more-link {
+  color: hsl(var(--primary)) !important;
+}
+.fc .fc-popover {
+  background-color: hsl(var(--popover)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+.fc .fc-popover-header {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+.fc .fc-popover-body {
+  background-color: hsl(var(--popover)) !important;
+}
+.fc .fc-list-day-cushion {
+  background-color: hsl(var(--muted)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+.fc .fc-timegrid-axis-cushion,
+.fc .fc-timegrid-slot-label-cushion {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+/* ================================================================
+   微互動 & 頁面切換動畫
+   ================================================================ */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-page-enter {
+  animation: page-enter 0.25s ease-out both;
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out both;
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-card-enter {
+  animation: card-enter 0.3s ease-out both;
+}
+
+/* 卡片 hover 微升 */
+.card-hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* 按鈕 press 回饋 */
+.btn-press:active {
+  transform: scale(0.97);
+}

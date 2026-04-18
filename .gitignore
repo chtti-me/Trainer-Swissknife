@@ -1,0 +1,42 @@
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# ============ 環境變數（含密鑰，絕對不可上 git）============
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ============ 舊版 SQLite 資料庫（含實際使用者資料，不可上 git）============
+prisma/dev.db
+prisma/dev.db-journal
+prisma/dev.db.*backup*.db
+prisma/*.sqlite
+prisma/*.sqlite3
+
+# ============ 日誌與暫存 ============
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+.DS_Store
+Thumbs.db
+
+# ============ 編輯器／系統 ============
+.vscode/
+.idea/
+*.sw?
+.vercel
+
+# ============ v3 Agent 工作區（使用者透過 Agent 讀寫的檔案）============
+agent-workspace/
+
+# ============ 其他暫存 ============
+*.local
+.cache/
+coverage/

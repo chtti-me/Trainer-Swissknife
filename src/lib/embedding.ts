@@ -39,7 +39,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   if (dim) params.dimensions = dim;
 
   const response = await client.embeddings.create(
-    params as Parameters<typeof client.embeddings.create>[0]
+    params as unknown as Parameters<typeof client.embeddings.create>[0]
   );
 
   return response.data[0]?.embedding ?? [];
@@ -58,7 +58,7 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
   if (dim) params.dimensions = dim;
 
   const response = await client.embeddings.create(
-    params as Parameters<typeof client.embeddings.create>[0]
+    params as unknown as Parameters<typeof client.embeddings.create>[0]
   );
 
   return response.data

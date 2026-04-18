@@ -19,6 +19,11 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # ⚠ Render 在 NODE_ENV=production 時會讓 npm ci 自動加 --omit=dev，
+      # 跳過 devDependencies（autoprefixer、postcss、tailwindcss、typescript、prisma），
+      # 導致 next build 失敗。設這個變數強制安裝 devDependencies。
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
       - key: NEXTAUTH_URL
         sync: false # 部署後手動填入：https://<service>.onrender.com
       - key: NEXTAUTH_SECRET

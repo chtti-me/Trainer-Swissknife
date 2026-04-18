@@ -6,7 +6,7 @@ services:
   - type: web
     name: trainer-swissknife
     runtime: node
-    plan: starter # 升級到 standard 可避免 spin-down；free 方案閒置 15 分鐘會休眠
+    plan: free # 免費版：閒置 15 分鐘休眠、冷啟動 30 秒；升 starter $7/月可避免 spin-down，升 standard $25/月才能加 Persistent Disk
     region: singapore # 對齊 Supabase ap-southeast-1
     branch: main
     buildCommand: |

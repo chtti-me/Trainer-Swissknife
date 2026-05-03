@@ -4,7 +4,10 @@
  * 【班次詳情彈窗】
  * 從 Dashboard 頁面抽取出的獨立元件，負責顯示班次完整資訊。
  */
+import Link from "next/link";
+import { Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { formatDateTime, getStatusColor } from "@/lib/utils";
@@ -170,6 +173,17 @@ export function ClassDetailDialog({ selectedClass, open, onOpenChange }: ClassDe
                     <p className="font-medium">{selectedClass.notes}</p>
                   </div>
                 )}
+              </div>
+
+              <Separator />
+
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="default" size="sm">
+                  <Link href={`/tools/edm-generator?classId=${encodeURIComponent(selectedClass.id)}`}>
+                    <Mail className="w-4 h-4 mr-1.5" />
+                    製作 EDM
+                  </Link>
+                </Button>
               </div>
             </div>
           </>

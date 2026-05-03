@@ -71,6 +71,12 @@ services:
       - key: TAVILY_API_KEY
         sync: false
 
+      # ============ EDM 產生器圖庫 ============
+      - key: PEXELS_API_KEY
+        sync: false
+      - key: UNSPLASH_ACCESS_KEY
+        sync: false
+
       # ============ 相似度 ============
       - key: SIMILARITY_THRESHOLD
         value: "0.75"

@@ -35,6 +35,56 @@ import { AGENT_MAX_TOOL_ROUNDS } from "./types";
 
 ensureToolsRegistered();
 
+/** LLM API 暫態錯誤時重試次數（含首次請求共 3 次） */
+const LLM_MAX_ATTEMPTS = 3;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * OpenAI SDK 拋錯常帶 status。5xx／429 多為暫態（過載、維護、限流）。
+ * 訊息如「503 status code (no body)」即屬此類：上游未回傳 JSON error body。
+ */
+function isRetryableLlmError(e: unknown): boolean {
+  if (!e || typeof e !== "object") return false;
+  const status = (e as { status?: number }).status;
+  if (status === 429) return true;
+  if (status !== undefined && status >= 500 && status < 600) return true;
+  return false;
+}
+
+async function withLlmRetries<T>(fn: () => Promise<T>): Promise<T> {
+  let last: unknown;
+  for (let attempt = 1; attempt <= LLM_MAX_ATTEMPTS; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      last = e;
+      if (attempt < LLM_MAX_ATTEMPTS && isRetryableLlmError(e)) {
+        await sleep(750 * attempt);
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw last;
+}
+
+function formatAgentFatalError(e: unknown): string {
+  const err = e as Error & { status?: number };
+  let detail = err?.message || String(e);
+  const st = typeof err?.status === "number" ? err.status : undefined;
+  if (st !== undefined && st >= 500) {
+    detail +=
+      " — 發生於呼叫 AI 模型 API（OpenAI／Gemini 相容 chat 端點），非 Tavily 網搜本身回傳的 HTTP 狀態；常見原因為供應商短暫過載或維護。已自動重試仍失敗時請稍後再試，或檢查 GEMINI_BASE_URL／OPENAI_BASE_URL 與網路環境。";
+  }
+  if (st === 429) {
+    detail += " — 可能觸發模型 API 限流，請稍後再試。";
+  }
+  return detail;
+}
+
 interface RunAgentParams {
   userId: string;
   conversationId?: string;
@@ -102,14 +152,16 @@ async function callLlmStreaming(
   send: (chunk: AgentStreamChunk) => void,
   conversationId: string
 ): Promise<LlmCallResult> {
-  const response = await client.chat.completions.create({
-    model,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    messages: messages as any,
-    tools: tools.length > 0 ? tools : undefined,
-    temperature: 0.3,
-    stream: true,
-  });
+  const response = await withLlmRetries(() =>
+    client.chat.completions.create({
+      model,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      messages: messages as any,
+      tools: tools.length > 0 ? tools : undefined,
+      temperature: 0.3,
+      stream: true,
+    })
+  );
 
   let text = "";
   const toolCallBuffers = new Map<number, { name: string; args: string }>();
@@ -152,13 +204,15 @@ async function callLlmNonStreaming(
   send: (chunk: AgentStreamChunk) => void,
   conversationId: string
 ): Promise<LlmCallResult> {
-  const response = await client.chat.completions.create({
-    model,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    messages: messages as any,
-    tools: tools.length > 0 ? tools : undefined,
-    temperature: 0.3,
-  });
+  const response = await withLlmRetries(() =>
+    client.chat.completions.create({
+      model,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      messages: messages as any,
+      tools: tools.length > 0 ? tools : undefined,
+      temperature: 0.3,
+    })
+  );
 
   const choice = response.choices[0];
   const text = choice?.message?.content || "";
@@ -365,7 +419,11 @@ function createAgentStream(
 
         send({ type: "done", conversationId });
       } catch (e) {
-        send({ type: "error", content: `Agent 執行錯誤：${(e as Error).message}`, conversationId });
+        send({
+          type: "error",
+          content: `Agent 執行錯誤：${formatAgentFatalError(e)}`,
+          conversationId,
+        });
       } finally {
         controller.close();
       }

@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 25% 6%;
+    --foreground: 210 40% 98%;
+    --card: 220 25% 9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 220 25% 9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 89% 56%;
+    --primary-foreground: 220 25% 6%;
+    --secondary: 220 20% 14%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 220 20% 14%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 199 89% 56%;
+    --accent-foreground: 220 25% 6%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
+    --ring: 199 89% 56%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html, body, #root {
+    @apply h-full;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "微軟正黑體",
+      "PingFang TC", "Noto Sans TC", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/40;
+  }
+}
+
+@layer components {
+  .panel-card {
+    @apply rounded-lg border border-border bg-card/60 p-4;
+  }
+}
+
+/**
+ * v0.4.1：inline 編輯 hover 提示
+ *
+ * 在 EditableCanvas 上，標記 [data-edm-editable] 的元素會在 hover 時：
+ *   - 出現淡虛線外框（dashed outline）
+ *   - 背景輕微泛藍
+ * 一目了然「這裡可以雙擊編輯」，不需要等使用者亂試。
+ *
+ * 編輯狀態（contentEditable）已經會自有藍色實線 outline，所以這邊只處理「未編輯時」。
+ */
+[data-edm-editable] {
+  cursor: text;
+  border-radius: 2px;
+  transition: background-color 0.12s ease, outline-color 0.12s ease;
+}
+[data-edm-editable]:hover {
+  background-color: rgba(59, 130, 246, 0.06);
+  outline: 1px dashed rgba(59, 130, 246, 0.45);
+  outline-offset: 2px;
+}
+/* contentEditable=true 時不再顯示 dashed hint，避免跟編輯時的實線 outline 重疊 */
+[data-edm-editable][contenteditable='true']:hover {
+  background-color: transparent;
+  outline-style: solid;
+}
+
+/**
+ * v0.4.2.1：編輯模式視覺對齊「預覽模式」（iframe 內 React Email 渲染）
+ *
+ * 兩邊本質結構不同：
+ *   - 預覽是 iframe + <table> 結構，套用 RESPONSIVE_STYLE 的 body { margin:0 } / table { border-collapse }
+ *   - 編輯是主視窗 <section> 結構，會被 Tailwind preflight 與全域 body 字型影響
+ *
+ * 這個 root 主要對齊三件事：
+ *   1) 字型（用同一條 font-stack；不繼承主介面的 UI 字型）
+ *   2) section margin reset（避免瀏覽器或 Tailwind 引入額外 margin）
+ *   3) line-height 設為與 iframe 預設一致，減少 vertical rhythm 差距
+ *
+ * 沒處理（且通常不需要處理）的差距：
+ *   - <table> 內部 mso wrapper 在 modern browser 多出的 ~1-2px line-height（視覺上幾乎看不見）
+ *   - 兩邊計算 baseline 的 sub-pixel 差距
+ */
+.edm-editable-root {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", "微軟正黑體",
+    "PingFang TC", "Noto Sans TC", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.5;
+  color-scheme: light;
+}
+.edm-editable-root section {
+  margin: 0;
+}

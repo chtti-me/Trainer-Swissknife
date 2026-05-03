@@ -1,7 +1,7 @@
 /**
  * Agent 工具：師資推薦搜尋
  * 從「個人師資人脈」、「培訓師名冊」、「歷史開班講師紀錄」三大來源搜尋合適講師，
- * 並可搭配 web_search 做 Internet 搜尋延伸。
+ * 與 web_search 併用：系統規定師資類問題必須再呼叫 web_search 查網路。
  */
 import "server-only";
 
@@ -15,7 +15,7 @@ const definition = {
     "1. 個人師資人脈（PersonalInstructorContact）：使用者自行維護的講師聯絡資料，包含姓名、頭銜、組織、專長領域、聯絡方式等\n" +
     "2. 培訓師名冊（Trainer）：系統中所有培訓師資料\n" +
     "3. 歷史開班講師紀錄（TrainingClass.instructorNames）：過去曾擔任特定類型課程講師的人員\n\n" +
-    "使用此工具可協助培訓師快速找到適合某課程主題的師資人選。如需更多外部講師資訊，可搭配 web_search 工具。",
+    "使用此工具查詢系統內師資後，**依平台規則你必須再呼叫 web_search**，以同一主題（可加上「講師」「師資」等詞）搜尋網路公開資訊，並與本工具結果一併整理給使用者；不可只依本工具就結束師資類問題。",
   parameters: {
     type: "object",
     properties: {
@@ -218,8 +218,8 @@ async function execute(
         totalFound,
         ...results,
         hint: totalFound === 0
-          ? "系統內未找到符合條件的師資。建議使用 web_search 工具在 Internet 上搜尋外部講師資訊。"
-          : "以上為系統內的師資搜尋結果。如需更多外部講師資訊，可再使用 web_search 工具搜尋。",
+          ? `系統內未找到符合「${keyword}」的師資。**你必須**立刻呼叫 web_search（query 請圍繞此主題，必要時加上「講師」「師資」「培訓」），再整合回覆。`
+          : `系統內已有師資結果。**你仍必須**呼叫 web_search（建議 query 含「${keyword}」與講師／師資相關詞），將網路公開線索與上表併陳，不可略過網搜。`,
       },
     };
   } catch (e) {

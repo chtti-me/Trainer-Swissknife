@@ -1,7 +1,7 @@
 /**
  * 【開發伺服器啟動器 v2.0】
- * 啟動前先釋放指定埠（預設 3000），再執行 next dev -p <port>，
- * 避免舊行程佔用埠而落到 3001、3002…
+ * 啟動前先釋放指定埠（預設 3001），再執行 next dev -p <port>，
+ * 避免舊行程佔用埠而落到 3002、3003…（3000 常留給 Open WebUI 等服務）
  *
  * 覆寫埠號：DEV_PORT=3005 npm run dev
  * 略過清埠（不建議）：npm run dev:raw
@@ -11,7 +11,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const port = Number(process.env.DEV_PORT || process.env.PORT || 3000);
+const port = Number(process.env.DEV_PORT || process.env.PORT || 3001);
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   console.error("dev.mjs：DEV_PORT / PORT 必須為 1–65535 的整數。");
   process.exit(1);

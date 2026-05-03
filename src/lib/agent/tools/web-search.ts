@@ -14,7 +14,7 @@ const TAVILY_TIMEOUT_MS = 15_000;
 const definition = {
   name: "web_search",
   description:
-    "使用網路搜尋引擎查詢即時資訊。可用來搜尋講師資料、課程參考、最新技術趨勢等。回傳搜尋摘要與來源網址。",
+    "使用網路搜尋引擎（Tavily）查詢即時資訊。當使用者詢問講師、師資、授課人選時，**必須**呼叫本工具（並已先或並行完成 instructor_search）。亦可用於課程參考、技術趨勢等。回傳摘要與來源網址。",
   parameters: {
     type: "object",
     properties: {

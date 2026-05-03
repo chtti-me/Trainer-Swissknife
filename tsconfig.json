@@ -24,6 +24,9 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@edm/*": [
+        "./src/lib/edm-generator/*"
       ]
     },
     "target": "ES2017"

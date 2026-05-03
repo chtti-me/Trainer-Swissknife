@@ -26,7 +26,7 @@ export const DEFAULT_GLOBAL_AI_SKILLS: { slug: string; title: string; sortOrder:
     title: "找師資／授課講師安排",
     sortOrder: 20,
     content:
-      "（請由系統管理員補充）徵詢內外聘講師時的慣例、須標註「需人工確認」的情況、與歷史班次講師欄位的關係說明等。",
+      "徵詢或推薦講師時：**一律**先 instructor_search（含個人師資人脈、培訓師名冊、歷史講師），再 **web_search** 查公開網路資訊，兩者缺一不可；回覆時區分「系統內」與「網路來源」並附出處。外部資訊須標註需人工查證。其餘院內慣例請由系統管理員補充。",
   },
   {
     slug: "edm",

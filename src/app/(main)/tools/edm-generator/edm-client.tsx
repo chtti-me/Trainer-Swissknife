@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { EdmGenerator, NoopSettingsAdapter } from "@edm/index";
+import { EdmGenerator } from "@edm/index";
 import type { HostConfig } from "@edm/index";
 import type { SettingsAdapter } from "@edm/lib/settings/adapter";
 import type { ClassPlan } from "@edm/types/classPlan";
@@ -27,17 +27,29 @@ import { useSettingsStore } from "@edm/store/settingsStore";
 import { useToast } from "@/components/ui/toaster";
 
 /**
- * 整合層專用 SettingsAdapter。
+ * 整合層專用 SettingsAdapter（不繼承 NoopSettingsAdapter，避免 TS contravariance 衝突）。
  *
- * 繼承 NoopSettingsAdapter 行為（不存任何 key），但 getSecret('gemini_api_key')
- * 回傳非空字串 'server-proxy'，讓 settingsStore.geminiApiKey 有值（truthy）。
- * 這是防禦性設計：即使 React Strict Mode 的模擬卸載/重掛載導致 AiAdapter 暫時
- * 從 registry 消失，hasGeminiKey() 仍可透過備用路徑回傳 true，不誤彈警告 toast。
+ * - getSecret('gemini_api_key') 回傳非空字串 'server-proxy'，讓 settingsStore.geminiApiKey
+ *   有值（truthy）。這是防禦性設計：即使 React Strict Mode 模擬卸載/重掛載導致
+ *   AiAdapter 暫時從 registry 消失，hasGeminiKey() 仍可透過備用路徑回傳 true。
+ * - 其他方法等同 noop（不實際儲存 key）。
  */
-class TrainerAcademySettingsAdapter extends NoopSettingsAdapter implements SettingsAdapter {
+class TrainerAcademySettingsAdapter implements SettingsAdapter {
   async getSecret(key: string): Promise<string> {
     if (key === 'gemini_api_key') return 'server-proxy';
     return '';
+  }
+  async setSecret(): Promise<void> {
+    // no-op
+  }
+  async deleteSecret(): Promise<void> {
+    // no-op
+  }
+  supportsApiKeyUI(): boolean {
+    return false;
+  }
+  describe(): { name: string } {
+    return { name: '培訓師瑞士刀（伺服器代理）' };
   }
 }
 

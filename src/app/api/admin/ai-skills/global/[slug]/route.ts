@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-auth";
+import { invalidateSkillContextCache } from "@/lib/ai-skills";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
@@ -65,6 +66,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   if (body.triggerCondition !== undefined) data.triggerCondition = body.triggerCondition;
 
   await prisma.aiGlobalSkillDefinition.update({ where: { slug }, data });
+  invalidateSkillContextCache();
 
   return NextResponse.json({ ok: true });
 }

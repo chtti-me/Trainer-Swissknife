@@ -184,48 +184,16 @@ async function migrateTrainingClasses() {
   console.log(`   ✅ 成功寫入 ${ok}/${src.length}`);
 }
 
+// 註：v1 課程規劃幫手（planning_requests / planning_drafts）已於 v5 重構為
+// course_plan_requests / course_plan_skill_runs / course_plan_drafts。
+// 由於本腳本是 v3 SQLite → v4 PostgreSQL 一次性遷移工具且 v1 資料模型已淘汰，
+// 此處保留 stub 以維持函式呼叫順序，但不再實際遷移舊版規劃資料。
 async function migratePlanningRequests() {
-  const src = rows("planning_requests");
-  console.log(`📋 PlanningRequest：${src.length} 筆`);
-  for (const r of src) {
-    await prisma.planningRequest.upsert({
-      where: { id: String(r.id) },
-      update: {},
-      create: {
-        id: String(r.id),
-        createdBy: String(r.created_by),
-        title: String(r.title ?? ""),
-        rawInputText: toStr(r.raw_input_text),
-        sourceFiles: toStr(r.source_files),
-        parsedSummary: toStr(r.parsed_summary_json),
-        status: String(r.status ?? "draft"),
-        createdAt: toDate(r.created_at) ?? new Date(),
-        updatedAt: toDate(r.updated_at) ?? new Date(),
-      },
-    });
-  }
+  console.log(`📋 PlanningRequest：v1 已淘汰，跳過遷移`);
 }
 
 async function migratePlanningDrafts() {
-  const src = rows("planning_drafts");
-  console.log(`📝 PlanningDraft：${src.length} 筆`);
-  for (const r of src) {
-    await prisma.planningDraft.upsert({
-      where: { id: String(r.id) },
-      update: {},
-      create: {
-        id: String(r.id),
-        requestId: String(r.request_id),
-        versionNo: toInt(r.version_no) ?? 1,
-        aiOutputJson: toStr(r.ai_output_json),
-        editedOutputJson: toStr(r.edited_output_json),
-        exportedMarkdown: toStr(r.exported_markdown),
-        createdBy: String(r.created_by),
-        createdAt: toDate(r.created_at) ?? new Date(),
-        updatedAt: toDate(r.updated_at) ?? new Date(),
-      },
-    });
-  }
+  console.log(`📝 PlanningDraft：v1 已淘汰，跳過遷移`);
 }
 
 async function migrateSimilarityChecks() {

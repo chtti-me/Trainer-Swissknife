@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-auth";
-import { nextGlobalSkillVersionNo } from "@/lib/ai-skills";
+import { invalidateSkillContextCache, nextGlobalSkillVersionNo } from "@/lib/ai-skills";
 import { assertSkillContentWithinLimit } from "@/lib/ai-skill-limits";
 
 type Ctx = { params: Promise<{ slug: string }> };
@@ -61,6 +61,8 @@ export async function POST(req: NextRequest, ctx: Ctx) {
       versionNo,
     },
   });
+  // 全院技能異動會影響所有使用者的脈絡 → 全清
+  invalidateSkillContextCache();
 
   return NextResponse.json({
     versionNo: row.versionNo,

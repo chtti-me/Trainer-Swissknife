@@ -99,8 +99,9 @@ async function main() {
   await prisma.aiGlobalSkillDefinition.deleteMany();
   await prisma.syncJob.deleteMany();
   await prisma.similarityCheck.deleteMany();
-  await prisma.planningDraft.deleteMany();
-  await prisma.planningRequest.deleteMany();
+  await prisma.coursePlanDraft.deleteMany();
+  await prisma.coursePlanSkillRun.deleteMany();
+  await prisma.coursePlanRequest.deleteMany();
   await prisma.trainingClass.deleteMany();
   await prisma.trainer.deleteMany();
   await prisma.user.deleteMany();

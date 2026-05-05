@@ -4,7 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminSession } from "@/lib/admin-auth";
-import { assertValidSkillSlug } from "@/lib/ai-skills";
+import { assertValidSkillSlug, invalidateSkillContextCache } from "@/lib/ai-skills";
 import { assertSkillContentWithinLimit } from "@/lib/ai-skill-limits";
 
 export async function GET() {
@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
       versionNo: 1,
     },
   });
+  invalidateSkillContextCache();
 
   return NextResponse.json({ slug: def.slug, title: def.title, sortOrder: def.sortOrder });
 }

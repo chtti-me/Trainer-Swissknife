@@ -31,8 +31,8 @@ model User {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   trainingClasses         TrainingClass[]
-  planningRequests        PlanningRequest[]
-  planningDrafts          PlanningDraft[]
+  coursePlanRequests      CoursePlanRequest[]
+  coursePlanDrafts        CoursePlanDraft[]
   similarityChecks        SimilarityCheck[]
   /// 對應培訓師名冊（可選，與 Trainer.linkedUser 雙向）
   trainerDirectoryProfile Trainer?
@@ -139,44 +139,98 @@ model Trainer {
 }
 
 // ============================================================
-// 課程規劃需求
+// 課程規劃幫手 — 規劃需求單（v5 全新版）
+// 一份規劃需求 = 培訓師貼上的需求 + 一連串 Skill 執行紀錄 + 多版草案
+// 產出聖經：開班計畫表（finalForm）+ 4 份輔助文件（finalAuxDocs）
 // ============================================================
-model PlanningRequest {
-  id             String   @id @default(uuid())
-  createdBy      String   @map("created_by")
-  creator        User     @relation(fields: [createdBy], references: [id])
-  title          String
-  rawInputText   String?  @map("raw_input_text")     // 原始貼入文字
-  sourceFiles    String?  @map("source_files")        // 上傳檔案路徑 JSON
-  parsedSummary  String?  @map("parsed_summary_json") // AI 解析後摘要 JSON
-  status         String   @default("draft")           // draft / completed / archived
+model CoursePlanRequest {
+  id              String   @id @default(uuid())
+  createdBy       String   @map("created_by")
+  creator         User     @relation(fields: [createdBy], references: [id])
+  /// 培訓師自取的工作標題（不是最終班名；最終班名由訓練需求分析 + 課程大綱 Skill 產出）
+  title           String?
+  /// 貼上的原始需求文字（必填）
+  rawInputText    String   @map("raw_input_text")
+  /// 上傳檔案資訊 JSON（[{ name, ext, size, parsedAt }, …]）
+  sourceFiles     String?  @map("source_files")
+  /// pending（剛建）/ running（pipeline 中）/ completed（11 Skills 跑完）/ reuse_existing（決定沿用既有班）/ failed
+  status          String   @default("pending")
+  /// 目前 pipeline 執行到哪個 Skill：existing_lookup / needs / audience / objectives / outline / format / instructor / schedule / promo / notification / materials / assessment / null
+  currentSkill    String?  @map("current_skill")
+  /// 若使用者選擇沿用既有班，存指向的 TrainingClass.id
+  reuseClassId    String?  @map("reuse_class_id")
+  /// 最終開班計畫表（AI 區 + 培訓師覆蓋區）；schema 見 src/lib/course-planner/schemas/form.ts
+  finalForm       Json?    @map("final_form")
+  /// 4 份輔助文件（promo / notification / materials / assessment）
+  finalAuxDocs    Json?    @map("final_aux_docs")
+  /// 指定本次 request 用哪家 AI 供應商（gemini / openai / groq）；null = 走 env 預設
+  aiProvider      String?  @map("ai_provider")
+  /// 規劃單類型：
+  ///   full     —— 完整規劃（11 Skills 全跑、有開班計畫表草案；列在主頁面）
+  ///   toolbox  —— 課程規劃工具箱單跑（只跑使用者勾選的 Skills + 必要上游、不會合成最終 form；不列在主頁面）
+  kind            String   @default("full")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  drafts         PlanningDraft[]
+  skillRuns       CoursePlanSkillRun[]
+  drafts          CoursePlanDraft[]
 
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-
-  @@map("planning_requests")
+  @@index([createdBy, createdAt(sort: Desc)])
+  @@map("course_plan_requests")
 }
 
 // ============================================================
-// 課程規劃草案
+// 課程規劃幫手 — Skill 執行紀錄
+// 每個 Skill 每次執行（包含重跑）都會新增一筆，sequence 自增
 // ============================================================
-model PlanningDraft {
-  id               String   @id @default(uuid())
-  requestId        String   @map("request_id")
-  request          PlanningRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-  versionNo        Int      @map("version_no")
-  aiOutputJson     String?  @map("ai_output_json")      // AI 原始輸出 JSON
-  editedOutputJson String?  @map("edited_output_json")   // 人工修訂 JSON
-  exportedMarkdown String?  @map("exported_markdown")
-  createdBy        String   @map("created_by")
-  creator          User     @relation(fields: [createdBy], references: [id])
+model CoursePlanSkillRun {
+  id          String   @id @default(uuid())
+  requestId   String   @map("request_id")
+  request     CoursePlanRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  /// Skill 識別字串：existing_lookup / needs / audience / objectives / outline / format / instructor / schedule / promo / notification / materials / assessment
+  skillName   String   @map("skill_name")
+  /// 同一個 Skill 在同一個 request 內的第幾次執行（從 1 開始；重跑會 + 1）
+  sequence    Int      @default(1)
+  /// 該 Skill 接收的輸入（上游 Skill 的 output 或 request.rawInputText）
+  input       Json
+  /// 該 Skill 的輸出（含 reasoning / assumptions / confidence）
+  output      Json?
+  /// 提取出的 reasoning 字串（方便不展 output 也能看）
+  reasoning   String?
+  /// running / success / failed
+  status      String   @default("running")
+  error       String?
+  durationMs  Int?     @map("duration_ms")
+  /// 實際使用的 LLM 模型名稱（記錄用，例如 gemini-2.5-flash）
+  model       String?
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  @@unique([requestId, skillName, sequence])
+  @@index([requestId, skillName])
+  @@map("course_plan_skill_runs")
+}
 
-  @@map("planning_drafts")
+// ============================================================
+// 課程規劃幫手 — 草案版本
+// 每次培訓師按「儲存版本」就建立一筆，formJson 為當下完整開班計畫表
+// ============================================================
+model CoursePlanDraft {
+  id              String   @id @default(uuid())
+  requestId       String   @map("request_id")
+  request         CoursePlanRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  versionNo       Int      @map("version_no")
+  /// 該版本的開班計畫表完整內容（CoursePlanForm schema）
+  formJson        Json     @map("form_json")
+  /// 該版本的 4 份輔助文件
+  auxDocsJson     Json?    @map("aux_docs_json")
+  /// 培訓師自填的版本變更說明
+  changeNote      String?  @map("change_note")
+  createdBy       String   @map("created_by")
+  creator         User     @relation(fields: [createdBy], references: [id])
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([requestId, versionNo])
+  @@map("course_plan_drafts")
 }
 
 // ============================================================

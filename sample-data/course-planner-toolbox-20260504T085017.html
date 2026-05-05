@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<title>課程規劃工具箱結果</title>
+<style>
+  body { font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; line-height: 1.7; color: #1f2937; max-width: 880px; margin: 24px auto; padding: 32px 40px; background: #ffffff; }
+  h1 { font-size: 26px; font-weight: 700; border-bottom: 3px solid #8b5cf6; padding-bottom: 8px; margin: 0 0 18px; color: #4c1d95; }
+  h2 { font-size: 20px; font-weight: 700; color: #5b21b6; margin: 28px 0 12px; padding-left: 10px; border-left: 4px solid #8b5cf6; }
+  h3 { font-size: 16px; font-weight: 700; margin: 18px 0 8px; color: #374151; }
+  p { margin: 8px 0; }
+  ul { margin: 6px 0 14px; padding-left: 24px; }
+  li { margin: 4px 0; }
+  li.sub { list-style-type: circle; margin-left: 12px; color: #4b5563; font-size: 0.95em; }
+  blockquote { margin: 12px 0; padding: 10px 14px; background: #f5f3ff; border-left: 4px solid #c4b5fd; border-radius: 4px; color: #4b5563; }
+  blockquote p { margin: 4px 0; }
+  strong { color: #111827; font-weight: 700; }
+  code { background: #f3f4f6; padding: 1px 6px; border-radius: 3px; font-family: "JetBrains Mono", monospace; font-size: 0.9em; }
+  hr.divider { border: none; border-top: 1px dashed #d1d5db; margin: 24px 0; }
+  .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; text-align: center; }
+</style>
+</head>
+<body>
+<h1>課程規劃工具箱結果：訓練需求分析 + 學員輪廓分析 + 學習目標設計 + 課程大綱設計</h1>
+<blockquote>
+<p>由「培訓師瑞士刀 · 課程規劃工具箱」於 2026/5/4 下午4:50:17 自動產生。<strong>非</strong>中華電信學院正式核可文件。</p>
+<p>Request ID：<code>07d6c954-c949-48c8-81d7-f88df300a8b9</code></p>
+</blockquote>
+<h2>原始需求摘要</h2>
+<blockquote>
+<p>我們團隊最近開始接觸 AI Agent 和 Harness Engineering，感覺很有潛力，但老實說，大家對這些技術的實際應用還很模糊。我們平常的工作包括程式碼維護、測試自動化，以及一些資料處理的流程，但每次碰到跨系統或多模組的自動化任務，就會卡住。比如說，我們想要 AI 幫忙自動生成測試案例，或者在開發過程中偵測潛在錯誤，但不知道該如何設計這些代理，讓它們能可靠地運作。</p>
+<p></p>
+<p>另外，我們有些程式模組是在不同環境跑的，像是本地端和雲端平台混用，所以我們也希望能學到如何搭建一個 Harness，方便測試 AI Agent 在各種情境下的表現。當然，最理想的是能把整個流程從設計、部署、監控到優化都串起來，讓團隊不用每次都手動操作。</p>
+<p></p>
+<p>簡單說，我們想上課能學到不只是理論，而是能實際操作、看到成果，最好還能理解這些 AI Agent 的工作原理、效能評估和安全性控管。其實我們也有點想知道，怎麼讓 AI 在團隊日常工作中真正「幫忙」，而不是只是個花瓶。</p>
+</blockquote>
+<h2>訓練需求分析（自動補跑上游）</h2>
+<p><strong>判斷依據</strong>：需求方明確指出對 AI Agent 與 Harness Engineering 的實際應用模糊，且在跨系統自動化任務中遇到瓶頸，並期望透過學習來解決這些問題。這些痛點直接指向知識與技能的缺乏，因此判斷為培訓可解決的問題。</p>
+<p><strong>需求摘要</strong>：軟體開發團隊希望學習 AI Agent 與 Harness Engineering 的實作應用，以解決跨系統自動化任務的瓶頸，並提升測試與開發效率。</p>
+<p><strong>需求方提到的痛點</strong></p>
+<ul>
+<li>大家對這些技術的實際應用還很模糊</li>
+<li>每次碰到跨系統或多模組的自動化任務，就會卡住</li>
+<li>不知道該如何設計這些代理，讓它們能可靠地運作</li>
+<li>希望能學到如何搭建一個 Harness，方便測試 AI Agent 在各種情境下的表現</li>
+<li>最理想的是能把整個流程從設計、部署、監控到優化都串起來，讓團隊不用每次都手動操作</li>
+<li>想知道，怎麼讓 AI 在團隊日常工作中真正「幫忙」，而不是只是個花瓶</li>
+</ul>
+<p><strong>真正的能力差距</strong></p>
+<ul>
+<li><strong>AI Agent 的設計、開發與實作能力</strong></li>
+<li class="sub">哪一群人欠缺：軟體開發團隊成員</li>
+<li class="sub">從原始需求中看到的線索：大家對這些技術的實際應用還很模糊；不知道該如何設計這些代理，讓它們能可靠地運作；想要 AI 幫忙自動生成測試案例，或者在開發過程中偵測潛在錯誤</li>
+<li><strong>Harness Engineering 測試環境的建置與應用能力</strong></li>
+<li class="sub">哪一群人欠缺：軟體開發團隊成員</li>
+<li class="sub">從原始需求中看到的線索：希望能學到如何搭建一個 Harness，方便測試 AI Agent 在各種情境下的表現；有些程式模組是在不同環境跑的，像是本地端和雲端平台混用</li>
+<li><strong>AI Agent 從設計、部署、監控到優化的生命週期管理與整合能力</strong></li>
+<li class="sub">哪一群人欠缺：軟體開發團隊成員</li>
+<li class="sub">從原始需求中看到的線索：最理想的是能把整個流程從設計、部署、監控到優化都串起來；理解這些 AI Agent 的工作原理、效能評估和安全性控管</li>
+<li><strong>將 AI Agent 融入日常工作流程並發揮實質效益的策略與實踐能力</strong></li>
+<li class="sub">哪一群人欠缺：軟體開發團隊成員</li>
+<li class="sub">從原始需求中看到的線索：怎麼讓 AI 在團隊日常工作中真正「幫忙」，而不是只是個花瓶</li>
+</ul>
+<p><strong>這是培訓能解決的問題嗎？</strong> 是</p>
+<p><strong>建議課程主題方向</strong></p>
+<ul>
+<li>AI Agent 實作與應用開發</li>
+<li>Harness Engineering 平台建置與測試</li>
+<li>AI Agent 生命週期管理與整合</li>
+</ul>
+<p><strong>案由說明（可直接抄到開班計畫表）</strong></p>
+<blockquote>
+<p>為提升軟體開發團隊在跨系統自動化任務中的效率與品質，本課程旨在提供 AI Agent 設計、Harness Engineering 建置及生命週期管理的實作技能。透過培訓，學員將能有效運用 AI 技術解決工作瓶頸，並將 AI Agent 融入日常開發與測試流程。</p>
+</blockquote>
+<p><strong>還需要補的資訊</strong></p>
+<ul>
+<li>目標學員的現有程式開發經驗與 AI 基礎知識程度？</li>
+<li>預計參訓人數與希望的課程時長？</li>
+<li>團隊目前使用的開發語言與工具環境？</li>
+<li>期望課程結束後，學員能達成哪些具體的業務成果或專案應用？</li>
+</ul>
+<hr class="divider"/>
+<h2>學員輪廓分析（自動補跑上游）</h2>
+<p><strong>判斷依據</strong>：根據需求分析摘要與識別到的能力差距，本課程明確針對軟體開發團隊成員，旨在解決其在 AI Agent 實作、Harness Engineering 應用及生命週期管理上的能力缺口。因此，學員輪廓、先備知識與不適合對象皆圍繞此核心需求推導。</p>
+<p><strong>主要對象</strong>：需要學習 AI Agent 與 Harness Engineering 實作應用，以提升跨系統自動化任務效率及測試開發效率的軟體開發團隊成員。</p>
+<p><strong>預備知識</strong>：具備程式開發基礎與系統操作能力。</p>
+<p><strong>不適合的對象</strong></p>
+<ul>
+<li>不具備程式開發基礎或系統整合經驗的非技術人員。</li>
+<li>已具備 AI Agent 設計、開發與 Harness Engineering 實務經驗的資深開發者（課程內容可能偏基礎應用）。</li>
+<li>僅對 AI 概念有興趣，但無意願動手實作的學員。</li>
+</ul>
+<p><strong>細分輪廓</strong></p>
+<h3>軟體開發工程師（具備軟體開發經驗的工程師）</h3>
+<ul>
+<li>先備知識：具備程式開發與系統整合基礎知識，但對 AI Agent 及 Harness Engineering 應用不熟悉。</li>
+<li>工作場景：負責軟體系統開發、測試與維護，面臨跨系統自動化整合困難，或需提升測試效率與品質，並將 AI 技術導入開發流程的場景。</li>
+<li>學習痛點：不清楚如何設計與實作可靠的 AI Agent。、難以有效利用 AI Agent 提升測試與開發自動化程度。、缺乏建置與管理 AI Agent 測試環境 (Harness) 的經驗。、對 AI Agent 的生命週期管理（部署、監控、優化）缺乏系統性理解。、不知道如何將 AI Agent 實際融入團隊工作流程並產生效益。</li>
+<li>對課程的期待：掌握 AI Agent 的設計、開發與實作方法。、學會建置與應用 Harness Engineering 平台進行 AI Agent 測試。、理解並實踐 AI Agent 的生命週期管理與整合。、能夠將 AI Agent 應用於實際工作，解決自動化瓶頸並提升效率。</li>
+</ul>
+<hr class="divider"/>
+<h2>學習目標設計（自動補跑上游）</h2>
+<p><strong>判斷依據</strong>：這些學習目標直接對應了軟體開發團隊在 AI Agent 設計、Harness 測試、生命週期管理及工作流程整合上的能力差距與痛點。每個目標都設計成具體可驗證的行為，以確保學員能將所學應用於實際工作。</p>
+<p><strong>課程終點</strong>：學員完成課程後，能獨立設計、開發、測試並部署 AI Agent，並將其整合到現有工作流程中，以提升跨系統自動化任務與測試開發的效率。</p>
+<p><strong>學習目標</strong></p>
+<p>1. 學員能依據業務需求，設計並實作一個具備特定功能的 AI Agent 原型。</p>
+<ul>
+<li class="sub">驗證方式：提交 AI Agent 的設計文件與可運行的程式碼。</li>
+<li class="sub">工作中可觀察到的行為：在團隊會議中，能清晰說明 AI Agent 的設計思路與預期功能。</li>
+</ul>
+<p>2. 學員能運用 Harness Engineering 平台，為所開發的 AI Agent 建置自動化測試環境並執行測試。</p>
+<ul>
+<li class="sub">驗證方式：提交 Harness 測試環境的配置報告與測試結果。</li>
+<li class="sub">工作中可觀察到的行為：能主動利用 Harness 平台進行 AI Agent 的功能與效能驗證。</li>
+</ul>
+<p>3. 學員能規劃並執行 AI Agent 從部署、監控到優化的生命週期管理策略。</p>
+<ul>
+<li class="sub">驗證方式：提交一份 AI Agent 的部署與監控計畫書，並說明優化方案。</li>
+<li class="sub">工作中可觀察到的行為：在 AI Agent 上線後，能持續追蹤其運作狀況並提出改進建議。</li>
+</ul>
+<p>4. 學員能評估現有工作流程中的自動化瓶頸，並提出將 AI Agent 融入其中以提升效率的具體方案。</p>
+<ul>
+<li class="sub">驗證方式：提交一份將 AI Agent 整合至特定工作流程的提案報告，包含預期效益分析。</li>
+<li class="sub">工作中可觀察到的行為：能主動識別團隊內可透過 AI Agent 優化的重複性任務，並提出實施計畫。</li>
+</ul>
+<hr class="divider"/>
+<h2>課程大綱設計</h2>
+<p><strong>判斷依據</strong>：根據學員輪廓與學習目標，課程從 AI Agent 的基礎概念與實作開始，逐步導入 Harness Engineering 進行自動化測試與部署，最後涵蓋生命週期管理與實際業務整合，確保學員能全面掌握 AI Agent 的應用與維運。</p>
+<p><strong>最終建議班名</strong>：【實作】AI Agent 與 Harness 工程應用</p>
+<p><strong>總時數</strong>：18 小時，共 6 堂</p>
+<p><strong>學習路徑</strong></p>
+<blockquote>
+<p>課程設計循序漸進，從理解 AI Agent 的核心概念與設計思維開始，透過實際動手開發第一個 Agent，建立學員的基礎實作能力。接著引入 Harness Engineering 平台，從基礎 CI/CD 到專為 AI Agent 設計的自動化測試與部署流程，確保 Agent 的品質與穩定性。最後，課程將探討 AI Agent 部署後的生命週期管理、監控與優化，並引導學員將所學應用於現有工作流程，評估整合效益並提出具體方案，達成從概念到落地的完整學習閉環。</p>
+</blockquote>
+<p><strong>本課程特色</strong></p>
+<ul>
+<li>理論與實作並重：結合 AI Agent 核心概念與 Harness 平台操作，確保學員能學以致用。</li>
+<li>專為軟體開發團隊設計：內容聚焦於實際開發與維運挑戰，提供解決方案。</li>
+<li>案例演練與專案實作：透過多樣化的課中活動，深化學習成效。</li>
+<li>涵蓋 AI Agent 完整生命週期：從設計、開發、測試、部署到監控優化，全面掌握。</li>
+<li>強調跨系統自動化應用：引導學員將 AI Agent 導入複雜業務流程，提升效率。</li>
+</ul>
+<p><strong>堂課明細</strong></p>
+<h3>第 1 堂｜AI Agent 核心概念與設計思維</h3>
+<ul>
+<li><strong>時數</strong>：3 小時｜<strong>性質</strong>：講授</li>
+<li><strong>對應學習目標</strong>：1</li>
+</ul>
+<p><strong>內容說明</strong></p>
+<p>本堂課旨在為學員建立 AI Agent 的核心概念與設計思維。我們將深入探討 AI Agent 的定義、典型架構（如大型語言模型、記憶模組、工具使用與規劃機制），並透過實際案例分析，闡明 AI Agent 如何有效解決企業在跨系統自動化任務中遇到的瓶頸。課程中將引導學員思考如何將複雜的業務需求拆解為 Agent 可執行的任務，並介紹常見的設計模式與應用場景，為後續實作打下堅實基礎。學員將能理解 Agent 運作邏輯，並初步構思在自身業務中的應用潛力。</p>
+<p><strong>重點</strong></p>
+<ul>
+<li>AI Agent 定義與架構：LLM、記憶、工具、規劃</li>
+<li>Agent 設計模式與應用場景分析</li>
+<li>跨系統自動化瓶頸與 Agent 解決方案</li>
+<li>業務需求拆解與 Agent 任務規劃</li>
+</ul>
+<p><strong>課中活動</strong>：小組討論：現有業務痛點與 AI Agent 潛在應用情境發想。</p>
+<p><strong>學員帶走</strong>：理解 AI Agent 運作原理與設計要素，能初步構思 Agent 應用方向。</p>
+<h3>第 2 堂｜打造你的第一個 AI Agent：實作與調校</h3>
+<ul>
+<li><strong>時數</strong>：3 小時｜<strong>性質</strong>：實作演練</li>
+<li><strong>對應學習目標</strong>：1</li>
+</ul>
+<p><strong>內容說明</strong></p>
+<p>本堂課是實作導向，學員將親自動手開發第一個 AI Agent。課程將從開發環境建置與常用框架（如 LangChain 概念）選擇開始，逐步引導學員實作具備特定功能的 Agent 原型。我們將重點講解如何整合外部工具（如 API 呼叫、資料庫查詢）並運用 Function Calling 技術，以及透過 Prompt Engineering 精準控制 Agent 行為。課程中也會涵蓋常見除錯技巧與效能調校方法，幫助學員克服開發挑戰，確保 Agent 能穩定運作並達成預期任務。</p>
+<p><strong>重點</strong></p>
+<ul>
+<li>開發環境建置與 AI Agent 框架選擇</li>
+<li>AI Agent 原型實作與工具整合</li>
+<li>Function Calling 與外部 API 串接</li>
+<li>Prompt Engineering 技巧與行為控制</li>
+<li>AI Agent 除錯與效能調校</li>
+</ul>
+<p><strong>課中活動</strong>：上機實作：開發一個能執行特定任務的 AI Agent 原型，並進行初步測試。</p>
+<p><strong>學員帶走</strong>：具備獨立開發與調校 AI Agent 原型的基本能力，並產出可運行的程式碼。</p>
+<h3>第 3 堂｜Harness Engineering 平台導覽與 CI/CD 基礎</h3>
+<ul>
+<li><strong>時數</strong>：3 小時｜<strong>性質</strong>：講授</li>
+<li><strong>對應學習目標</strong>：2</li>
+</ul>
+<p><strong>內容說明</strong></p>
+<p>本堂課將帶領學員認識 Harness Engineering 平台，一個為現代軟體開發提供 CI/CD 與自動化解決方案的平台。課程從 Harness 核心架構與主要功能介紹起，逐步引導學員建立基礎 CI/CD 流水線，用於傳統應用程式的自動化建置與部署。透過實際操作，學員將熟悉 Harness 介面、專案管理、Artifact 管理與部署策略，為後續將 AI Agent 整合至此平台打下堅實基礎。旨在讓學員快速上手 Harness，理解其在軟體交付中的價值。</p>
+<p><strong>重點</strong></p>
+<ul>
+<li>Harness 平台架構與核心功能介紹</li>
+<li>CI/CD 流水線設計原則與實務</li>
+<li>建置第一個應用程式 CI Pipeline</li>
+<li>Artifact 管理與部署策略</li>
+<li>Harness 基礎操作與權限管理</li>
+</ul>
+<p><strong>課中活動</strong>：上機實作：在 Harness 上建立並執行一個簡單的應用程式 CI Pipeline。</p>
+<p><strong>學員帶走</strong>：理解 Harness 平台基本功能，能建置並執行基礎的 CI/CD 流水線。</p>
+<h3>第 4 堂｜Harness 整合 AI Agent：自動化測試與部署</h3>
+<ul>
+<li><strong>時數</strong>：3 小時｜<strong>性質</strong>：實作演練</li>
+<li><strong>對應學習目標</strong>：2</li>
+</ul>
+<p><strong>內容說明</strong></p>
+<p>本堂課將聚焦於運用 Harness Engineering 平台解決 AI Agent 特有的測試與部署挑戰。學員將學習為 AI Agent 設計自動化測試策略，包括工具呼叫單元測試、Agent 規劃邏輯整合測試，以及端到端任務完成度行為驗證。課程中將透過實作，引導學員在 Harness 配置測試環境，並將測試結果整合進 CI/CD 流水線。同時，我們也將探討 AI Agent 部署策略，包含版本控制、藍綠部署等，確保 Agent 穩定上線與快速迭代。學員將能為 AI Agent 建立一套完整的自動化測試與部署流程。</p>
+<p><strong>重點</strong></p>
+<ul>
+<li>AI Agent 測試策略與挑戰分析</li>
+<li>Harness 測試模組應用於 Agent 行為驗證</li>
+<li>Agent 自動化測試環境建置與執行</li>
+<li>Harness CD 部署 AI Agent 實務</li>
+<li>版本控制與回滾機制設計</li>
+</ul>
+<p><strong>課中活動</strong>：上機實作：為前一堂課開發的 AI Agent 設計並執行自動化測試與部署流程。</p>
+<p><strong>學員帶走</strong>：能運用 Harness 為 AI Agent 建置自動化測試環境，並規劃部署策略。</p>
+<h3>第 5 堂｜AI Agent 生命週期管理：監控與優化</h3>
+<ul>
+<li><strong>時數</strong>：3 小時｜<strong>性質</strong>：講授</li>
+<li><strong>對應學習目標</strong>：3</li>
+</ul>
+<p><strong>內容說明</strong></p>
+<p>本堂課將探討 AI Agent 部署後的生命週期管理，重點在於如何監控其運行狀態與進行效能優化。學員將學習設定關鍵監控指標（如延遲、錯誤率、工具使用頻率及 LLM 成本），並建立有效的日誌管理與錯誤追蹤機制。課程中將介紹多種 Agent 效能優化策略，例如 Prompt 精煉、RAG 應用、工具增強等，並探討如何運用 A/B 測試或灰度發布來驗證優化效果。此外，也將涵蓋 Agent 運行中的安全性與倫理考量。學員將能規劃並執行 AI Agent 的長期維運與優化策略。</p>
+<p><strong>重點</strong></p>
+<ul>
+<li>AI Agent 運行監控指標與工具應用</li>
+<li>日誌管理與錯誤追蹤策略</li>
+<li>Agent 效能優化技巧：Prompt、RAG、工具</li>
+<li>A/B 測試與灰度發布驗證優化效果</li>
+<li>AI Agent 運行安全性與倫理考量</li>
+</ul>
+<p><strong>課中活動</strong>：案例討論：分析 AI Agent 運行異常案例，提出監控與優化方案。</p>
+<p><strong>學員帶走</strong>：掌握 AI Agent 部署後的監控與優化方法，能規劃生命週期管理策略。</p>
+<h3>第 6 堂｜AI Agent 整合策略與效益評估</h3>
+<ul>
+<li><strong>時數</strong>：3 小時｜<strong>性質</strong>：專案</li>
+<li><strong>對應學習目標</strong>：4</li>
+</ul>
+<p><strong>內容說明</strong></p>
+<p>本堂課旨在引導學員將所學的 AI Agent 知識與 Harness 應用於實際業務場景。課程將從分析現有工作流程中的自動化瓶頸開始，引導學員設計 AI Agent 的整合點與具體方案。我們將探討如何評估 AI Agent 導入後的預期效益、潛在風險與應對策略，並學習撰寫具說服力的專案提案報告。透過小組專案實作與成果發表，學員將有機會應用所有課程內容，從策略規劃到技術整合，全面提升將 AI Agent 落地於企業環境的能力，並為組織創造實際價值。</p>
+<p><strong>重點</strong></p>
+<ul>
+<li>業務流程自動化瓶頸分析與痛點識別</li>
+<li>AI Agent 整合點設計與方案規劃</li>
+<li>效益評估與潛在風險管理</li>
+<li>專案提案報告撰寫與溝通技巧</li>
+<li>AI Agent 於企業環境的落地策略</li>
+</ul>
+<p><strong>課中活動</strong>：小組專案：針對特定業務流程，提出 AI Agent 整合方案與效益分析報告。</p>
+<p><strong>學員帶走</strong>：能評估工作流程並提出 AI Agent 整合方案，具備提案與效益分析能力。</p>
+<div class="footer">由「培訓師瑞士刀 · 課程規劃工具箱」於 2026/5/4 下午4:50:17 自動產生</div>
+</body>
+</html>

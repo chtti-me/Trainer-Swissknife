@@ -164,12 +164,15 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
   }
 
   await prisma.$transaction([
-    prisma.planningDraft.deleteMany({
+    prisma.coursePlanDraft.deleteMany({
       where: {
         OR: [{ createdBy: id }, { request: { createdBy: id } }],
       },
     }),
-    prisma.planningRequest.deleteMany({ where: { createdBy: id } }),
+    prisma.coursePlanSkillRun.deleteMany({
+      where: { request: { createdBy: id } },
+    }),
+    prisma.coursePlanRequest.deleteMany({ where: { createdBy: id } }),
     prisma.similarityCheck.deleteMany({ where: { createdBy: id } }),
     prisma.trainingClass.updateMany({ where: { trainerUserId: id }, data: { trainerUserId: null } }),
     prisma.user.delete({ where: { id } }),

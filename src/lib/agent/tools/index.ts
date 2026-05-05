@@ -5,6 +5,7 @@ import "server-only";
 
 import { registerTool } from "../tool-registry";
 import { coursePlanTool } from "./course-plan";
+import { coursePlanStatusTool } from "./course-plan-status";
 import { dbQueryTool } from "./db-query";
 import { similarityCheckTool } from "./similarity-check";
 import { webSearchTool } from "./web-search";
@@ -24,6 +25,7 @@ export function ensureToolsRegistered(): void {
   registered = true;
 
   registerTool(coursePlanTool);
+  registerTool(coursePlanStatusTool);
   registerTool(dbQueryTool);
   registerTool(similarityCheckTool);
   registerTool(webSearchTool);

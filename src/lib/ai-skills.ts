@@ -32,6 +32,55 @@ function shouldIncludeGlobalSkill(
   return false;
 }
 
+// ============================================================
+// In-memory cache（P1）：course-planner 每跑一次 pipeline 會呼 11 次 loadSkillContext，
+// DB 內容多半 5 分鐘內不會變。用 (userId, options-key) 當 key，TTL 5 分鐘。
+// ============================================================
+type CacheEntry = { value: string; expiresAt: number };
+const skillContextCache = new Map<string, CacheEntry>();
+const SKILL_CONTEXT_TTL_MS = Number(process.env.AI_SKILL_CONTEXT_CACHE_TTL_MS ?? 5 * 60 * 1000);
+
+function buildContextCacheKey(userId: string, options?: BuildAiSkillPromptAppendOptions): string {
+  const slugs = (options?.includeSlugs ?? []).slice().sort().join(",");
+  const prefixes = (options?.includeSlugPrefixes ?? []).slice().sort().join(",");
+  return `${userId}|s=${slugs}|p=${prefixes}`;
+}
+
+/** 帶 TTL in-memory cache 的 buildAiSkillPromptAppend；底層仍走 DB（cache miss 時）。 */
+export async function loadCachedSkillContext(
+  userId: string,
+  options?: BuildAiSkillPromptAppendOptions,
+): Promise<string> {
+  if (SKILL_CONTEXT_TTL_MS <= 0) {
+    return buildAiSkillPromptAppend(userId, options);
+  }
+  const key = buildContextCacheKey(userId, options);
+  const now = Date.now();
+  const hit = skillContextCache.get(key);
+  if (hit && hit.expiresAt > now) {
+    return hit.value;
+  }
+  const value = await buildAiSkillPromptAppend(userId, options);
+  skillContextCache.set(key, { value, expiresAt: now + SKILL_CONTEXT_TTL_MS });
+  // 簡易上限：避免長期累積（多帳號／多選項）
+  if (skillContextCache.size > 256) {
+    const oldestKey = skillContextCache.keys().next().value;
+    if (oldestKey) skillContextCache.delete(oldestKey);
+  }
+  return value;
+}
+
+/** 在管理員修改 AI 技能定義 / 個人脈絡後呼叫，可立即清掉舊快取。 */
+export function invalidateSkillContextCache(userId?: string): void {
+  if (!userId) {
+    skillContextCache.clear();
+    return;
+  }
+  for (const k of skillContextCache.keys()) {
+    if (k.startsWith(`${userId}|`)) skillContextCache.delete(k);
+  }
+}
+
 /** 併入各 AI 呼叫的 user 訊息尾端（或獨立 system 區塊前） */
 export async function buildAiSkillPromptAppend(
   forUserId: string,

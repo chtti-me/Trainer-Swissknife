@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { ensureTrainerSkillDefinition, nextTrainerSkillVersionNo } from "@/lib/ai-skills";
+import { ensureTrainerSkillDefinition, invalidateSkillContextCache, nextTrainerSkillVersionNo } from "@/lib/ai-skills";
 import { assertSkillContentWithinLimit } from "@/lib/ai-skill-limits";
 
 export async function POST(req: NextRequest) {
@@ -61,6 +61,7 @@ export async function POST(req: NextRequest) {
       versionNo,
     },
   });
+  invalidateSkillContextCache(userId);
 
   return NextResponse.json({
     versionNo: row.versionNo,

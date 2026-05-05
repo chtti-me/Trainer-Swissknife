@@ -24,12 +24,14 @@ import {
   Monitor,
   Presentation,
   PenTool,
+  FileBarChart2,
   Mail,
   UserCog,
   UserRound,
   ContactRound,
   Loader2,
   Bot,
+  Layers,
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
@@ -42,16 +44,18 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 const mainNav = [
   { href: "/agent", label: "AI 助理（小瑞）", icon: Bot },
   { href: "/dashboard", label: "培訓師儀表板", icon: LayoutDashboard },
-  { href: "/planning", label: "課程規劃幫手", icon: BookOpen },
+  { href: "/course-planner", label: "課程規劃幫手", icon: BookOpen },
   { href: "/similarity", label: "開班相似度檢測", icon: GitCompareArrows },
   { href: "/classroom-suggestions", label: "教室預約建議", icon: School },
   { href: "/personal-instructor-network", label: "個人師資人脈", icon: ContactRound },
 ];
 
 const toolboxNav = [
+  { href: "/course-planner/skills", label: "課程規劃工具箱", icon: Layers },
   { href: "/tools/teleprompter", label: "讀稿提詞機", icon: Monitor },
   { href: "/tools/presentation", label: "互動簡報製作器", icon: Presentation },
-  { href: "/tools/report-writer", label: "業務會報撰寫", icon: PenTool },
+  { href: "/tools/report-writer", label: "業務會報撰寫器", icon: PenTool },
+  { href: "/tools/course-report", label: "課程規劃報告產生器", icon: FileBarChart2 },
   { href: "/tools/edm-generator", label: "EDM產生器", icon: Mail },
 ];
 

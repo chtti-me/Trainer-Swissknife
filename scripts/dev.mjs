@@ -74,6 +74,18 @@ function freePort(p) {
 
 freePort(port);
 
+// 偵測是否在 WSL 9P 共享路徑下（Windows 上的 \\wsl$\、\\wsl.localhost\、或被映射為 drive letter 的 WSL 掛載點）。
+// 在這類路徑下 Windows 的 fs.watch 會狂噴 EISDIR，導致 server 卡死；改用 Watchpack polling 模式。
+const isWslSharedPath =
+  process.platform === "win32" &&
+  (/[\\/]wsl[$.]/i.test(root) || /WSL/i.test(root) || root.startsWith("\\\\wsl"));
+
+if (isWslSharedPath && !process.env.WATCHPACK_POLLING && process.env.WATCHPACK_NO_POLL !== "1") {
+  process.env.WATCHPACK_POLLING = "true";
+  console.log("[dev.mjs] 偵測到 WSL 共享路徑，啟用 Watchpack polling 模式（避免 EISDIR 錯誤）。");
+  console.log("[dev.mjs] 如要關閉，設環境變數 WATCHPACK_NO_POLL=1。");
+}
+
 const nextCli = path.join(root, "node_modules", "next", "dist", "bin", "next");
 const child = spawn(process.execPath, [nextCli, "dev", "-p", String(port)], {
   stdio: "inherit",

@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { enrichImportedClassRow } from "@/lib/tis-class-code";
+import { invalidateExistingClassLookupCache } from "@/lib/course-planner/existing-class-lookup";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -109,6 +110,7 @@ export async function POST(req: NextRequest) {
         logText: `匯入完成。成功 ${success} 筆，失敗 ${failed} 筆。`,
       },
     });
+    if (success > 0) invalidateExistingClassLookupCache();
 
     return NextResponse.json({ success: true, successCount: success, failedCount: failed });
   } catch (error: any) {

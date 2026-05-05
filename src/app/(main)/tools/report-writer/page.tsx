@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 【會報撰寫工具】
+ * 【業務會報撰寫器】
  * 連到外部或內嵌編輯體驗的入口說明頁。
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,16 +13,16 @@ export default function ReportWriterPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <PageHeading
-        title="業務會報撰寫工具"
+        title="業務會報撰寫器"
         description="專為中華電信學院業務會報設計，支援畫布編輯、AI 輔助生成、多人報告合併等功能。"
         titleClassName="text-3xl font-bold mb-2"
         descriptionClassName="text-muted-foreground mt-2"
       />
 
-      <Card className="border-blue-200 bg-blue-50/50">
+      <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900/60 dark:bg-blue-950/30">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Info className="w-5 h-5 text-blue-600" />
+            <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             功能特色
           </CardTitle>
         </CardHeader>
@@ -57,7 +57,7 @@ export default function ReportWriterPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <span>開啟業務會報撰寫工具</span>
+            <span>開啟業務會報撰寫器</span>
             <Button variant="ghost" size="sm" asChild>
               <a href="/tools/report-writer/index.html" target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-2" />
@@ -74,7 +74,7 @@ export default function ReportWriterPage() {
             <iframe
               src="/tools/report-writer/index.html"
               className="w-full h-full"
-              title="業務會報撰寫工具"
+              title="業務會報撰寫器"
             />
           </div>
         </CardContent>

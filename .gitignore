@@ -40,3 +40,11 @@ agent-workspace/
 *.local
 .cache/
 coverage/
+
+# ============ 根目錄開發過程殘留圖檔（未被程式碼引用，不入版控）============
+# 若之後要把 logo / favicon 正式放進專案，請改放到 public/ 並從程式碼引用
+/瑞士刀-*.png
+/瑞士刀.png
+/瑞士刀.ico
+# Windows 下載檔附帶的 NTFS Alternate Data Stream 標記（git 無法處理含冒號檔名）
+*:Zone.Identifier

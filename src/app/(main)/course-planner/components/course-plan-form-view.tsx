@@ -75,14 +75,17 @@ export function CoursePlanFormView({ form, onChange, readOnly }: CoursePlanFormV
     updateAi("sessions", sessions);
   };
   const addSession = () => {
-    const sessions = [
+    const sessions: SessionItem[] = [
       ...form.aiFilled.sessions,
       {
         position: form.aiFilled.sessions.length + 1,
         name: "新堂課",
         hours: 2,
-        type: "lecture" as const,
+        type: "lecture",
         description: "",
+        keyPoints: [],
+        inClassActivity: "",
+        studentTakeaway: "",
         linkedObjectiveIds: [],
         alternativeInstructorNames: [],
       },

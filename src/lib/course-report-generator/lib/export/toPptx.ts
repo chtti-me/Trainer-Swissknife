@@ -122,7 +122,9 @@ async function pptxFromCanvasBlocks(report: CourseReport, pptx: PptxGenJSInstanc
               },
               bold: isHeader,
               // 表頭置中，資料儲存格維持預設左對齊
-              align: isHeader ? "center" : "left",
+              // 用 as const 防止 TS 把三元結果寬化成 string，pptxgenjs 的 align
+              // 期望 HAlign union ("left"|"center"|"right"|"justify")，不是純 string。
+              align: (isHeader ? "center" : "left") as "center" | "left",
             },
           }));
         });

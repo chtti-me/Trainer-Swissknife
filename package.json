@@ -3,8 +3,13 @@
   "version": "4.0.0",
   "description": "培訓師瑞士刀 v4.0 — 中華電信學院培訓師內部工作平台（雲端 PostgreSQL + pgvector 語意搜尋版）",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0 <25.0.0"
+  },
   "scripts": {
     "clean": "node scripts/clean-next.mjs",
+    "setup": "bash scripts/setup-wsl.sh",
+    "server": "node scripts/dev.mjs",
     "dev": "node scripts/dev.mjs",
     "dev:raw": "next dev",
     "build": "next build",

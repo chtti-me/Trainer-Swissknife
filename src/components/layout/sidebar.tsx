@@ -32,6 +32,10 @@ import {
   Loader2,
   Bot,
   Layers,
+  Network,
+  FileText,
+  Radio,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
@@ -41,34 +45,63 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Separator } from "@/components/ui/separator";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
-const mainNav = [
+/**
+ * 導覽項目型別。`external: true` 表示外部連結（會以新分頁開啟，不參與
+ * pathname 高亮、不顯示 pending 載入動畫，僅作為跳轉入口）。
+ */
+type NavEntry = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  external?: boolean;
+};
+
+const mainNav: NavEntry[] = [
   { href: "/agent", label: "AI 助理（小瑞）", icon: Bot },
   { href: "/dashboard", label: "培訓師儀表板", icon: LayoutDashboard },
   { href: "/course-planner", label: "課程規劃幫手", icon: BookOpen },
   { href: "/similarity", label: "開班相似度檢測", icon: GitCompareArrows },
   { href: "/classroom-suggestions", label: "教室預約建議", icon: School },
   { href: "/personal-instructor-network", label: "個人師資人脈", icon: ContactRound },
+  {
+    href: "https://live-class-hub.vercel.app/admin",
+    label: "直播課程管理後台",
+    icon: Radio,
+    external: true,
+  },
 ];
 
-const toolboxNav = [
+const toolboxNav: NavEntry[] = [
   { href: "/course-planner/skills", label: "課程規劃工具箱", icon: Layers },
   { href: "/tools/teleprompter", label: "讀稿提詞機", icon: Monitor },
+  {
+    href: "https://online-pdf-reader.vercel.app/",
+    label: "線上PDF閱讀器",
+    icon: FileText,
+    external: true,
+  },
   { href: "/tools/presentation", label: "互動簡報製作器", icon: Presentation },
   { href: "/tools/report-writer", label: "業務會報撰寫器", icon: PenTool },
   { href: "/tools/course-report", label: "課程規劃報告產生器", icon: FileBarChart2 },
+  {
+    href: "https://taiwanveo.github.io/Course-Category-Relationship-Diagram/",
+    label: "課程分類圖製作器",
+    icon: Network,
+    external: true,
+  },
   { href: "/tools/edm-generator", label: "EDM產生器", icon: Mail },
 ];
 
-const secondaryNav = [
+const secondaryNav: NavEntry[] = [
   { href: "/sync", label: "資料同步紀錄", icon: RefreshCw },
   { href: "/trainers", label: "培訓師名冊", icon: UserRound },
   { href: "/settings/ai-skills", label: "AI 技能脈絡", icon: Brain },
   { href: "/settings", label: "系統設定", icon: Settings },
 ];
 
-const adminOnlyNav = [{ href: "/settings/users", label: "使用者管理", icon: UserCog }];
+const adminOnlyNav: NavEntry[] = [{ href: "/settings/users", label: "使用者管理", icon: UserCog }];
 
-const ALL_NAV_ENTRIES = [...mainNav, ...toolboxNav, ...secondaryNav, ...adminOnlyNav];
+const ALL_NAV_ENTRIES: NavEntry[] = [...mainNav, ...toolboxNav, ...secondaryNav, ...adminOnlyNav];
 
 function navDestinationLabel(href: string): string {
   return ALL_NAV_ENTRIES.find((item) => item.href === href)?.label ?? "新頁面";
@@ -203,6 +236,69 @@ function SidebarNavLink({
   return link;
 }
 
+/**
+ * 側邊欄外部連結項目：以新分頁開啟，視覺上沿用 tool / main 變體的「inactive」樣式
+ * （不會有 active 高亮，因為外部連結不是站內路由）。右側加一個小型 ExternalLink
+ * 圖示，提示「點擊將離開本系統」。
+ */
+function SidebarExternalLink({
+  href,
+  label,
+  icon: Icon,
+  collapsed,
+  visual,
+}: {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  collapsed: boolean;
+  visual: NavVisualVariant;
+}) {
+  const vc = variantClass[visual];
+  const a11yLabel = `${label}（在新分頁開啟外部網頁）`;
+
+  const link = (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={a11yLabel}
+      className={cn(
+        "relative flex items-center gap-2 rounded-md px-2 py-1.5 text-[13px] font-medium leading-snug",
+        "border transition-[transform,box-shadow,background-color,color,opacity] duration-150 ease-out",
+        "active:scale-[0.97] active:brightness-[0.98]",
+        vc.inactive,
+        collapsed && "justify-center px-2"
+      )}
+    >
+      <span className="relative inline-flex shrink-0 items-center justify-center">
+        <Icon className={cn("shrink-0", collapsed ? "h-5 w-5" : "h-4 w-4")} aria-hidden />
+      </span>
+      {!collapsed && (
+        <>
+          <span className="min-w-0 flex-1 truncate">{label}</span>
+          <ExternalLink className="h-3 w-3 shrink-0 opacity-60" aria-hidden />
+        </>
+      )}
+    </a>
+  );
+
+  if (collapsed) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <TooltipContent side="right">
+          <span className="inline-flex items-center gap-1">
+            {label}
+            <ExternalLink className="h-3 w-3 opacity-70" aria-hidden />
+          </span>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+  return link;
+}
+
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -273,18 +369,40 @@ export function Sidebar() {
             <p className={cn("text-[9px] font-semibold text-muted-foreground uppercase tracking-wide mb-1 px-1.5 pt-0.5", collapsed && "hidden")}>
               主要功能
             </p>
-            {mainNav.map((item) => (
-              <SidebarNavLink key={item.href} {...item} {...navLinkProps} visual="main" />
-            ))}
+            {mainNav.map((item) =>
+              item.external ? (
+                <SidebarExternalLink
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  icon={item.icon}
+                  collapsed={collapsed}
+                  visual="main"
+                />
+              ) : (
+                <SidebarNavLink key={item.href} {...item} {...navLinkProps} visual="main" />
+              )
+            )}
 
             <Separator className="my-2 shrink-0" />
 
             <p className={cn("text-[9px] font-semibold text-muted-foreground uppercase tracking-wide mb-1 px-1.5", collapsed && "hidden")}>
               工具箱
             </p>
-            {toolboxNav.map((item) => (
-              <SidebarNavLink key={item.href} {...item} {...navLinkProps} visual="tool" />
-            ))}
+            {toolboxNav.map((item) =>
+              item.external ? (
+                <SidebarExternalLink
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  icon={item.icon}
+                  collapsed={collapsed}
+                  visual="tool"
+                />
+              ) : (
+                <SidebarNavLink key={item.href} {...item} {...navLinkProps} visual="tool" />
+              )
+            )}
 
             <Separator className="my-2 shrink-0" />
 

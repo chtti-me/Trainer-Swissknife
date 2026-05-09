@@ -27,6 +27,8 @@ import {
 import { useAgentStreams } from "@/hooks/use-agent-streams";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { useToast } from "@/components/ui/toaster";
+import { ExcalidrawMessage } from "@/components/agent/excalidraw-message";
+import { MermaidMessage } from "@/components/agent/mermaid-message";
 
 interface ChatMessage {
   id: string;
@@ -457,7 +459,10 @@ export default function AgentPage() {
                 <div className="w-7 h-7 shrink-0" />
                 <div className="space-y-1.5">
                   {currentStream.toolResults.map((tr, i) => (
-                    <ToolResultBadge key={i} {...tr} />
+                    <div key={i} className="space-y-1">
+                      <ToolResultBadge {...tr} />
+                      {renderDiagramFromToolResult(tr.toolName, tr.success, tr.data)}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -597,6 +602,37 @@ export default function AgentPage() {
   );
 }
 
+function renderDiagramFromToolResult(toolName: string, success: boolean, data: unknown) {
+  if (!success || !data || typeof data !== "object") return null;
+  if (toolName === "excalidraw_diagram") {
+    const r = data as { kind?: string; title?: string; scene?: Record<string, unknown> };
+    if (r.kind !== "excalidraw" || !r.scene) return null;
+    return (
+      <ExcalidrawMessage
+        title={String(r.title || "圖")}
+        scene={r.scene as Parameters<typeof ExcalidrawMessage>[0]["scene"]}
+      />
+    );
+  }
+  if (toolName === "mermaid_diagram") {
+    const r = data as {
+      kind?: string;
+      title?: string;
+      mermaidCode?: string;
+      diagramType?: string;
+    };
+    if (r.kind !== "mermaid" || !r.mermaidCode) return null;
+    return (
+      <MermaidMessage
+        title={String(r.title || "圖")}
+        mermaidCode={r.mermaidCode}
+        diagramType={r.diagramType}
+      />
+    );
+  }
+  return null;
+}
+
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
 
@@ -635,12 +671,14 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         {message.toolCalls && message.toolCalls.length > 0 && (
           <div className="mt-2 space-y-1">
             {message.toolCalls.map((tc, i) => (
-              <ToolResultBadge
-                key={i}
-                toolName={tc.toolName}
-                success={tc.status === "success"}
-                data={tc.result}
-              />
+              <div key={i} className="space-y-1">
+                <ToolResultBadge
+                  toolName={tc.toolName}
+                  success={tc.status === "success"}
+                  data={tc.result}
+                />
+                {renderDiagramFromToolResult(tc.toolName, tc.status === "success", tc.result)}
+              </div>
             ))}
           </div>
         )}

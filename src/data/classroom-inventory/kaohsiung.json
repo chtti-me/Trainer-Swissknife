@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "sourcePageUrl": "https://tis.cht.com.tw/jap/classroom/QueryPrintClassroom.jsp",
+    "sourceHtmlFile": "",
+    "campusId": "kaohsiung",
+    "tisDepartmentCode": "K",
+    "campusLabel": "高雄所",
+    "description": "占位檔（rooms 為空陣列）。請取得高雄所『列印教室基本資料』HTML 存檔後，更新 scripts/tis-classroom-inventory.config.json 的 inputHtml 與 buildingTisCodeByNameZh，再執行 npm run data:tis-classrooms 重新產生本檔。",
+    "roomCount": 0,
+    "generatedAt": "1970-01-01T00:00:00.000Z",
+    "equipmentFieldLabelsZh": {
+      "projector": "投影機",
+      "overheadProjector": "單槍投射器",
+      "amplifier": "擴音器",
+      "recording": "錄音",
+      "vcr": "錄放影機",
+      "network": "網路",
+      "wallFan": "壁扇",
+      "camera": "攝影機",
+      "splitAC": "獨立空調",
+      "centralAC": "中央空調",
+      "deskMic": "桌上式麥克風",
+      "surveillance": "監視系統",
+      "infoPodium": "資訊講桌",
+      "holidayAC": "假日空調",
+      "digitalPen": "數位手寫板"
+    }
+  },
+  "rooms": []
+}

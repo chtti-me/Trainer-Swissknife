@@ -37,6 +37,13 @@ interface ChatMessage {
   role: "user" | "assistant" | "tool";
   content: string;
   createdAt: string;
+  toolCalls?: Array<{
+    toolName: string;
+    params: Record<string, unknown>;
+    result: unknown;
+    durationMs: number;
+    status: string;
+  }>;
 }
 
 export interface StartStreamResult {
@@ -269,11 +276,20 @@ export function useAgentStreams(): AgentStreamsAPI {
 
                 case "done":
                   if (accumulated) {
+                    const finalState = streamsRef.current.get(streamKey);
+                    const accumulatedToolCalls = (finalState?.toolResults ?? []).map((tr) => ({
+                      toolName: tr.toolName,
+                      params: {},
+                      result: tr.data,
+                      durationMs: 0,
+                      status: tr.success ? "success" : "error",
+                    }));
                     callbacks.onMessageAppend?.({
                       id: `assistant-${Date.now()}`,
                       role: "assistant",
                       content: accumulated,
                       createdAt: new Date().toISOString(),
+                      toolCalls: accumulatedToolCalls.length > 0 ? accumulatedToolCalls : undefined,
                     });
                   }
                   updateStream(streamKey, () => ({

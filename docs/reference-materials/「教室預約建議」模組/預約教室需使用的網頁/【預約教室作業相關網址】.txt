@@ -1,0 +1,32 @@
+=====
+
+列印教室基本資料.html --> 可以查詢板橋院本部每一間大樓的每一間教室，可以容納的學員人數，以及有哪些設備。
+https://tis.cht.com.tw/jap/classroom/PrintClassroom.jsp
+列印教室基本資料-結果畫面.html
+https://tis.cht.com.tw/jap/classroom/QueryPrintClassroom.jsp
+
+板橋院本部各大樓教室設備列表.html --> 可以直接查看板橋院本部每一間大樓的每一間教室，可以容納的學員人數，以及有哪些設備。
+
+=====
+
+查詢教室使用班次.html --> 可以查詢板橋院本部每一間大樓的每一間教室的最新借用情形。
+https://tis.cht.com.tw/jap/classroom/QueryClassroom.jsp
+查詢教室使用班次-結果畫面.html
+https://tis.cht.com.tw/jap/classroom/ClassroomStatus.jsp
+
+教室使用狀況列表.html --> 可以查看板橋院本部每一間大樓的每一間教室的最新借用情形，以列表方式呈現。
+https://tis.cht.com.tw/jap/classroom/ClassroomUseStatus.jsp
+教室使用狀況列表-結果畫面.html
+https://tis.cht.com.tw/jap/classroom/ClassroomUseStatusList.jsp
+
+=====
+
+預約教室查詢與刪除.html --> 可以查詢自己目前已經借用的教室有哪些，並可以取消（刪除）已借用的教室預約。
+https://tis.cht.com.tw/jap/classroom/QueryReserve.jsp
+預約教室查詢與刪除-結果畫面.html（查詢1-3月綜合大樓G201教室的預約情形為例）
+https://tis.cht.com.tw/jap/classroom/ReserveClassroomModify.jsp
+
+=====
+
+預約教室
+https://tis.cht.com.tw/jap/classroom/ReserveClassroom.jsp

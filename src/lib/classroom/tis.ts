@@ -1,12 +1,18 @@
 /**
  * 【教室建議：與 TIS 溝通】
  * 驗證 session、抓取教室清單、離線／DEMO 模擬資料等。
- * 院本部（department P）容量與設備以 `src/data/classroom-inventory/hq.json`（JSON 檔）為準，由 `scripts/generate-tis-classroom-inventory.mjs` 自 TIS 存檔產生。
+ * 各所別的容量與設備來自 `src/data/classroom-inventory/<campusId>.json`，
+ * 由 `scripts/generate-tis-classroom-inventory.mjs` 自 TIS 存檔產生。
+ * 院本部（P/hq）已有實際資料；台中（T/taichung）、高雄（K/kaohsiung）為占位空檔，
+ * 待 HTML 匯入後即自動生效，不需要再改本檔程式碼。
  */
 import {
-  filterHqRoomsForQuery,
-  getHqRoomById,
-  scoreHqRoom,
+  filterRoomsForQuery,
+  getRoomById,
+  inventoryHasData,
+  scoreRoom,
+  tisDepartmentToCampusId,
+  type CampusId,
   type TisClassroomRoomRow,
 } from "@/lib/classroom/tis-classroom-inventory";
 
@@ -66,19 +72,19 @@ export async function validateTisSession(sessionId: string): Promise<boolean> {
   }
 }
 
-function buildSuggestionsFromHqRows(
+function buildSuggestionsFromRows(
   rows: TisClassroomRoomRow[],
   query: ClassroomSuggestQuery,
   modeLabel: string
 ): ClassroomSuggestion[] {
   return rows
     .map((room) => {
-      const { score, reasons: baseReasons } = scoreHqRoom(room, { attendees: query.attendees });
+      const { score, reasons: baseReasons } = scoreRoom(room, { attendees: query.attendees });
       const reasons = [modeLabel, ...baseReasons];
       return {
         roomId: room.roomId,
         roomName: room.displayCode,
-        building: query.building,
+        building: query.building || room.tisBuildingCode,
         capacity: room.maxCapacity,
         score,
         reasons,
@@ -88,29 +94,35 @@ function buildSuggestionsFromHqRows(
     .sort((a, b) => b.score - a.score);
 }
 
-function buildOfflineMockSuggestions(query: ClassroomSuggestQuery) {
-  const candidates = filterHqRoomsForQuery(query);
-  const scored = buildSuggestionsFromHqRows(candidates, query, "離線模式：院本部設備表 JSON（JSON 檔）");
+function suggestionsForCampus(
+  campusId: CampusId,
+  query: ClassroomSuggestQuery,
+  modeLabel: string
+): { suggestions: ClassroomSuggestion[]; candidateCount: number } {
+  if (!inventoryHasData(campusId)) {
+    return { suggestions: [], candidateCount: 0 };
+  }
+  const candidates = filterRoomsForQuery(query, campusId);
+  const suggestions = buildSuggestionsFromRows(candidates, query, modeLabel);
   return {
-    suggestions: scored.slice(0, 5),
+    suggestions: suggestions.slice(0, 5),
     candidateCount: candidates.length,
   };
+}
+
+function buildOfflineMockSuggestions(query: ClassroomSuggestQuery) {
+  const campusId = tisDepartmentToCampusId(query.department);
+  if (!campusId) {
+    return { suggestions: [], candidateCount: 0 };
+  }
+  return suggestionsForCampus(campusId, query, `離線模式：${campusId} 設備表 JSON（JSON 檔）`);
 }
 
 export function getDemoClassroomSuggestions(
   profile: DemoCampusProfile,
   query: ClassroomSuggestQuery
 ): { suggestions: ClassroomSuggestion[]; candidateCount: number } {
-  if (profile !== "hq") {
-    return { suggestions: [], candidateCount: 0 };
-  }
-
-  const candidates = filterHqRoomsForQuery(query);
-  const suggestions = buildSuggestionsFromHqRows(candidates, query, "DEMO 模式：院本部設備表 JSON（JSON 檔）");
-  return {
-    suggestions: suggestions.slice(0, 5),
-    candidateCount: candidates.length,
-  };
+  return suggestionsForCampus(profile, query, `DEMO 模式：${profile} 設備表 JSON（JSON 檔）`);
 }
 
 function parseRoomOptions(html: string): Array<{ roomId: string; roomName: string }> {
@@ -129,11 +141,18 @@ function parseRoomOptions(html: string): Array<{ roomId: string; roomName: strin
   return options;
 }
 
-function scoreSuggestion(query: ClassroomSuggestQuery, room: { roomId: string; roomName: string }): ClassroomSuggestion {
-  const inv = getHqRoomById(room.roomId);
+function scoreSuggestion(
+  query: ClassroomSuggestQuery,
+  room: { roomId: string; roomName: string },
+  campusId: CampusId | null
+): ClassroomSuggestion {
+  const inv = campusId ? getRoomById(campusId, room.roomId) : undefined;
   if (inv) {
-    const { score, reasons: invReasons } = scoreHqRoom(inv, { attendees: query.attendees });
-    const reasons = ["符合 TIS 回傳選項，並以院本部設備表 JSON（JSON 檔）對應容量", ...invReasons];
+    const { score, reasons: invReasons } = scoreRoom(inv, { attendees: query.attendees });
+    const reasons = [
+      `符合 TIS 回傳選項，並以 ${campusId} 設備表 JSON（JSON 檔）對應容量`,
+      ...invReasons,
+    ];
     return {
       roomId: room.roomId,
       roomName: room.roomName,
@@ -147,7 +166,11 @@ function scoreSuggestion(query: ClassroomSuggestQuery, room: { roomId: string; r
 
   const estimatedCapacity = 40;
   let score = 55;
-  const reasons: string[] = ["教室未在院本部設備表 JSON（JSON 檔）中，容量採預設估算"];
+  const reasons: string[] = [
+    campusId
+      ? `教室未在 ${campusId} 設備表 JSON（JSON 檔）中，容量採預設估算`
+      : "教室不在任何已匯入的設備表 JSON 中，容量採預設估算",
+  ];
   if (query.attendees > 0) {
     if (query.attendees <= estimatedCapacity) {
       score += 12;
@@ -206,15 +229,16 @@ export async function getClassroomSuggestionsFromTis(
   }
 
   const parsed = parseRoomOptions(html);
-  /** 僅院本部（P）以 hq 設備表 JSON（JSON 檔）與查詢條件交集；其他所別仍採 TIS 回傳清單。 */
+  /** 只要該所別有匯入設備表 JSON，就和查詢條件交集；否則直接採用 TIS 回傳清單。 */
+  const campusId = tisDepartmentToCampusId(query.department);
   const rooms =
-    query.department === "P"
+    campusId && inventoryHasData(campusId)
       ? (() => {
-          const allowedIds = new Set(filterHqRoomsForQuery(query).map((r) => r.roomId));
+          const allowedIds = new Set(filterRoomsForQuery(query, campusId).map((r) => r.roomId));
           return parsed.filter((r) => allowedIds.has(r.roomId));
         })()
       : parsed;
-  const suggestions = rooms.map((room) => scoreSuggestion(query, room));
+  const suggestions = rooms.map((room) => scoreSuggestion(query, room, campusId));
   suggestions.sort((a, b) => b.score - a.score);
 
   return {
@@ -222,4 +246,3 @@ export async function getClassroomSuggestionsFromTis(
     candidateCount: rooms.length,
   };
 }
-

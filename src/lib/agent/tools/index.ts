@@ -17,6 +17,9 @@ import { knowledgeQueryTool } from "./knowledge-query";
 import { workflowTool } from "./workflow";
 import { dailyBriefingTool } from "./proactive-briefing";
 import { instructorSearchTool } from "./instructor-search";
+import { classroomSuggestTool } from "./classroom-suggest";
+import { excalidrawDiagramTool } from "./excalidraw-diagram";
+import { mermaidDiagramTool } from "./mermaid-diagram";
 
 let registered = false;
 
@@ -41,4 +44,7 @@ export function ensureToolsRegistered(): void {
   registerTool(workflowTool);
   registerTool(dailyBriefingTool);
   registerTool(instructorSearchTool);
+  registerTool(classroomSuggestTool);
+  registerTool(excalidrawDiagramTool);
+  registerTool(mermaidDiagramTool);
 }

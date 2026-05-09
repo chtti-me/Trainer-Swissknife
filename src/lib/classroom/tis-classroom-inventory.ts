@@ -1,9 +1,19 @@
 /**
- * 【TIS 教室設備清單（院本部）】
- * 資料來源：`src/data/classroom-inventory/hq.json`（由 `scripts/generate-tis-classroom-inventory.mjs` 從 QueryPrintClassroom 存檔產生）。
- * 台中／高雄產出檔可沿用相同型別，於串接所別時再掛載。
+ * 【TIS 教室設備清單（多所別 registry）】
+ * 各所別資料來源於 `src/data/classroom-inventory/<campusId>.json`，由
+ * `scripts/generate-tis-classroom-inventory.mjs` 從 QueryPrintClassroom 存檔產生。
+ * 目前只有院本部（hq）有實際資料；台中（taichung）、高雄（kaohsiung）為占位空檔，
+ * 待對應 HTML 匯入並重跑 `npm run data:tis-classrooms` 後即自動生效。
+ *
+ * 對外 API：
+ *  - 通用：`getRoomById(campusId, roomId)`、`filterRoomsForQuery(query, campusId)`、`scoreRoom(room, query)`
+ *  - 院本部 alias（向下相容）：`getHqRoomById`、`filterHqRoomsForQuery`、`scoreHqRoom`、`HQ_CLASSROOM_INVENTORY`
  */
-import raw from "@/data/classroom-inventory/hq.json";
+import hqRaw from "@/data/classroom-inventory/hq.json";
+import taichungRaw from "@/data/classroom-inventory/taichung.json";
+import kaohsiungRaw from "@/data/classroom-inventory/kaohsiung.json";
+
+export type CampusId = "hq" | "taichung" | "kaohsiung";
 
 export type TisClassroomEquipment = Record<
   | "projector"
@@ -53,11 +63,38 @@ export interface TisClassroomInventoryFile {
   rooms: TisClassroomRoomRow[];
 }
 
-/** 院本部（TIS department P）教室靜態資料，與設備表 JSON 一致。 */
-export const HQ_CLASSROOM_INVENTORY = raw as TisClassroomInventoryFile;
+/** 全部所別教室靜態資料；台中／高雄目前為占位空檔（rooms 為空陣列）。 */
+export const CLASSROOM_INVENTORY_BY_CAMPUS: Record<CampusId, TisClassroomInventoryFile> = {
+  hq: hqRaw as TisClassroomInventoryFile,
+  taichung: taichungRaw as TisClassroomInventoryFile,
+  kaohsiung: kaohsiungRaw as TisClassroomInventoryFile,
+};
 
-export function getHqRoomById(roomId: string): TisClassroomRoomRow | undefined {
-  return HQ_CLASSROOM_INVENTORY.rooms.find((r) => r.roomId === roomId);
+/** TIS 所別代碼 ↔ 本系統 campusId 對照（E 全 e 課程不對應任何實體所別）。 */
+export function tisDepartmentToCampusId(department: string): CampusId | null {
+  switch (department) {
+    case "P":
+      return "hq";
+    case "T":
+      return "taichung";
+    case "K":
+      return "kaohsiung";
+    default:
+      return null;
+  }
+}
+
+export function campusIdToTisDepartment(campusId: CampusId): string {
+  return CLASSROOM_INVENTORY_BY_CAMPUS[campusId].meta.tisDepartmentCode || "";
+}
+
+/** 該所別是否已匯入實際教室資料（rooms 不是空陣列）。 */
+export function inventoryHasData(campusId: CampusId): boolean {
+  return CLASSROOM_INVENTORY_BY_CAMPUS[campusId].rooms.length > 0;
+}
+
+export function getRoomById(campusId: CampusId, roomId: string): TisClassroomRoomRow | undefined {
+  return CLASSROOM_INVENTORY_BY_CAMPUS[campusId].rooms.find((r) => r.roomId === roomId);
 }
 
 /** 是否符合表單勾選的教室性質代碼（AND（且））；未勾選則不篩。 */
@@ -112,17 +149,20 @@ export function satisfiesRequiredFeatures(room: TisClassroomRoomRow, features: s
   });
 }
 
-export function filterHqRoomsForQuery(
-  query: {
-    building: string;
-    attendees: number;
-    classroomTypes: string[];
-    requiredFeatures: string[];
-  },
-  rooms: TisClassroomRoomRow[] = HQ_CLASSROOM_INVENTORY.rooms
+export interface ClassroomFilterQuery {
+  building: string;
+  attendees: number;
+  classroomTypes: string[];
+  requiredFeatures: string[];
+}
+
+export function filterRoomsForQuery(
+  query: ClassroomFilterQuery,
+  campusId: CampusId
 ): TisClassroomRoomRow[] {
+  const rooms = CLASSROOM_INVENTORY_BY_CAMPUS[campusId].rooms;
   return rooms.filter((room) => {
-    if (room.tisBuildingCode !== query.building) return false;
+    if (query.building && room.tisBuildingCode !== query.building) return false;
     if (query.attendees > 0 && query.attendees > room.maxCapacity) return false;
     if (!matchesClassroomTypeSelection(room, query.classroomTypes)) return false;
     if (!satisfiesRequiredFeatures(room, query.requiredFeatures)) return false;
@@ -130,7 +170,10 @@ export function filterHqRoomsForQuery(
   });
 }
 
-export function scoreHqRoom(room: TisClassroomRoomRow, query: { attendees: number }): { score: number; reasons: string[] } {
+export function scoreRoom(
+  room: TisClassroomRoomRow,
+  query: { attendees: number }
+): { score: number; reasons: string[] } {
   let score = 52;
   const reasons: string[] = [];
 
@@ -151,4 +194,37 @@ export function scoreHqRoom(room: TisClassroomRoomRow, query: { attendees: numbe
 
   score = Math.max(0, Math.min(100, score));
   return { score, reasons };
+}
+
+// ---- 院本部（hq）向下相容 alias ----
+
+/** 院本部教室靜態資料（向下相容；新程式請改用 `CLASSROOM_INVENTORY_BY_CAMPUS.hq`）。 */
+export const HQ_CLASSROOM_INVENTORY = CLASSROOM_INVENTORY_BY_CAMPUS.hq;
+
+export function getHqRoomById(roomId: string): TisClassroomRoomRow | undefined {
+  return getRoomById("hq", roomId);
+}
+
+export function filterHqRoomsForQuery(
+  query: ClassroomFilterQuery,
+  rooms: TisClassroomRoomRow[] = CLASSROOM_INVENTORY_BY_CAMPUS.hq.rooms
+): TisClassroomRoomRow[] {
+  if (rooms === CLASSROOM_INVENTORY_BY_CAMPUS.hq.rooms) {
+    return filterRoomsForQuery(query, "hq");
+  }
+  // 為了相容舊呼叫端傳入自訂 rooms 的情境，這裡保留就地過濾。
+  return rooms.filter((room) => {
+    if (query.building && room.tisBuildingCode !== query.building) return false;
+    if (query.attendees > 0 && query.attendees > room.maxCapacity) return false;
+    if (!matchesClassroomTypeSelection(room, query.classroomTypes)) return false;
+    if (!satisfiesRequiredFeatures(room, query.requiredFeatures)) return false;
+    return true;
+  });
+}
+
+export function scoreHqRoom(
+  room: TisClassroomRoomRow,
+  query: { attendees: number }
+): { score: number; reasons: string[] } {
+  return scoreRoom(room, query);
 }

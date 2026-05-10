@@ -18,7 +18,12 @@ import {
   type SimilarityResult,
   type SimilarityTarget,
 } from "@/lib/similarity";
+import { loadSimilarityConfig } from "@/lib/similarity-settings";
 
+/**
+ * 註：原本 hard-coded 0.85 / 0.65 已改由 admin 在「系統設定 → 相似度檢測設定」動態調整。
+ * 兩個 export 保留，僅作為 DB 連線失敗時的最後 fallback 預設值（與 buildDefaultSimilarityConfig 同源）。
+ */
 export const REUSE_THRESHOLD = 0.85;
 export const REFERENCE_THRESHOLD = 0.65;
 
@@ -143,10 +148,18 @@ export async function findSimilarExistingClasses(
     summary: cleaned,
   };
 
-  // 用較低的 threshold 拿到「中度相似」的也回傳給 LLM 當參考
-  const lexicalWeight = Number(process.env.SIMILARITY_LEXICAL_WEIGHT) || 0.4;
-  const vectorWeight = Number(process.env.SIMILARITY_VECTOR_WEIGHT) || 0.6;
-  const allMatches = computeSimilarityV4(similarityQuery, targets, 0.5, lexicalWeight, vectorWeight);
+  // 讀 admin 設定（30s cache）；若 DB 不可用會 fallback 到 buildDefaultSimilarityConfig 的預設值
+  const simConfig = await loadSimilarityConfig();
+
+  // 用較低的固定 threshold 0.5 拿到「中度相似」的也回傳給 LLM 當參考；
+  // 真正影響「沿用 / 參考」判斷的是 reuseThreshold / referenceThreshold（管理員可調）
+  const allMatches = computeSimilarityV4(
+    similarityQuery,
+    targets,
+    0.5,
+    simConfig.lexicalWeight,
+    simConfig.vectorWeight
+  );
   const matches = allMatches.slice(0, topK);
   const topScore = matches[0]?.totalScore ?? 0;
 
@@ -155,8 +168,8 @@ export async function findSimilarExistingClasses(
     totalCompared: targets.length,
     matches,
     topScore,
-    reuseRecommended: topScore >= REUSE_THRESHOLD,
-    hasReferences: topScore >= REFERENCE_THRESHOLD,
+    reuseRecommended: topScore >= simConfig.reuseThreshold,
+    hasReferences: topScore >= simConfig.referenceThreshold,
   };
 
   if (LOOKUP_CACHE_TTL_MS > 0) {

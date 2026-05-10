@@ -9,7 +9,7 @@ import "server-only";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { AiProvider } from "@/lib/ai-provider";
-import { findSimilarExistingClasses, REUSE_THRESHOLD } from "./existing-class-lookup";
+import { findSimilarExistingClasses } from "./existing-class-lookup";
 import { lookupAllSources } from "./instructor-lookup";
 import { runSkill, loadSkillContext } from "./skills/_base";
 import { pruneCandidatesPerSession } from "./output-pruner";

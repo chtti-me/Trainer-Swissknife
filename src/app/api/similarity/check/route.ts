@@ -13,6 +13,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { computeSimilarityV4, type SimilarityQuery, type SimilarityTarget } from "@/lib/similarity";
 import { generateEmbedding } from "@/lib/embedding";
+import { loadSimilarityConfig } from "@/lib/similarity-settings";
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -59,13 +60,16 @@ export async function POST(req: NextRequest) {
     take: 2000,
   });
 
+  // 讀 DB 設定（30s cache；admin 可在 /settings UI 即時調整）
+  const simConfig = await loadSimilarityConfig();
+
   if (classes.length === 0) {
     const check = await prisma.similarityCheck.create({
       data: {
         createdBy: userId,
         queryPayload: JSON.stringify(query),
         filterPayload: JSON.stringify(filters),
-        threshold: filters.threshold ?? 0.75,
+        threshold: filters.threshold ?? simConfig.defaultThreshold,
         resultJson: JSON.stringify([]),
         status: "completed",
       },
@@ -132,10 +136,15 @@ export async function POST(req: NextRequest) {
     keywords: query.keywords,
   };
 
-  const threshold = filters.threshold || 0.75;
-  const lexicalWeight = Number(process.env.SIMILARITY_LEXICAL_WEIGHT) || 0.4;
-  const vectorWeight = Number(process.env.SIMILARITY_VECTOR_WEIGHT) || 0.6;
-  const results = computeSimilarityV4(similarityQuery, targets, threshold, lexicalWeight, vectorWeight);
+  // request body 帶的 threshold 優先；否則用 DB 設定（admin UI 可調）
+  const threshold = filters.threshold ?? simConfig.defaultThreshold;
+  const results = computeSimilarityV4(
+    similarityQuery,
+    targets,
+    threshold,
+    simConfig.lexicalWeight,
+    simConfig.vectorWeight
+  );
 
   const check = await prisma.similarityCheck.create({
     data: {

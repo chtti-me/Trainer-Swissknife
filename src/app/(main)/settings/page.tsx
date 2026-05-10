@@ -7,11 +7,11 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { GitCompareArrows, Info, UserCog, Sparkles, Shield, ScrollText, Plug } from "lucide-react";
+import { Info, UserCog, Sparkles, Shield, ScrollText, Plug } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { AiServiceSettings } from "@/components/settings/ai-service-settings";
+import { SimilaritySettings } from "@/components/settings/similarity-settings";
 import { TisBookmarkletSection } from "@/components/settings/tis-bookmarklet-section";
 
 export default function SettingsPage() {
@@ -138,37 +138,7 @@ export default function SettingsPage() {
 
       {isAdmin && <AiServiceSettings />}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <GitCompareArrows className="w-4 h-4 text-primary" />
-            相似度檢測設定
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-muted-foreground">預設門檻值</p>
-              <p className="font-medium">0.75（75%）</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">計算公式</p>
-              <p className="font-medium">(向量 60% + 文字 40%) × 60% + 規則 × 40%</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">文字引擎</p>
-              <Badge variant="outline">Jaccard + Bigram</Badge>
-            </div>
-            <div>
-              <p className="text-muted-foreground">向量引擎</p>
-              <Badge variant="outline">Embedding + pgvector（v4.0）</Badge>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            v4.0 採用「雙引擎」：向量嵌入（AI 判讀語意）+ 文字字詞（Jaccard/bigram 抓字面近似），在資料庫端以 pgvector HNSW 索引加速語意搜尋，再疊加開班條件（院區、類別、難度等）規則分數，全面提升相似度判斷準確度。
-          </p>
-        </CardContent>
-      </Card>
+      <SimilaritySettings isAdmin={isAdmin} />
 
       {isAdmin && <TisBookmarkletSection />}
     </div>

@@ -15,7 +15,7 @@
 
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -393,13 +393,22 @@ export default function SkillToolboxPage() {
     };
   }, [orderedResults, activeRequestId, startMode, rawText]);
 
+  /**
+   * 下載 blob 為檔案。
+   * 修 Bug：原本用 detached anchor + 同步 `URL.revokeObjectURL`，Chromium / Firefox
+   * 較新版本會 silent 失敗或卡在「0 B/s」永不結束（瀏覽器還沒讀完 blob URL 就被 revoke）。
+   * 正確做法：appendChild → click → removeChild → setTimeout 1500ms 後 revoke。
+   */
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
   };
 
   const stamp = () =>
@@ -421,40 +430,111 @@ export default function SkillToolboxPage() {
   };
 
   const [exportingPng, setExportingPng] = useState(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement | null>(null);
 
+  // 點外面 / 按 Esc 關閉下載選單
+  useEffect(() => {
+    if (!exportMenuOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (!exportMenuRef.current) return;
+      if (!exportMenuRef.current.contains(e.target as Node)) setExportMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setExportMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [exportMenuOpen]);
+
+  /**
+   * 下載 PNG。
+   *
+   * 修 Bug：原本用 `container.innerHTML = html`（html 是完整 `<!doctype html><html><head><body>...`
+   * 的字串）然後 `container.querySelector("body")`。**瀏覽器解析 div.innerHTML 時會把
+   * outer html / head / body 標籤當作非法元素處理掉**，body 內 element 雖然會被掛到
+   * div 上，但 head 內的 `<style>` 卻不會被套用 → html-to-image 截到的是「沒套樣式
+   * 的純文字」或「整片白底」。
+   *
+   * 正確做法（與 ExportMenu 一致）：用 iframe + document.write，這樣 head/body/
+   * style 都正確生效，再對 iframe.body 截圖。
+   */
   const handleDownloadPng = async () => {
     setExportingPng(true);
+    let iframe: HTMLIFrameElement | null = null;
     try {
       const html = buildPartialHtml(buildExportSource());
 
-      // 建一個離畫面但 layout 計算正確的容器
-      const container = document.createElement("div");
-      container.style.position = "fixed";
-      container.style.left = "-99999px";
-      container.style.top = "0";
-      container.style.width = "880px";
-      container.style.background = "#ffffff";
-      container.innerHTML = html;
-      document.body.appendChild(container);
+      // 1. 建離螢幕 iframe
+      iframe = document.createElement("iframe");
+      iframe.style.position = "fixed";
+      iframe.style.left = "-99999px";
+      iframe.style.top = "0";
+      iframe.style.width = "880px";
+      iframe.style.height = "100px";
+      iframe.style.border = "0";
+      iframe.style.opacity = "0";
+      iframe.setAttribute("aria-hidden", "true");
+      document.body.appendChild(iframe);
 
-      // 抓 body 子節點作為截圖目標，避免 html / head 帶進去
-      const body = container.querySelector("body");
-      const target = (body as HTMLElement | null) ?? container;
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (!iframeDoc) throw new Error("無法存取 iframe document");
+      iframeDoc.open();
+      iframeDoc.write(html);
+      iframeDoc.close();
 
-      // 動態 import 避免 SSR/build 期間 evaluate
-      const { toPng } = await import("html-to-image");
-      const dataUrl = await toPng(target, {
+      // 2. 等 iframe 內 web font / image 載完。注意 document.write 模式下部分
+      // 瀏覽器（Chromium/Safari）的 iframe load event 可能不再觸發，加 3 秒
+      // timeout 兜底避免 UI 卡住。
+      await new Promise<void>((resolve) => {
+        if (iframeDoc.readyState === "complete") return resolve();
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          resolve();
+        };
+        iframe!.addEventListener("load", finish, { once: true });
+        setTimeout(finish, 3000);
+      });
+      await new Promise<void>((r) => setTimeout(r, 200));
+      try {
+        if (iframeDoc.fonts && typeof iframeDoc.fonts.ready === "object") {
+          await iframeDoc.fonts.ready;
+        }
+      } catch {
+        /* iframe.fonts 在某些瀏覽器無法存取，忽略 */
+      }
+
+      // 3. 撐高 iframe 到 body 實際高度（避免截圖被切掉）
+      const body = iframeDoc.body;
+      if (!body) throw new Error("iframe body 不存在");
+      const fullHeight = Math.max(body.scrollHeight, body.offsetHeight, 600);
+      iframe.style.height = `${fullHeight + 40}px`;
+      await new Promise<void>((r) => setTimeout(r, 100));
+
+      // 4. html-to-image 截圖（用 toBlob 而非 toPng dataUrl，下載大圖更穩）
+      const { toCanvas } = await import("html-to-image");
+      const canvas = await toCanvas(body, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#ffffff",
+        skipFonts: true,
       });
 
-      document.body.removeChild(container);
-
-      const a = document.createElement("a");
-      a.href = dataUrl;
-      a.download = `course-planner-toolbox-${stamp()}.png`;
-      a.click();
+      // 5. canvas → blob → 下載（用 downloadBlob 統一處理 anchor 流程）
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("無法產生 PNG blob"))),
+          "image/png",
+          1,
+        );
+      });
+      downloadBlob(blob, `course-planner-toolbox-${stamp()}.png`);
       toast("PNG 下載完成", "success");
     } catch (e) {
       console.error(e);
@@ -465,6 +545,7 @@ export default function SkillToolboxPage() {
         "error",
       );
     } finally {
+      if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
       setExportingPng(false);
     }
   };
@@ -701,59 +782,71 @@ export default function SkillToolboxPage() {
             </div>
 
             {allDone && (
-              <details className="relative">
-                <summary className="list-none cursor-pointer">
-                  <Button variant="default" size="sm" asChild className="bg-violet-600 hover:bg-violet-700">
-                    <span>
-                      <Download className="h-3.5 w-3.5 mr-1.5" />
-                      下載全部結果
-                    </span>
-                  </Button>
-                </summary>
-                <div className="absolute right-0 mt-1 z-20 rounded-md border bg-popover dark:bg-slate-900 dark:border-slate-700 shadow-lg min-w-[220px] py-1">
-                  <div className="px-3 py-2 text-[11px] text-muted-foreground border-b dark:border-slate-700">
-                    給人閱讀的格式
+              <div className="relative" ref={exportMenuRef}>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setExportMenuOpen((v) => !v)}
+                  className="bg-violet-600 hover:bg-violet-700"
+                >
+                  <Download className="h-3.5 w-3.5 mr-1.5" />
+                  下載全部結果
+                </Button>
+                {exportMenuOpen && (
+                  <div className="absolute right-0 mt-1 z-20 rounded-md border bg-popover dark:bg-slate-900 dark:border-slate-700 shadow-lg min-w-[220px] py-1">
+                    <div className="px-3 py-2 text-[11px] text-muted-foreground border-b dark:border-slate-700">
+                      給人閱讀的格式
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleDownloadMarkdown();
+                        setExportMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted/60 dark:hover:bg-slate-800"
+                    >
+                      <FileText className="h-4 w-4 text-emerald-600" />
+                      <div className="flex flex-col">
+                        <span>下載 Markdown (.md)</span>
+                        <span className="text-[10px] text-muted-foreground">最常用；可貼進 Notion / Obsidian</span>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleDownloadHtml();
+                        setExportMenuOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted/60 dark:hover:bg-slate-800"
+                    >
+                      <FileCode2 className="h-4 w-4 text-sky-600" />
+                      <div className="flex flex-col">
+                        <span>下載 HTML (.html)</span>
+                        <span className="text-[10px] text-muted-foreground">瀏覽器直接打開閱讀</span>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        void handleDownloadPng();
+                        // 不立即關，等 PNG 完成後使用者已看到 toast；避免 disabled 狀態被吞掉
+                      }}
+                      disabled={exportingPng}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted/60 dark:hover:bg-slate-800 disabled:opacity-50"
+                    >
+                      {exportingPng ? (
+                        <Loader2 className="h-4 w-4 text-rose-600 animate-spin" />
+                      ) : (
+                        <ImageIcon className="h-4 w-4 text-rose-600" />
+                      )}
+                      <div className="flex flex-col">
+                        <span>{exportingPng ? "PNG 製作中…" : "下載 PNG 圖片 (.png)"}</span>
+                        <span className="text-[10px] text-muted-foreground">截圖貼進簡報／Email 用</span>
+                      </div>
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleDownloadMarkdown}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted/60 dark:hover:bg-slate-800"
-                  >
-                    <FileText className="h-4 w-4 text-emerald-600" />
-                    <div className="flex flex-col">
-                      <span>下載 Markdown (.md)</span>
-                      <span className="text-[10px] text-muted-foreground">最常用；可貼進 Notion / Obsidian</span>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadHtml}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted/60 dark:hover:bg-slate-800"
-                  >
-                    <FileCode2 className="h-4 w-4 text-sky-600" />
-                    <div className="flex flex-col">
-                      <span>下載 HTML (.html)</span>
-                      <span className="text-[10px] text-muted-foreground">瀏覽器直接打開閱讀</span>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDownloadPng}
-                    disabled={exportingPng}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted/60 dark:hover:bg-slate-800 disabled:opacity-50"
-                  >
-                    {exportingPng ? (
-                      <Loader2 className="h-4 w-4 text-rose-600 animate-spin" />
-                    ) : (
-                      <ImageIcon className="h-4 w-4 text-rose-600" />
-                    )}
-                    <div className="flex flex-col">
-                      <span>{exportingPng ? "PNG 製作中…" : "下載 PNG 圖片 (.png)"}</span>
-                      <span className="text-[10px] text-muted-foreground">截圖貼進簡報／Email 用</span>
-                    </div>
-                  </button>
-                </div>
-              </details>
+                )}
+              </div>
             )}
           </div>
 

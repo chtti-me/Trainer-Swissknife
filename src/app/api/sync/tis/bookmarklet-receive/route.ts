@@ -37,17 +37,29 @@ interface IncomingItem {
   sizeKb?: unknown;
 }
 
+function escHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function htmlError(title: string, detail: string, backTo?: string): NextResponse {
-  const safeTitle = title.replace(/[<>]/g, "");
-  const safeDetail = detail.replace(/[<>]/g, "");
+  // 預設 escape，避免未來 caller 帶外部資料時 XSS。
+  // 對於需要保留已轉義 token（如除錯片段）的場景，請自行用 escHtml 後傳入；
+  // 但一般用法只要傳純中文 / 數字字串即可。
+  const safeTitle = escHtml(title);
+  const safeDetail = escHtml(detail);
   const backHtml = backTo
-    ? `<p><a href="${backTo}" style="color:#2563eb">← 返回 ${backTo}</a></p>`
+    ? `<p style="margin-top:18px"><a href="${escHtml(backTo)}" style="color:#2563eb">← 返回 ${escHtml(backTo)}</a></p>`
     : "";
   return new NextResponse(
     `<!doctype html><html lang=zh-Hant><meta charset=utf-8><title>${safeTitle}</title>` +
-      `<body style="font-family:system-ui,sans-serif;max-width:640px;margin:80px auto;padding:0 20px;color:#0f172a">` +
+      `<body style="font-family:system-ui,sans-serif;max-width:840px;margin:80px auto;padding:0 20px;color:#0f172a">` +
       `<h1 style="color:#dc2626">${safeTitle}</h1>` +
-      `<p>${safeDetail}</p>${backHtml}` +
+      `<pre style="white-space:pre-wrap;word-break:break-all;background:#f1f5f9;padding:12px;border-radius:6px;font-size:12px;line-height:1.5">${safeDetail}</pre>` +
+      `${backHtml}` +
       `</body></html>`,
     {
       status: 400,
@@ -93,8 +105,23 @@ export async function POST(req: NextRequest) {
   let parsed: { items?: IncomingItem[]; ua?: string; sourceUrl?: string };
   try {
     parsed = JSON.parse(payloadRaw);
-  } catch {
-    return htmlError("payload 非合法 JSON", "請更新 bookmarklet（先到 /settings 重新拖一次書籤）。");
+  } catch (parseErr) {
+    // 為了 debug，把 payload 樣本連同錯誤一起回給 user
+    // （HTML escape 由 htmlError 統一處理；這裡只負責把不可見的控制字元換成 \xXX 才看得到）
+    const visualize = (s: string) =>
+      s.replace(/[\u0000-\u001f\u007f]/g, (c) => "\\x" + c.charCodeAt(0).toString(16).padStart(2, "0"));
+    const len = payloadRaw.length;
+    const head = visualize(payloadRaw.slice(0, 200));
+    const tail = visualize(payloadRaw.slice(-200));
+    const errMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+    return htmlError(
+      "payload 非合法 JSON",
+      `JSON.parse error: ${errMsg}\n\n` +
+        `payload 長度：${len} chars\n` +
+        `前 200 字：\n${head}\n\n` +
+        `後 200 字：\n${tail}`,
+      "/settings"
+    );
   }
 
   const items = Array.isArray(parsed.items) ? parsed.items : [];

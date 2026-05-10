@@ -171,7 +171,10 @@ function buildBookmarkletScript(opts: { receiveUrl: string; appOrigin: string; t
     "    form.method = 'POST';\n" +
     "    form.action = RECEIVE_URL;\n" +
     "    form.target = '_blank';\n" +
-    "    form.enctype = 'application/x-www-form-urlencoded';\n" +
+    // multipart/form-data 對大 payload binary safe，不會像 urlencoded 那樣
+    // 把 byte URL-encode 成 %XX 導致 body 膨脹 3 倍（容易撞到 body size 限制）。
+    // 也避免 cross-site POST 時各層 proxy 對 urlencoded 的詭異截斷。
+    "    form.enctype = 'multipart/form-data';\n" +
     "    form.style.display = 'none';\n" +
     "    var payload = JSON.stringify({\n" +
     "      items: results,\n" +

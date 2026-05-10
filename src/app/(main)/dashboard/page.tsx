@@ -798,6 +798,13 @@ export default function DashboardPage() {
           selectedClass={selectedClass}
           open={detailOpen}
           onOpenChange={setDetailOpen}
+          onUpdated={(updated) => {
+            // 把編輯／還原後的最新版同步到 selectedClass 與 classes list
+            setSelectedClass((prev) => (prev ? { ...prev, ...updated } : prev));
+            setClasses((prev) =>
+              prev.map((c) => (c.id === updated.id ? ({ ...c, ...updated } as TrainingClass) : c))
+            );
+          }}
         />
       </div>
     </TooltipProvider>

@@ -97,6 +97,14 @@ model TrainingClass {
   importedAt       DateTime? @map("imported_at")
   rawPayload       String?   @map("raw_payload")        // 原始資料 JSON
 
+  /// 哪些欄位被使用者手動覆寫過（key→true），TIS sync 時會跳過這些 key。
+  /// 例：{"campus":true,"deliveryMode":true} 代表這兩欄不再受 TIS 同步覆蓋。
+  manualOverrides  Json?     @map("manual_overrides")
+  /// TIS sync 帶來的「原始值」快照（最近一次 sync 時記錄）。
+  /// 用於「還原為 TIS 值」功能：使用者改錯了可以 1 鍵還原。
+  /// 例：{"campus":"院本部","difficultyLevel":"進階","deliveryMode":"課堂"}
+  tisOriginalValues Json?    @map("tis_original_values")
+
   /// 相似度比對用合併文字（字詞引擎輸入）
   embeddingText    String?   @map("embedding_text")
   /// v4：向量嵌入（pgvector；768 維對應 Gemini gemini-embedding-001（Matryoshka 截斷）；

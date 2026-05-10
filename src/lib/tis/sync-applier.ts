@@ -29,6 +29,8 @@ export interface ClassDiffEntry {
   toWrite: PrismaTrainingClassUpsertFields;
   /** 哪些欄位被改動了（update 才有；create 一律全部） */
   changedFields: string[];
+  /** 因「使用者手動覆寫保護」而被跳過的欄位（update 才會非空） */
+  skippedByManualOverride: string[];
 }
 
 export interface SyncDiffSummary {
@@ -160,6 +162,37 @@ function fieldEquals(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * 從 manualOverrides JSON 讀出「使用者手動覆寫過」的欄位 set。
+ * 容錯：null / 不是 object / 不是 boolean=true 一律視為未覆寫。
+ */
+function getManualOverrideKeys(raw: unknown): Set<string> {
+  const out = new Set<string>();
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return out;
+  for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
+    if (v === true) out.add(k);
+  }
+  return out;
+}
+
+/**
+ * COMPARE_FIELDS 中、TIS sync 會更新到的欄位（subset）；
+ * 這份清單是「使用者手動覆寫後 TIS sync 應該跳過」的候選。
+ *
+ * 識別碼類欄位（classCode / tisClassId5 等）即使被手動改過也不允許保留覆寫，
+ * 因為這會讓配對機制壞掉，所以排除在此清單之外。
+ */
+const TIS_SYNC_PROTECTABLE_FIELDS: Array<keyof PrismaTrainingClassUpsertFields> = [
+  "className",
+  "campus",
+  "category",
+  "difficultyLevel",
+  "deliveryMode",
+  "startDatetime",
+  "mentorName",
+  "status",
+];
+
+/**
  * 計算 dry-run diff（不寫 DB）
  *
  * @param parsed parser 解析出的全部班次（已合併去重）
@@ -204,6 +237,7 @@ export async function computeDiff(parsed: TisParsedClass[]): Promise<SyncDiff> {
       startDatetime: true,
       mentorName: true,
       status: true,
+      manualOverrides: true,
     },
   });
 
@@ -235,12 +269,23 @@ export async function computeDiff(parsed: TisParsedClass[]): Promise<SyncDiff> {
 
     let action: DiffAction = "create";
     const changedFields: string[] = [];
+    const skippedByManualOverride: string[] = [];
 
     if (matched) {
+      // 取出此筆已被手動覆寫的欄位 set；TIS sync 會跳過這些 key
+      const overrideKeys = getManualOverrideKeys(matched.manualOverrides as unknown);
+
       for (const f of COMPARE_FIELDS) {
-        if (!fieldEquals((matched as unknown as Record<string, unknown>)[f], toWrite[f])) {
-          changedFields.push(f);
+        const dbVal = (matched as unknown as Record<string, unknown>)[f];
+        const newVal = toWrite[f];
+        if (fieldEquals(dbVal, newVal)) continue;
+
+        // 若使用者手動覆寫過此欄位 + 此欄位在「可保護清單」內 → 跳過、不算入 changedFields
+        if (overrideKeys.has(f) && (TIS_SYNC_PROTECTABLE_FIELDS as string[]).includes(f)) {
+          skippedByManualOverride.push(f);
+          continue;
         }
+        changedFields.push(f);
       }
       action = changedFields.length > 0 ? "update" : "noop";
     } else {
@@ -267,6 +312,7 @@ export async function computeDiff(parsed: TisParsedClass[]): Promise<SyncDiff> {
       action,
       toWrite,
       changedFields,
+      skippedByManualOverride,
     });
   }
 
@@ -323,21 +369,38 @@ export async function applyDiff(
       continue;
     }
     try {
+      // 把這次 TIS sync「想寫入」的可保護欄位值記下來，供「還原為 TIS 值」功能讀取
+      // （無論 create 或 update 都記，這樣使用者改錯後可以還原到 TIS 最新值）
+      const tisOriginalValues: Record<string, unknown> = {};
+      for (const f of TIS_SYNC_PROTECTABLE_FIELDS) {
+        const v = entry.toWrite[f];
+        // Date 統一轉 ISO 字串方便 JSON 持久化、也方便前端處理
+        tisOriginalValues[f] = v instanceof Date ? v.toISOString() : v;
+      }
+
       if (entry.action === "create") {
         await prisma.trainingClass.create({
           data: {
             ...entry.toWrite,
             importedAt: new Date(),
+            tisOriginalValues: tisOriginalValues as Prisma.InputJsonValue,
           } as Prisma.TrainingClassUncheckedCreateInput,
         });
         created++;
       } else if (entry.action === "update" && entry.matchedDbId) {
-        // 「需求來源 / 講師等培訓師後續手動填入欄位」不蓋掉，只更新 TIS 帶來的欄位
+        // 把被手動覆寫保護的欄位從 toWrite 中移除，這樣 update 不會動到它們
+        const writeData: Record<string, unknown> = { ...entry.toWrite };
+        for (const f of entry.skippedByManualOverride) {
+          delete writeData[f];
+        }
         await prisma.trainingClass.update({
           where: { id: entry.matchedDbId },
           data: {
-            ...entry.toWrite,
+            ...writeData,
             importedAt: new Date(),
+            // tisOriginalValues 一定要更新（即使欄位被保護沒寫入主 column）
+            // 這樣 UI 上「還原為 TIS 值」功能能讀到「TIS 最新版」
+            tisOriginalValues: tisOriginalValues as Prisma.InputJsonValue,
           } as Prisma.TrainingClassUncheckedUpdateInput,
         });
         updated++;

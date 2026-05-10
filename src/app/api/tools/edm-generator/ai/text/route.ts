@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { createAiClient, getAiProvider, getDefaultModel } from "@/lib/ai-provider";
+import { callWithFallback } from "@/lib/ai-providers/runtime";
 import type {
   AiGenerateTextOpts,
   AiGenerateTextResult,
@@ -84,10 +84,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "請求格式錯誤" }, { status: 400 });
   }
 
-  const provider = getAiProvider();
-  const model = opts.model || getDefaultModel(provider);
-  const client = createAiClient();
-
   const messages: ChatCompletionMessageParam[] = [];
   if (opts.systemInstruction) {
     messages.push({ role: "system", content: opts.systemInstruction });
@@ -95,51 +91,55 @@ export async function POST(req: NextRequest) {
   const userContent = userPartsToOpenAi(opts.user);
   messages.push({ role: "user", content: userContent });
 
-  // response_format：先嘗試 json_schema，失敗再退回 json_object（純結構化 JSON 字串）
-  const baseParams = {
-    model,
-    messages,
-    temperature: typeof opts.temperature === "number" ? opts.temperature : undefined,
-  };
-
-  let text = "";
+  // 用 callWithFallback 包起來 → 任一 provider 拿 400/429/5xx 會自動切到下一家（OpenRouter → Gemini → Groq）。
+  // 注意 schema 模式的「json_schema → json_object」雙模式 fallback 在 run() 內部處理，不算 provider 失敗（不同 provider
+  // 對 schema 支援程度不一樣，這個 try/catch 會在每個 provider 內各自跑一次）。
+  // 當 json_object 也失敗（拋例外）才會冒到 callWithFallback 觸發 provider switch。
   try {
-    if (opts.responseSchema) {
-      try {
-        const schema = preparesSchemaForOpenAi(opts.responseSchema);
-        const resp = await client.chat.completions.create({
-          ...baseParams,
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "edm_response",
-              schema,
-              strict: false,
-            },
-          },
-        });
-        text = resp.choices[0]?.message?.content || "";
-      } catch (jsonSchemaErr) {
-        console.warn(
-          "[EDM ai/text] json_schema 模式失敗，回退至 json_object：",
-          jsonSchemaErr
-        );
-        const resp = await client.chat.completions.create({
-          ...baseParams,
-          response_format: { type: "json_object" },
-        });
-        text = resp.choices[0]?.message?.content || "";
-      }
-    } else {
-      const resp = await client.chat.completions.create(baseParams);
-      text = resp.choices[0]?.message?.content || "";
-    }
+    const { value, provider } = await callWithFallback({
+      feature: "edm",
+      run: async ({ client, model: ctxModel }) => {
+        // 使用者請求 body 若帶了 opts.model，僅在「fallback 沒切過、provider 仍是預設」時優先採用；
+        // 切過 provider 後改用 ctxModel（因為使用者帶的 model id 對新 provider 通常無效）
+        const useModel = opts.model || ctxModel;
+        const baseParams = {
+          model: useModel,
+          messages,
+          temperature: typeof opts.temperature === "number" ? opts.temperature : undefined,
+        };
+        if (opts.responseSchema) {
+          try {
+            const schema = preparesSchemaForOpenAi(opts.responseSchema);
+            const resp = await client.chat.completions.create({
+              ...baseParams,
+              response_format: {
+                type: "json_schema",
+                json_schema: { name: "edm_response", schema, strict: false },
+              },
+            });
+            return { text: resp.choices[0]?.message?.content || "", usedModel: useModel };
+          } catch (jsonSchemaErr) {
+            console.warn(
+              "[EDM ai/text] json_schema 模式失敗，回退至 json_object：",
+              jsonSchemaErr
+            );
+            const resp = await client.chat.completions.create({
+              ...baseParams,
+              response_format: { type: "json_object" },
+            });
+            return { text: resp.choices[0]?.message?.content || "", usedModel: useModel };
+          }
+        }
+        const resp = await client.chat.completions.create(baseParams);
+        return { text: resp.choices[0]?.message?.content || "", usedModel: useModel };
+      },
+    });
+    const result: AiGenerateTextResult = { text: value.text, model: value.usedModel };
+    // 多帶一個 provider 給 client 端參考（adapter 不會用到，但 debug log 有用）
+    return NextResponse.json({ ...result, provider });
   } catch (err) {
     console.error("[EDM ai/text] 失敗：", err);
     const message = err instanceof Error ? err.message : "未知錯誤";
     return NextResponse.json({ error: `AI 文字生成失敗：${message}` }, { status: 500 });
   }
-
-  const result: AiGenerateTextResult = { text, model };
-  return NextResponse.json(result);
 }

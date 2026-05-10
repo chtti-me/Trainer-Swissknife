@@ -5,7 +5,7 @@
  * - 月曆：FullCalendar dayGridMonth，週六日縮窄、hover 浮動、單日展開
  * - 週曆：自訂格狀版面（類似月曆但僅 1~2 週），完整顯示班名，支援單週/雙週切換
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -32,6 +32,9 @@ interface CalendarViewProps {
 }
 
 interface HoverInfo {
+  /** 滑鼠在 viewport 內的座標（clientX/clientY）；tooltip 以此為主要 anchor */
+  pointerX: number;
+  pointerY: number;
   x: number;
   y: number;
   cellWidth: number;
@@ -177,9 +180,11 @@ export default function CalendarView({ classes, onEventClick }: CalendarViewProp
       setSingleDayDate(dateStr);
     });
 
-    const showHover = () => {
+    const showHover = (e: MouseEvent) => {
       if (panelHovered.current) return;
       if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
+      const pointerX = e.clientX;
+      const pointerY = e.clientY;
       hoverTimeout.current = setTimeout(() => {
         if (panelHovered.current) return;
         const calApi = calendarRef.current?.getApi();
@@ -199,6 +204,8 @@ export default function CalendarView({ classes, onEventClick }: CalendarViewProp
         if (dayEvents.length === 0) return;
         const rect = el.getBoundingClientRect();
         setHoverInfo({
+          pointerX,
+          pointerY,
           x: rect.left, y: rect.top, cellWidth: rect.width, cellHeight: rect.height,
           date: dateStr, events: dayEvents,
         });
@@ -529,43 +536,73 @@ function HoverPanel({
   onEventClick: (cls: CalendarClass) => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ left: number; top: number }>({ left: 0, top: 0 });
+  const [pos, setPos] = useState<{ left: number; top: number; ready: boolean }>({
+    left: 0,
+    top: 0,
+    ready: false,
+  });
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const panelEl = panelRef.current;
     if (!panelEl) return;
 
+    const panelWidth = panelEl.offsetWidth || 288;
     const panelHeight = panelEl.offsetHeight;
-    const panelWidth = 288;
-    const gap = 6;
+    const gap = 12;
+    const margin = 8;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const x = hoverInfo.pointerX;
+    const y = hoverInfo.pointerY;
 
-    let left = hoverInfo.x + hoverInfo.cellWidth / 2 - panelWidth / 2;
-    left = Math.max(8, Math.min(left, window.innerWidth - panelWidth - 8));
+    const clamp = (value: number, min: number, max: number) => {
+      if (max < min) return min;
+      return Math.max(min, Math.min(value, max));
+    };
 
-    const spaceAbove = hoverInfo.y - gap;
-    const spaceBelow = window.innerHeight - (hoverInfo.y + hoverInfo.cellHeight + gap);
+    const fits = (left: number, top: number) =>
+      left >= margin &&
+      top >= margin &&
+      left + panelWidth <= viewportWidth - margin &&
+      top + panelHeight <= viewportHeight - margin;
 
-    let top: number;
-    if (spaceAbove >= panelHeight) {
-      top = hoverInfo.y - gap - panelHeight;
-    } else if (spaceBelow >= panelHeight) {
-      top = hoverInfo.y + hoverInfo.cellHeight + gap;
-    } else {
-      if (spaceAbove >= spaceBelow) {
-        top = Math.max(8, hoverInfo.y - gap - panelHeight);
-      } else {
-        top = Math.min(window.innerHeight - panelHeight - 8, hoverInfo.y + hoverInfo.cellHeight + gap);
-      }
+    // 定位優先序依產品需求：
+    // 1 右下；2 左下；3 右上；4 左上；
+    // 5 右側垂直置中；6 左側垂直置中；
+    // 保底：貼齊空間較多的側邊，並 clamp 進 viewport。
+    const candidates = [
+      { left: x + gap, top: y + gap },
+      { left: x - gap - panelWidth, top: y + gap },
+      { left: x + gap, top: y - gap - panelHeight },
+      { left: x - gap - panelWidth, top: y - gap - panelHeight },
+      { left: x + gap, top: clamp(y - panelHeight / 2, margin, viewportHeight - panelHeight - margin) },
+      { left: x - gap - panelWidth, top: clamp(y - panelHeight / 2, margin, viewportHeight - panelHeight - margin) },
+    ];
+
+    const exact = candidates.find((candidate) => fits(candidate.left, candidate.top));
+    if (exact) {
+      setPos({ ...exact, ready: true });
+      return;
     }
 
-    setPos({ left, top });
+    const spaceRight = viewportWidth - x;
+    const spaceLeft = x;
+    const preferRight = spaceRight >= spaceLeft;
+    const fallbackLeft = preferRight ? x + gap : x - gap - panelWidth;
+    const fallbackTop = y - panelHeight / 2;
+
+    setPos({
+      left: clamp(fallbackLeft, margin, viewportWidth - panelWidth - margin),
+      top: clamp(fallbackTop, margin, viewportHeight - panelHeight - margin),
+      ready: true,
+    });
   }, [hoverInfo]);
 
   return (
     <div
       ref={panelRef}
       className="fixed z-[100] max-w-sm w-72 rounded-lg border bg-popover text-popover-foreground shadow-xl p-3 space-y-1.5"
-      style={{ left: pos.left, top: pos.top }}
+      style={{ left: pos.left, top: pos.top, visibility: pos.ready ? "visible" : "hidden" }}
       onMouseEnter={() => {
         panelHovered.current = true;
         if (hoverTimeout.current) clearTimeout(hoverTimeout.current);

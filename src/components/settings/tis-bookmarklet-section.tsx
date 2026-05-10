@@ -4,12 +4,14 @@
  * 【TIS 頁面抓取器（Bookmarklet）使用說明】
  *
  * 顯示在 /settings 頁面，給管理員：
- *   1. 一段「拖到書籤列」的書籤連結（href = javascript:... 的 bookmarklet loader）
+ *   1. 一段「拖到書籤列」的書籤連結（href = javascript:... 的完整 bookmarklet）
  *   2. 完整使用步驟
  *   3. 「複製 bookmarklet 程式碼」備用（書籤列已滿時手動建書籤）
  *
- * Bookmarklet loader 本身只負責「動態載入 /api/sync/tis/bookmarklet.js」，
- * 真正抓取邏輯都在那支 server-side 動態端點裡。這樣未來改邏輯不用使用者重存書籤。
+ * 注意：不能只做「動態載入外部 script」的 loader。TIS 頁面很可能有 CSP
+ *（Content Security Policy，內容安全政策）擋跨站 script src，使用者會看到「點了沒反應」。
+ * 所以本元件會先從 /api/sync/tis/bookmarklet.js 抓完整程式碼，再把整段塞進
+ * javascript: URL；書籤在 TIS 頁面執行時不需要載入外部 script。
  */
 
 import { useEffect, useState } from "react";
@@ -22,18 +24,39 @@ import { useToast } from "@/components/ui/toaster";
 export function TisBookmarkletSection() {
   const { toast } = useToast();
   const [appOrigin, setAppOrigin] = useState<string>("");
+  const [bookmarkletHref, setBookmarkletHref] = useState<string>("");
+  const [loadingBookmarklet, setLoadingBookmarklet] = useState(true);
+  const [bookmarkletError, setBookmarkletError] = useState<string | null>(null);
 
   useEffect(() => {
     // 在 client 端推 origin，避免 SSR snapshot 寫死成 build-time 的 host
-    setAppOrigin(window.location.origin);
-  }, []);
+    const origin = window.location.origin;
+    setAppOrigin(origin);
 
-  // 書籤本體：超短 loader，動態 inject 真正抓取 script
-  const bookmarkletHref =
-    appOrigin &&
-    `javascript:(function(){var s=document.createElement('script');s.src=${JSON.stringify(
-      appOrigin + "/api/sync/tis/bookmarklet.js"
-    )}+'?_='+Date.now();s.onerror=function(){alert('載入抓取腳本失敗，請確認 ${appOrigin} 可連線');};document.body.appendChild(s);})();`;
+    let cancelled = false;
+    (async () => {
+      setLoadingBookmarklet(true);
+      setBookmarkletError(null);
+      try {
+        const res = await fetch(`/api/sync/tis/bookmarklet.js?_=${Date.now()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const script = await res.text();
+        if (cancelled) return;
+        // 將完整 script 內嵌到 bookmarklet。只移除換行，避免拖進書籤列時
+        // 被部分瀏覽器截斷；不做 encodeURIComponent，因為某些瀏覽器不會在
+        // javascript: URL 執行前完整 decode，可能變成點擊無反應。
+        setBookmarkletHref(`javascript:${script.trim().replace(/\s*\n\s*/g, " ")}`);
+      } catch (e) {
+        if (!cancelled) setBookmarkletError(e instanceof Error ? e.message : String(e));
+      } finally {
+        if (!cancelled) setLoadingBookmarklet(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const copyCode = async () => {
     if (!bookmarkletHref) return;
@@ -61,7 +84,23 @@ export function TisBookmarkletSection() {
       <CardContent className="space-y-4 text-sm">
         {/* 主體：拖到書籤列的連結 */}
         <div className="border-2 border-dashed border-purple-300 bg-purple-50/40 rounded-lg p-4 text-center">
-          {bookmarkletHref ? (
+          {loadingBookmarklet ? (
+            <p className="text-xs text-muted-foreground">正在產生完整 bookmarklet…</p>
+          ) : bookmarkletError ? (
+            <div className="space-y-2">
+              <p className="text-xs text-rose-700">
+                產生 bookmarklet 失敗：{bookmarkletError}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => window.location.reload()}
+              >
+                重新整理再試
+              </Button>
+            </div>
+          ) : bookmarkletHref ? (
             <>
               <p className="text-xs text-muted-foreground mb-3">
                 把下方紫色按鈕<strong>拖到瀏覽器書籤列</strong>，命名建議「TIS→瑞士刀」
@@ -93,6 +132,10 @@ export function TisBookmarkletSection() {
                   複製 bookmarklet 程式碼
                 </button>
                 後手動建立書籤（書籤名稱隨意，網址欄位貼上即可）
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-2">
+                已改為「完整內嵌版」bookmarklet，不再從 TIS 頁面載入外部 script，
+                可避開 TIS 的 CSP 擋跨站 script 問題。
               </p>
             </>
           ) : (

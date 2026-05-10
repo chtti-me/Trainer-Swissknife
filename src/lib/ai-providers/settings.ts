@@ -28,8 +28,17 @@ export interface FallbackThresholds {
    */
   dailyRequestSoftLimit: number | null;
   /**
-   * 觸發即時切換的錯誤狀態碼集合。預設 [400, 408, 409, 425, 429, 500, 502, 503, 504]
-   * 注：Gemini 配額用光時實測會回 400 (no body)，故 400 也納入。
+   * 觸發即時切換的錯誤狀態碼集合。
+   * 各 status code 的實際語意（依實測）：
+   *   400 — Gemini 配額用光時回 400 (no body)，且常見於 schema mismatch
+   *   402 — OpenRouter 用此狀態碼回「daily free tier quota exceeded」
+   *   408 — Request Timeout
+   *   409 — Conflict（部分供應商用作軟性 rate-limit）
+   *   413 — Payload Too Large；Groq free tier 用此回「TPM 超限」（Tokens Per Minute）
+   *   425 — Too Early
+   *   429 — 標準 Rate Limit Exceeded
+   *   451 — Unavailable For Legal Reasons（地理限制；少見但會用）
+   *   500/502/503/504 — 上游 5xx，全當暫時故障切換
    */
   switchOnErrorStatuses: number[];
   /** 連續 N 次錯誤後才切（預設 1，表示第一次就切） */
@@ -48,10 +57,19 @@ export interface FallbackConfig {
 
 export const DEFAULT_FALLBACK_THRESHOLDS: FallbackThresholds = {
   dailyRequestSoftLimit: null,
-  switchOnErrorStatuses: [400, 408, 409, 425, 429, 500, 502, 503, 504],
+  switchOnErrorStatuses: [400, 402, 408, 409, 413, 425, 429, 451, 500, 502, 503, 504],
   consecutiveErrorThreshold: 1,
   cooldownSeconds: 600,
 };
+
+/**
+ * 「為了 fallback 行為合理性，這幾個 status code 必須一直在 list 裡」的最小集合。
+ * parseFallbackConfig() 會對既有 DB 紀錄做向前相容 merge，避免使用者必須回 UI 重存設定。
+ *
+ * 為什麼要 merge：DB 裡可能存著一年前舊版本存的清單（沒有 402/413/451），
+ * 若不 merge，使用者還是會踩到「Groq 413 TPM 超限不切」的舊 bug。
+ */
+const REQUIRED_SWITCH_STATUSES = [400, 402, 413, 429, 502, 503, 504] as const;
 
 /** 預設 chain：有 catalog enabledByDefault 為 true 的優先（目前只有 Gemini） */
 export function buildDefaultFallbackConfig(): FallbackConfig {
@@ -104,11 +122,19 @@ function parseFallbackConfig(raw: unknown): FallbackConfig {
 
   let thresholds: FallbackThresholds = def.thresholds;
   if (isFallbackThresholds(o.thresholds)) {
+    const fromDb = o.thresholds.switchOnErrorStatuses.filter(
+      (n: unknown): n is number => typeof n === "number"
+    );
+    // 向前相容 merge：把 REQUIRED_SWITCH_STATUSES 中缺少的補進去，避免舊紀錄仍踩到
+    // 「Groq 413 TPM 超限不切」「OpenRouter 402 daily free quota 用光不切」等已知雷。
+    // 若使用者真的想關掉某個 code，他可以在 UI 移除「不在 REQUIRED 內」的；REQUIRED 內
+    // 的視為「為了系統運作合理性必須保留」。
+    const merged = Array.from(
+      new Set<number>([...fromDb, ...REQUIRED_SWITCH_STATUSES])
+    ).sort((a, b) => a - b);
     thresholds = {
       dailyRequestSoftLimit: o.thresholds.dailyRequestSoftLimit,
-      switchOnErrorStatuses: o.thresholds.switchOnErrorStatuses.filter(
-        (n: unknown) => typeof n === "number"
-      ) as number[],
+      switchOnErrorStatuses: merged,
       consecutiveErrorThreshold: Math.max(1, Math.floor(o.thresholds.consecutiveErrorThreshold)),
       cooldownSeconds: Math.max(0, Math.floor(o.thresholds.cooldownSeconds)),
     };

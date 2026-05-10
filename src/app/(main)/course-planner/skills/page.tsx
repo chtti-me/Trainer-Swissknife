@@ -394,10 +394,18 @@ export default function SkillToolboxPage() {
   }, [orderedResults, activeRequestId, startMode, rawText]);
 
   /**
-   * 下載 blob 為檔案。
-   * 修 Bug：原本用 detached anchor + 同步 `URL.revokeObjectURL`，Chromium / Firefox
-   * 較新版本會 silent 失敗或卡在「0 B/s」永不結束（瀏覽器還沒讀完 blob URL 就被 revoke）。
-   * 正確做法：appendChild → click → removeChild → setTimeout 1500ms 後 revoke。
+   * 下載大型二進位檔（PNG / docx 等），用 blob URL。
+   *
+   * 修 Bug 1：原本用 detached anchor，部分瀏覽器會 silent 失敗。
+   *   → appendChild → click → removeChild
+   *
+   * 修 Bug 2：原本 `setTimeout(revoke, 1500ms)` 太短。Chrome 的 SafeBrowsing
+   *   「Verify safe」掃描期間，**會回頭存取 source URL（即我們的 blob URL）**。
+   *   1.5 秒不夠 verify 完成 → 檔案永遠卡在 `.crdownload`「尚未確認」狀態。
+   *   → 拉長到 60 秒，給 SafeBrowsing 充足時間驗證。
+   *
+   * （對 .md / .html 等 text 類，請改用下方 downloadTextDataUrl，根本繞過
+   * blob URL lifecycle —— 那才是 .crdownload 卡住的真正解法）
    */
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
@@ -408,7 +416,29 @@ export default function SkillToolboxPage() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  /**
+   * 下載小型 text 內容（md / html / json 等），用 **data URL**。
+   *
+   * 修 Bug：使用 blob URL 時，Chrome SafeBrowsing 會回頭驗證 source URL，
+   * 但 blob URL 一旦 revoke 就找不到 → 檔案永遠卡 `.crdownload / 尚未確認`，
+   * 即使 bytes 早就完整收到。data URL 是 inline encoded，沒有「來源」需要
+   * 驗證，Chrome 直接從 anchor 上的 href 讀完即完成。
+   *
+   * 限制：data URL 上限 ~2MB（encodeURIComponent 後）；20~50KB 的 text
+   * 完全沒問題。大檔請改用 downloadBlob。
+   */
+  const downloadTextDataUrl = (text: string, mime: string, filename: string) => {
+    const dataUrl = `data:${mime};charset=utf-8,${encodeURIComponent(text)}`;
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   const stamp = () =>
@@ -419,13 +449,13 @@ export default function SkillToolboxPage() {
 
   const handleDownloadMarkdown = () => {
     const md = buildPartialMarkdown(buildExportSource());
-    downloadBlob(new Blob([md], { type: "text/markdown;charset=utf-8" }), `course-planner-toolbox-${stamp()}.md`);
+    downloadTextDataUrl(md, "text/markdown", `course-planner-toolbox-${stamp()}.md`);
     toast("Markdown 下載完成", "success");
   };
 
   const handleDownloadHtml = () => {
     const html = buildPartialHtml(buildExportSource());
-    downloadBlob(new Blob([html], { type: "text/html;charset=utf-8" }), `course-planner-toolbox-${stamp()}.html`);
+    downloadTextDataUrl(html, "text/html", `course-planner-toolbox-${stamp()}.html`);
     toast("HTML 下載完成", "success");
   };
 

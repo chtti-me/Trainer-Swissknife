@@ -75,7 +75,16 @@ export function ExportMenu({
     };
   }, [open]);
 
-  // ─── 共用：下載 blob 為檔案（修 detached anchor / 立即 revoke 兩個老 bug）───
+  /**
+   * 下載大型二進位檔（PNG / docx），用 blob URL。
+   *
+   * 修 Bug 3：原本 `setTimeout(revoke, 1500ms)` 太短。Chrome SafeBrowsing
+   * 「Verify safe」掃描期間會回頭存取 source（blob URL），1.5s 內 verify 還
+   * 沒結束就被 revoke → 檔案永遠卡 `.crdownload / 尚未確認`。延長到 60 秒。
+   *
+   * 對 text 類（md / html / json）改用下面 downloadTextDataUrl，根本繞過 blob
+   * URL lifecycle，是 .crdownload 卡住的真正解法。
+   */
   const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -85,7 +94,23 @@ export function ExportMenu({
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 1500);
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  };
+
+  /**
+   * 下載 text blob，用 data URL（避開 Chrome SafeBrowsing 卡 .crdownload bug）。
+   * 適用於 < 2MB 的小型 text。
+   */
+  const downloadTextBlob = async (blob: Blob, mime: string, filename: string) => {
+    const text = await blob.text();
+    const dataUrl = `data:${mime};charset=utf-8,${encodeURIComponent(text)}`;
+    const a = document.createElement("a");
+    a.href = dataUrl;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   // ─── markdown / html / json / docx：直接打 server route ───
@@ -107,7 +132,17 @@ export function ExportMenu({
         const ext = format === "markdown" ? "md" : format === "docx" ? "doc" : format;
         const filenameFromHeader = parseFilenameFromHeader(res.headers.get("content-disposition"));
         const filename = filenameFromHeader || `course-plan-${requestId.slice(0, 8)}.${ext}`;
-        downloadBlob(blob, filename);
+        // text 類用 data URL（避免 Chrome SafeBrowsing 卡 .crdownload）；
+        // docx 是 binary，維持 blob URL（已將 revoke 拉長到 60s 防 verify 卡住）
+        if (format === "markdown") {
+          await downloadTextBlob(blob, "text/markdown", filename);
+        } else if (format === "html") {
+          await downloadTextBlob(blob, "text/html", filename);
+        } else if (format === "json") {
+          await downloadTextBlob(blob, "application/json", filename);
+        } else {
+          downloadBlob(blob, filename);
+        }
         toast(`已下載 ${format.toUpperCase()}：${filename}`, "success");
       } catch (e) {
         console.error("[course-planner export] 失敗：", e);

@@ -98,23 +98,20 @@ export function exportToHtml(
 
   /*
    * Linear 模式專屬 CSS：
-   *   - .course-report-linear-block 自身的 height auto + overflow visible
-   *     已在 inline style 寫過（覆蓋率較高），這裡再用 !important 兜底。
-   *   - 內部所有 div / section / article（屬於「容器型」元素）都強制
-   *     height auto + overflow visible，避免子層仍鎖死高度（例如
-   *     CenteredTextBlock 的 containerRef、TableBlockView 的 wrapper）
-   *     讓內容溢出後撞到下一個 block。
-   *   - 排除 img / video / iframe / canvas / svg：這些有 intrinsic 尺寸，
-   *     強制 auto 會破圖或變形。
+   *   - 規則只套到「block 內部容器」（block container 的 descendants），
+   *     不套到 .course-report-linear-block 自身（self）。
+   *     原因：self 在 inline style 已正確設 height:auto + min-height:Hpx
+   *     保留 banner 視覺重量；如果 self 也用 !important 覆蓋，min-height
+   *     會被一起打掉。
+   *   - 對 div / section / article 等「容器型」子層強制 height:auto +
+   *     overflow:visible，避免子層仍鎖死高度（例如 CenteredTextBlock 的
+   *     containerRef、TableBlockView 的 wrapper）讓內容溢出後撞下一個 block。
+   *   - 不影響 img / video / iframe / canvas / svg 等有 intrinsic 尺寸的元素，
+   *     避免破圖。
    */
   const linearScopedCss =
     mode === "linear"
       ? `
-  /*
-   * 注意：規則只套到 `block 內部容器`，不套到 `.course-report-linear-block`
-   * 自身（self），因為 self 在 inline style 已正確設 height: auto + min-height
-   * 保留 banner 視覺重量。如果 self 也用 !important 覆蓋會把 min-height 打掉。
-   */
   .course-report-linear-block > div,
   .course-report-linear-block > div div,
   .course-report-linear-block > div section,

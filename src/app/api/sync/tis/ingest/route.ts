@@ -86,7 +86,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const parsed = parseManyTisHtml(tisLike.map((s) => s.content));
+  // 把檔名一併傳給 parser 當 fallback hint：TIS 頁面沒 canonical link，
+  // 純看內容無法回推 yy/mm/department；bookmarklet 命名 `2026_1_deptP.html` 已含足三項。
+  const parsed = parseManyTisHtml(
+    tisLike.map((s) => ({ html: s.content, fileNameHint: s.name }))
+  );
   const allClasses = parsed.mergedClasses;
 
   let diff;

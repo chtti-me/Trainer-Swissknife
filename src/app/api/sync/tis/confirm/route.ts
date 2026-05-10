@@ -48,7 +48,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "沒有可用的 TIS HTML 內容" }, { status: 400 });
   }
 
-  const parsed = parseManyTisHtml(tisLike.map((s) => s.content));
+  // 把檔名一併傳給 parser 當 fallback hint（與 ingest 行為一致）
+  const parsed = parseManyTisHtml(
+    tisLike.map((s) => ({ html: s.content, fileNameHint: s.name }))
+  );
   const diff = await computeDiff(parsed.mergedClasses);
 
   const sourceName =

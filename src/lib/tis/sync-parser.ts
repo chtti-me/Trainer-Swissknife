@@ -116,7 +116,31 @@ function extractInlineTags(text: string): string[] {
   return tags;
 }
 
-function parsePageMeta($: cheerio.CheerioAPI): {
+/**
+ * 解析時可選的「外部 hint」。
+ *
+ * 為什麼需要：TIS 開班計畫表頁面 (OpenClass_ClassList2.jsp) **沒有 canonical link**，
+ * 內部連結也都是相對路徑，導致純看 HTML 內容時無法回推原本請求的 yy/mm/department。
+ * Bookmarklet 在抓取時已經把這些資訊都嵌在「檔名（例：`2026_1_deptP.html`）」與「sourceUrl」裡，
+ * 只要呼叫端把 hint 一起傳進來，parser 就可以做 fallback，避免讓使用者看到一堆嚇人警告。
+ */
+export interface ParseHtmlOptions {
+  /** 該 HTML 來源 URL（若有），用來在 HTML 內找不到自指 URL 時 fallback 解析 yy/mm/department */
+  urlHint?: string;
+  /**
+   * 該 HTML 來源檔名（若有），用來進一步 fallback。
+   * 認得 bookmarklet 的命名格式 `${year}_${mm}_dept${P|T|K|E}.html`。
+   */
+  fileNameHint?: string;
+}
+
+/** Bookmarklet 端 results.push({ name: year + '_' + mm + '_dept' + dept + '.html', ... }) 對應的反解析 */
+const FILENAME_HINT_RE = /(?:^|[\\\/])(\d{4})[_-](\d{1,2})[_-]?dept([PTKE])\b/i;
+
+function parsePageMeta(
+  $: cheerio.CheerioAPI,
+  opts?: ParseHtmlOptions
+): {
   yy: number | null;
   mm: number | null;
   department: string | null;
@@ -126,17 +150,33 @@ function parsePageMeta($: cheerio.CheerioAPI): {
 } {
   const warnings: string[] = [];
 
-  // 從 <link rel=canonical> 或 <meta> 取 URL → 取 query
+  // 1. 主路：從 <link rel=canonical> 或 <meta> 取 URL → 取 query
   let url = $('link[rel="canonical"]').attr("href") || "";
   if (!url) {
-    // 退路：搜全文找一段帶 OpenClass_ClassList2.jsp 的 URL
+    // 1a. 退路：搜全文找一段帶 OpenClass_ClassList2.jsp 的 URL
     const html = $.html();
     const m = html.match(/https?:\/\/tis\.cht\.com\.tw[^"'\s<>]+OpenClass_ClassList2\.jsp[^"'\s<>]*/);
     if (m) url = m[0];
   }
-  const yy = safeUrlParam(url, "yy");
-  const mm = safeUrlParam(url, "mm");
-  const department = safeUrlParam(url, "department");
+  // 1b. 退路：呼叫端提供的 sourceUrl（例如 bookmarklet location.href）
+  if (!url && opts?.urlHint) {
+    url = opts.urlHint;
+  }
+
+  let yy: string | null = url ? safeUrlParam(url, "yy") : null;
+  let mm: string | null = url ? safeUrlParam(url, "mm") : null;
+  let department: string | null = url ? safeUrlParam(url, "department") : null;
+
+  // 2. 最後退路：bookmarklet 自己刻的檔名 `2026_1_deptP.html` 帶足三個欄位
+  //    （TIS 頁面實測無 canonical 也無自指絕對 URL，這條 fallback 是必須的，否則使用者每次都會看到 12 條警告）
+  if ((!yy || !mm || !department) && opts?.fileNameHint) {
+    const fm = opts.fileNameHint.match(FILENAME_HINT_RE);
+    if (fm) {
+      if (!yy) yy = fm[1];
+      if (!mm) mm = fm[2];
+      if (!department) department = fm[3].toUpperCase();
+    }
+  }
 
   // 頁標題：通常是 h3 內 font color=#0000FF
   const pageTitle = squishWhitespace($("h3").first().text()) || null;
@@ -145,14 +185,17 @@ function parsePageMeta($: cheerio.CheerioAPI): {
   const userMatch = $.html().match(/使用者[:：]\s*([^\)\s<]+)/);
   const loginUser = userMatch ? userMatch[1].trim() : null;
 
-  if (!yy) warnings.push("無法從 URL 解析 yy；可能不是開班計畫表列表頁，或 HTML 沒包含 canonical link");
-  if (!mm) warnings.push("無法從 URL 解析 mm");
-  if (!department) warnings.push("無法從 URL 解析 department");
+  if (!yy)
+    warnings.push(
+      "無法解析 yy（HTML 內無 canonical link、無自指絕對 URL，且呼叫端未提供檔名 / urlHint）"
+    );
+  if (!mm) warnings.push("無法解析 mm");
+  if (!department) warnings.push("無法解析 department");
 
   return {
-    yy: yy ? parseInt(yy, 10) : null,
-    mm: mm ? parseInt(mm, 10) : null,
-    department,
+    yy: yy ? parseInt(String(yy), 10) : null,
+    mm: mm ? parseInt(String(mm), 10) : null,
+    department: department ?? null,
     pageTitle,
     loginUser,
     warnings,
@@ -256,8 +299,13 @@ function parseDataRow(
 /**
  * 主入口：吃 HTML 字串，回 TisParsedPage。
  * 不會拋例外（除非 HTML 完全不是 string）；解析錯誤都記在 warnings。
+ *
+ * @param opts 呼叫端可額外提供 fileNameHint / urlHint，給 yy/mm/department fallback 用
  */
-export function parseTisOpenClassListHtml(html: string): TisParsedPage {
+export function parseTisOpenClassListHtml(
+  html: string,
+  opts?: ParseHtmlOptions
+): TisParsedPage {
   if (typeof html !== "string" || html.length < 100) {
     return {
       yy: null,
@@ -271,7 +319,7 @@ export function parseTisOpenClassListHtml(html: string): TisParsedPage {
   }
 
   const $ = cheerio.load(html);
-  const meta = parsePageMeta($);
+  const meta = parsePageMeta($, opts);
   const classes: TisParsedClass[] = [];
 
   // TIS 結構：每個「區塊」是一個外層 <table>，內含一個藍色 header（區塊標題）
@@ -334,14 +382,30 @@ export interface ParseManyResult {
   totalDuplicatesAcrossPages: number;
 }
 
-export function parseManyTisHtml(htmlList: string[]): ParseManyResult {
+export interface ParseManyTisHtmlItem extends ParseHtmlOptions {
+  html: string;
+}
+
+/**
+ * 同時支援兩種輸入：
+ *   - `string[]`（舊用法，向後相容；test 腳本 / CSV 直接吃 HTML 字串）
+ *   - `ParseManyTisHtmlItem[]`（推薦，附帶 fileNameHint / urlHint，可避免無謂的解析警告）
+ */
+export function parseManyTisHtml(
+  items: ReadonlyArray<string | ParseManyTisHtmlItem>
+): ParseManyResult {
   const pages: TisParsedPage[] = [];
   const merged = new Map<string, TisParsedClass>();
   let totalRowsParsed = 0;
   let dupes = 0;
 
-  for (const html of htmlList) {
-    const page = parseTisOpenClassListHtml(html);
+  for (const item of items) {
+    const isStr = typeof item === "string";
+    const html = isStr ? item : item.html;
+    const opts: ParseHtmlOptions | undefined = isStr
+      ? undefined
+      : { urlHint: item.urlHint, fileNameHint: item.fileNameHint };
+    const page = parseTisOpenClassListHtml(html, opts);
     pages.push(page);
     totalRowsParsed += page.classes.length;
     for (const c of page.classes) {

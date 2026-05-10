@@ -458,6 +458,28 @@ model ClassNote {
 }
 
 // ============================================================
+// 全站設定（key-value）
+// ============================================================
+/**
+ * AppSetting：給「不需要單獨建表」的少量管理員設定用。
+ *
+ * 目前用途：
+ *   - key = "ai.fallbackChain"      → AI 多供應商 fallback 順序與門檻設定（JSON）
+ *   - key = "ai.runtimeFlags"       → 預留：runtime 旗標（例如「全域停用 fallback」）
+ *
+ * 為什麼不放 env：env 在 Render 上要走 dashboard、無法熱更新；
+ * 這些「順序、門檻、cool down 秒數」必須讓管理員在 UI 即時調整、即時生效。
+ */
+model AppSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+  updatedBy String?  @map("updated_by")
+
+  @@map("app_settings")
+}
+
+// ============================================================
 // 操作日誌
 // ============================================================
 model AuditLog {

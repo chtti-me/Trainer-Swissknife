@@ -7,20 +7,15 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Database, Brain, GitCompareArrows, Info, UserCog, Sparkles, Shield, ScrollText, Plug } from "lucide-react";
+import { Database, GitCompareArrows, Info, UserCog, Sparkles, Shield, ScrollText, Plug } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
+import { AiServiceSettings } from "@/components/settings/ai-service-settings";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
   const isAdmin = (session?.user as { role?: string } | undefined)?.role === "admin";
-  const runtimeProvider = (process.env.NEXT_PUBLIC_AI_PROVIDER || "openai").toLowerCase();
-  const runtimeBaseUrl =
-    process.env.NEXT_PUBLIC_AI_BASE_URL || (runtimeProvider === "gemini" ? "https://generativelanguage.googleapis.com/v1beta/openai" : "https://api.openai.com/v1");
-  const runtimeModel = process.env.NEXT_PUBLIC_AI_MODEL || (runtimeProvider === "gemini" ? "gemini-2.5-flash" : "gpt-4o-mini");
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -140,32 +135,7 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Brain className="w-4 h-4 text-primary" />
-            AI 服務設定
-          </CardTitle>
-          <CardDescription>設定 AI 服務連線參數（需重啟生效）</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>供應商（provider，模型供應商）</Label>
-            <Input value={runtimeProvider} disabled />
-          </div>
-          <div className="space-y-2">
-            <Label>API Base URL</Label>
-            <Input value={runtimeBaseUrl} disabled />
-          </div>
-          <div className="space-y-2">
-            <Label>模型名稱</Label>
-            <Input value={runtimeModel} disabled />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            AI 設定透過環境變數（.env）配置；可切換 `AI_PROVIDER=openai` 或 `AI_PROVIDER=gemini`（Gemini 走 OpenAI-compatible 端點）。
-          </p>
-        </CardContent>
-      </Card>
+      {isAdmin && <AiServiceSettings />}
 
       <Card>
         <CardHeader>

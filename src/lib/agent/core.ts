@@ -12,8 +12,11 @@ import {
   getAiProvider,
   getDefaultModel,
   hasConfiguredAiApiKey,
+  hasConfiguredApiKeyFor,
   type AiProvider,
 } from "@/lib/ai-provider";
+import { callWithFallback, type RunContext } from "@/lib/ai-providers/runtime";
+import { loadFallbackConfig } from "@/lib/ai-providers/settings";
 import { prisma } from "@/lib/prisma";
 import { ensureToolsRegistered } from "./tools";
 import { getTool, toOpenAiFunctions } from "./tool-registry";
@@ -145,16 +148,15 @@ interface LlmCallResult {
 // ---- LLM 呼叫策略：依供應商分流 ----
 
 async function callLlmStreaming(
-  client: ReturnType<typeof createAiClient>,
-  model: string,
+  ctx: RunContext,
   messages: ChatMessage[],
   tools: ReturnType<typeof toOpenAiFunctions>,
   send: (chunk: AgentStreamChunk) => void,
   conversationId: string
 ): Promise<LlmCallResult> {
   const response = await withLlmRetries(() =>
-    client.chat.completions.create({
-      model,
+    ctx.client.chat.completions.create({
+      model: ctx.model,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messages: messages as any,
       tools: tools.length > 0 ? tools : undefined,
@@ -162,6 +164,9 @@ async function callLlmStreaming(
       stream: true,
     })
   );
+
+  // 拿到 stream 物件後，後續切換會讓 UI 看到亂掉內容；標記 committed
+  ctx.markCommitted();
 
   let text = "";
   const toolCallBuffers = new Map<number, { name: string; args: string }>();
@@ -197,16 +202,15 @@ async function callLlmStreaming(
 }
 
 async function callLlmNonStreaming(
-  client: ReturnType<typeof createAiClient>,
-  model: string,
+  ctx: RunContext,
   messages: ChatMessage[],
   tools: ReturnType<typeof toOpenAiFunctions>,
   send: (chunk: AgentStreamChunk) => void,
   conversationId: string
 ): Promise<LlmCallResult> {
   const response = await withLlmRetries(() =>
-    client.chat.completions.create({
-      model,
+    ctx.client.chat.completions.create({
+      model: ctx.model,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       messages: messages as any,
       tools: tools.length > 0 ? tools : undefined,
@@ -214,11 +218,14 @@ async function callLlmNonStreaming(
     })
   );
 
+  // 非串流模式整段 response 拿到才 send；前面失敗都還可 fallback，
+  // 拿到 response 後才視為 committed（接下來只是把已經拿到的 text 切段送出）
+  ctx.markCommitted();
+
   const choice = response.choices[0];
   const text = choice?.message?.content || "";
   const rawToolCalls = choice?.message?.tool_calls || [];
 
-  // 模擬串流：將文字分段送出
   if (text) {
     const chunkSize = 20;
     for (let i = 0; i < text.length; i += chunkSize) {
@@ -258,19 +265,25 @@ function createAgentStream(
       }
 
       try {
-        if (!hasConfiguredAiApiKey()) {
-          const fallback = "目前尚未設定 AI API Key，請在 `.env` 檔案中設定 `OPENAI_API_KEY` 或 `GEMINI_API_KEY` 後重新啟動伺服器。";
-          send({ type: "text_delta", content: fallback, conversationId });
-          await addMessage(conversationId, "assistant", fallback);
+        // 取目前 fallback 設定，預先檢查「至少一家有 key」
+        const fbCfg = await loadFallbackConfig();
+        const enabledChainHasKey = fbCfg.enabled
+          ? fbCfg.chain.some((c) => c.enabled && hasConfiguredApiKeyFor(c.provider))
+          : hasConfiguredAiApiKey();
+
+        if (!enabledChainHasKey) {
+          const msg =
+            "目前尚未設定任何 AI API Key。請在 Render 環境變數設定至少一家供應商的 API key，或前往「設定 → AI 服務設定」啟用至少一家供應商。";
+          send({ type: "text_delta", content: msg, conversationId });
+          await addMessage(conversationId, "assistant", msg);
           send({ type: "done", conversationId });
           controller.close();
           return;
         }
-
-        const client = createAiClient();
-        const provider = getAiProvider();
-        const model = getDefaultModel(provider);
-        const callLlm = pickLlmStrategy(provider);
+        // 兼容變數（給 client 預估用，下方主邏輯會走 fallback）
+        void createAiClient;
+        void getAiProvider;
+        void getDefaultModel;
 
         const builtinTools = toOpenAiFunctions();
         const customToolDefs = customTools.map((ct) => ({
@@ -310,7 +323,23 @@ function createAgentStream(
         let lastToolSummary = "";
 
         while (toolRounds <= AGENT_MAX_TOOL_ROUNDS) {
-          const llmResult = await callLlm(client, model, messages, tools, send, conversationId);
+          const callResult = await callWithFallback({
+            feature: "agent",
+            run: async (ctx) => {
+              const callLlm = pickLlmStrategy(ctx.provider);
+              return callLlm(ctx, messages, tools, send, conversationId);
+            },
+            onProviderSwitch: (ev) => {
+              if (ev.toProvider) {
+                send({
+                  type: "text_delta",
+                  content: `\n\n_（系統提示：${ev.fromProvider} 失敗${ev.errorStatus ? `（${ev.errorStatus}）` : ""}，已自動切換到 ${ev.toProvider}）_\n\n`,
+                  conversationId,
+                });
+              }
+            },
+          });
+          const llmResult = callResult.value;
 
           if (llmResult.toolCalls.length === 0) {
             finalText = llmResult.text;

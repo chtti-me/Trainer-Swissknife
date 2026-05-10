@@ -1,10 +1,11 @@
 import "server-only";
 import OpenAI from "openai";
+import { getProviderCatalog, PROVIDER_CATALOG } from "./ai-providers/catalog";
+import { isAiProvider, VALID_PROVIDERS, type AiProvider } from "./ai-provider-types";
 
-// 支援的 AI 供應商。三家都用 OpenAI-compatible chat/completions 介面。
-export type AiProvider = "openai" | "gemini" | "groq";
-
-const VALID_PROVIDERS: readonly AiProvider[] = ["openai", "gemini", "groq"];
+// 重新匯出，讓既有 import "@/lib/ai-provider" 直接拿到 AiProvider 型別不用改
+export type { AiProvider };
+export { isAiProvider };
 
 /**
  * 「功能」識別字。每個功能可獨立指定 AI 供應商與模型，互不干擾。
@@ -62,51 +63,40 @@ export function getAiProviderFor(feature: AiFeature, explicit?: AiProvider | str
   return getAiProvider();
 }
 
+/** 取某 provider 的 API key（讀對應 env，未設回空字串） */
 export function getAiProviderApiKey(provider: AiProvider): string {
-  if (provider === "gemini") {
-    return process.env.GEMINI_API_KEY?.trim() || "";
-  }
-  if (provider === "groq") {
-    return process.env.GROQ_API_KEY?.trim() || "";
-  }
-  return process.env.OPENAI_API_KEY?.trim() || "";
+  const cat = getProviderCatalog(provider);
+  if (!cat) return "";
+  return process.env[cat.envVars.apiKey]?.trim() || "";
 }
 
+/** 取某 provider 的 base URL；env 未設則用 catalog 的 default */
 function getAiProviderBaseUrl(provider: AiProvider): string {
-  if (provider === "gemini") {
-    return (
-      process.env.GEMINI_BASE_URL?.trim() || "https://generativelanguage.googleapis.com/v1beta/openai"
-    );
-  }
-  if (provider === "groq") {
-    return process.env.GROQ_BASE_URL?.trim() || "https://api.groq.com/openai/v1";
-  }
-  return process.env.OPENAI_BASE_URL?.trim() || "https://api.openai.com/v1";
+  const cat = getProviderCatalog(provider);
+  if (!cat) return "";
+  return process.env[cat.envVars.baseUrl]?.trim() || cat.defaultBaseUrl;
 }
 
 /** 該供應商的 「全功能 fallback 預設模型」（沒有特別指定功能模型時用這個） */
 export function getDefaultModel(provider: AiProvider): string {
-  if (provider === "gemini") {
-    return process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
-  }
-  if (provider === "groq") {
-    return process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile";
-  }
-  return process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
+  const cat = getProviderCatalog(provider);
+  if (!cat) return "";
+  return process.env[cat.envVars.chatModel]?.trim() || cat.defaultChatModel;
 }
 
 /**
- * 課程規劃幫手專用模型解析（沿用舊名）。
+ * 課程規劃幫手專用模型解析。
  * 解析序：`{PROVIDER}_MODEL_PLANNING` → `getDefaultModel(provider)`
  */
 export function getPlanningModel(provider: AiProvider): string {
-  if (provider === "gemini") {
-    return process.env.GEMINI_MODEL_PLANNING?.trim() || getDefaultModel(provider);
+  const cat = getProviderCatalog(provider);
+  if (!cat) return getDefaultModel(provider);
+  const planningEnv = cat.envVars.planningModel;
+  if (planningEnv) {
+    const v = process.env[planningEnv]?.trim();
+    if (v) return v;
   }
-  if (provider === "groq") {
-    return process.env.GROQ_MODEL_PLANNING?.trim() || getDefaultModel(provider);
-  }
-  return process.env.OPENAI_MODEL_PLANNING?.trim() || getDefaultModel(provider);
+  return cat.defaultPlanningModel || getDefaultModel(provider);
 }
 
 /**
@@ -139,7 +129,7 @@ export function hasConfiguredApiKeyFor(provider: AiProvider): boolean {
 
 /**
  * 該供應商是否原生支援「web_search_preview」工具。
- * 目前只有 OpenAI Responses API 提供；Gemini OpenAI-compat、Groq 都不支援。
+ * 目前只有 OpenAI Responses API 提供；其他相容端點都不支援。
  */
 export function supportsBuiltInWebSearch(provider: AiProvider): boolean {
   return provider === "openai";
@@ -157,9 +147,16 @@ export function createAiClientFor(provider: AiProvider): OpenAI {
   return new OpenAI({ apiKey, baseURL });
 }
 
-/** 顯示名稱（給 UI 下拉用） */
-export const AI_PROVIDER_DISPLAY: Record<AiProvider, string> = {
-  openai: "OpenAI",
-  gemini: "Gemini",
-  groq: "Groq",
-};
+/**
+ * 用「指定的 key」建立 client（給 admin UI「測試這把 key 是否有效」用，
+ * 不會用到也不該用到 process.env 裡儲存的 key）。
+ */
+export function createAiClientWithKey(provider: AiProvider, apiKey: string): OpenAI {
+  const baseURL = getAiProviderBaseUrl(provider);
+  return new OpenAI({ apiKey, baseURL });
+}
+
+/** 顯示名稱（給 UI 下拉用，從 catalog 即時讀） */
+export const AI_PROVIDER_DISPLAY: Record<AiProvider, string> = Object.fromEntries(
+  PROVIDER_CATALOG.map((p) => [p.id, p.displayName])
+) as Record<AiProvider, string>;

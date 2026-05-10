@@ -355,10 +355,18 @@ CSV 欄位對應：
 
 → **`docs/AI_SKILLS_CONTEXT.md`**
 
-支援 OpenAI-compatible API 三家，並可透過 `AI_PROVIDER` 切換：
-- `AI_PROVIDER=openai`：使用 `OPENAI_API_KEY`、`OPENAI_BASE_URL`、`OPENAI_MODEL`
-- `AI_PROVIDER=gemini`：使用 `GEMINI_API_KEY`、`GEMINI_BASE_URL`、`GEMINI_MODEL`
-- `AI_PROVIDER=groq`：使用 `GROQ_API_KEY`、`GROQ_BASE_URL`（預設 `https://api.groq.com/openai/v1`）、`GROQ_MODEL`（預設 `llama-3.3-70b-versatile`）
+支援 6 家 OpenAI-compatible 供應商，可透過 `AI_PROVIDER` 設定預設那家，或在 `/settings`「AI 服務設定」啟用 **Fallback Runtime** 自動依優先順序切換：
+
+| Provider | env name | 申請 Key | 備註 |
+| --- | --- | --- | --- |
+| `openai` | `OPENAI_API_KEY` | https://platform.openai.com/api-keys | 全付費，穩定度最高 |
+| `gemini` | `GEMINI_API_KEY` | https://aistudio.google.com/app/apikey | Free tier RPD 250、實測常返回 400/429 |
+| `groq` | `GROQ_API_KEY` | https://console.groq.com/keys | LPU 推理快，Free RPD ≈ 7000~14000 |
+| `nvidia` | `NVIDIA_API_KEY` | https://build.nvidia.com/settings/api-keys | 新帳號送 1000 credits |
+| `openrouter` | `OPENROUTER_API_KEY` | https://openrouter.ai/keys | `:free` 後綴模型免費（每模型 50 次/日） |
+| `xai` | `XAI_API_KEY` | https://console.x.ai/ | Grok 系列，按 token 計費 |
+
+每家對應的 base URL 與預設模型完整列在 `src/lib/ai-providers/catalog.ts`。
 
 ### 各功能可獨立指定供應商（per-feature override）
 
@@ -379,6 +387,23 @@ GROQ_API_KEY="gsk_..."
 ```
 
 或：所有功能都用 Gemini，但**個別培訓師**在課程規劃幫手頁面的「執行引擎」下拉手動切到 Groq（每個 request 獨立記）。
+
+### Fallback Runtime（多供應商容錯）
+
+到 `/settings`「AI 服務設定」開啟「Fallback Runtime」開關後，AI 助理小瑞與其他 LLM 呼叫會：
+
+1. 依「Fallback 順序」由上到下嘗試
+2. 收到 400 / 429 / 5xx 等錯誤狀態 → 自動切下一家、把該供應商列入 `cooldownSeconds` 秒（預設 600）的暫時黑名單
+3. （選用）設「每日成功請求軟上限」→ 達標就主動讓給下一家，不撞限額才切
+4. 全部供應商都失敗 → 拋錯給使用者（含已嘗試清單）
+
+設計目的：**Demo 場景**遇到 Gemini Free tier 配額用光時，系統會自動切到 Groq / OpenRouter / NVIDIA 等備援，使用者體感沒中斷。每家供應商的「今日成功 / 錯誤 / 切出次數 / cool down 狀態」即時顯示在 settings 頁面上。
+
+實作位置：
+- `src/lib/ai-providers/runtime.ts` — fallback 核心 wrapper
+- `src/lib/ai-providers/settings.ts` — DB 持久化（`AppSetting` 表 key=`ai.fallbackChain`）
+- `src/lib/ai-providers/usage-stats.ts` — 記憶體統計（重啟自然重置）
+- 已整合到 `src/lib/agent/core.ts`；其他 LLM 入口（course-planner / EDM / course-report）會在後續 PR 一併接上。
 
 ## 範例需求文字
 

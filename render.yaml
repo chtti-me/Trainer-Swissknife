@@ -67,6 +67,50 @@ services:
       - key: OPENAI_EMBEDDING_MODEL
         value: text-embedding-3-small
 
+      # ---- Groq Cloud（OpenAI-compatible，免費額度高） ----
+      # 申請：https://console.groq.com/keys
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_MODEL_PLANNING
+        value: llama-3.3-70b-versatile
+
+      # ---- NVIDIA NIM（OpenAI-compatible，新帳號送 1000 credits） ----
+      # 申請：https://build.nvidia.com/settings/api-keys
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: NVIDIA_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: NVIDIA_MODEL
+        value: meta/llama-3.3-70b-instruct
+      - key: NVIDIA_MODEL_PLANNING
+        value: meta/llama-3.3-70b-instruct
+
+      # ---- OpenRouter（聚合服務，:free 後綴模型完全免費） ----
+      # 申請：https://openrouter.ai/keys
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: OPENROUTER_MODEL
+        value: meta-llama/llama-3.3-70b-instruct:free
+      - key: OPENROUTER_MODEL_PLANNING
+        value: meta-llama/llama-3.3-70b-instruct:free
+
+      # ---- xAI Grok（按 token 計費；新帳號可申請評估額度） ----
+      # 申請：https://console.x.ai/
+      - key: XAI_API_KEY
+        sync: false
+      - key: XAI_BASE_URL
+        value: https://api.x.ai/v1
+      - key: XAI_MODEL
+        value: grok-2-latest
+      - key: XAI_MODEL_PLANNING
+        value: grok-2-latest
+
       # ============ 工具 ============
       - key: TAVILY_API_KEY
         sync: false

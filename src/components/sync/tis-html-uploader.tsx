@@ -13,7 +13,7 @@
  *   - 詳細項目摺疊（預設摺起來，使用者要看才展開）
  *   - 上傳檔案大小無限制（client 端讀檔，後端 parse；TIS 一個月 HTML 通常 50-200KB）
  */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,7 @@ import {
   ChevronRight,
   Cloud,
   Bookmark,
+  ArrowDown,
 } from "lucide-react";
 import { useToast } from "@/components/ui/toaster";
 
@@ -117,6 +118,8 @@ export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
   const [dragOver, setDragOver] = useState(false);
   /** 標記目前 files 是來自 bookmarklet（顯示徽章用），與其 staging id（confirm 完成時 PATCH） */
   const [stagingId, setStagingId] = useState<string | null>(null);
+  /** dry-run 結果區 ref — 解析完成後 auto-scroll 過去，避免使用者看不到「確認匯入」按鈕 */
+  const resultRef = useRef<HTMLDivElement | null>(null);
 
   function resetAll() {
     setFiles([]);
@@ -145,38 +148,48 @@ export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
     setIngestResult(null);
   }
 
-  async function runAnalyze(entries: FileEntry[]) {
-    if (entries.length === 0) return;
-    setAnalyzing(true);
-    setIngestResult(null);
-    try {
-      const fd = new FormData();
-      for (const e of entries) fd.append("files", e.file);
-      const res = await fetch("/api/sync/tis/ingest", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        toast(`分析失敗：${data.error ?? res.statusText}`, "error");
-        return;
+  const runAnalyze = useCallback(
+    async (entries: FileEntry[]) => {
+      if (entries.length === 0) return;
+      setAnalyzing(true);
+      setIngestResult(null);
+      try {
+        const fd = new FormData();
+        for (const e of entries) fd.append("files", e.file);
+        const res = await fetch("/api/sync/tis/ingest", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          toast(`分析失敗：${data.error ?? res.statusText}`, "error");
+          return;
+        }
+        setIngestResult(data as IngestResponse);
+        const r = data as IngestResponse;
+        toast(
+          `已解析 ${r.parsedSummary.totalRowsParsed} 班；新增 ${r.diff.summary.toCreate}、更新 ${r.diff.summary.toUpdate}、未變 ${r.diff.summary.noop}`,
+          "success"
+        );
+      } catch (e) {
+        toast(`分析失敗：${String(e)}`, "error");
+      } finally {
+        setAnalyzing(false);
       }
-      setIngestResult(data as IngestResponse);
-      toast(
-        `已解析 ${(data as IngestResponse).parsedSummary.totalRowsParsed} 班；新增 ${
-          (data as IngestResponse).diff.summary.toCreate
-        }、更新 ${(data as IngestResponse).diff.summary.toUpdate}、未變 ${
-          (data as IngestResponse).diff.summary.noop
-        }`,
-        "success"
-      );
-    } catch (e) {
-      toast(`分析失敗：${String(e)}`, "error");
-    } finally {
-      setAnalyzing(false);
-    }
-  }
+    },
+    [toast]
+  );
 
   async function handleAnalyze() {
     await runAnalyze(files);
   }
+
+  /** dry-run 完成後 auto-scroll 到結果區，避免使用者沒看到「確認匯入」按鈕 */
+  useEffect(() => {
+    if (ingestResult && resultRef.current) {
+      // 等下一幀 paint 後再 scroll，確保 DOM 已 layout
+      requestAnimationFrame(() => {
+        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [ingestResult]);
 
   /**
    * 接收來自 bookmarklet 的 staging：
@@ -371,7 +384,21 @@ export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
         )}
 
         {ingestResult && summary && (
-          <div className="space-y-3 border-t pt-4">
+          <div ref={resultRef} className="space-y-3 border-t pt-4 scroll-mt-4">
+            {/* 醒目橙色 banner：強調「dry-run 完成 ≠ 匯入完成」這個常被誤解的概念 */}
+            <div className="flex items-start gap-3 rounded-lg border-2 border-orange-300 bg-orange-50 dark:bg-orange-950/20 p-3">
+              <ArrowDown className="w-5 h-5 text-orange-600 shrink-0 mt-0.5 animate-bounce" />
+              <div className="flex-1 text-sm">
+                <p className="font-semibold text-orange-900 dark:text-orange-200">
+                  ⚠️ 解析完成，但<u>尚未</u>寫入資料庫
+                </p>
+                <p className="text-xs text-orange-800/80 dark:text-orange-300/80 mt-0.5">
+                  這只是預覽差異（dry-run）。請檢查下方數字後，點本區塊最下方的
+                  「<strong>確認匯入</strong>」按鈕，才會實際寫入 TrainingClass，並在「匯入 / 同步記錄」中留下紀錄。
+                </p>
+              </div>
+            </div>
+
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-green-600" />
               <p className="text-sm font-medium">解析完成</p>
@@ -503,26 +530,53 @@ export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
               </div>
             )}
 
-            <div className="flex gap-2">
-              <Button
-                onClick={handleConfirm}
-                disabled={confirming || (summary.toCreate === 0 && summary.toUpdate === 0)}
-                className="flex-1"
-              >
-                {confirming ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    匯入中…
-                  </>
-                ) : (
-                  <>
-                    確認匯入（{summary.toCreate + summary.toUpdate} 筆）
-                  </>
-                )}
-              </Button>
-              <Button variant="outline" onClick={resetAll} disabled={confirming} type="button">
-                取消
-              </Button>
+            {/* 確認匯入按鈕區塊 ── 視覺強化 */}
+            <div className="space-y-2 pt-2 border-t">
+              {/* 沒有任何要寫入的變更時，顯式說明為什麼按鈕灰掉 */}
+              {summary.toCreate === 0 && summary.toUpdate === 0 ? (
+                <div className="rounded-lg bg-slate-100 dark:bg-slate-800/50 p-3 text-sm text-center">
+                  <p className="font-medium text-slate-700 dark:text-slate-200">
+                    ✅ 資料庫內容已與 TIS 同步，沒有需要新增或更新的班次
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    （{summary.noop} 筆全部「未變」；無需匯入。可以直接關閉本頁。）
+                  </p>
+                </div>
+              ) : (
+                <p className="text-xs text-center text-orange-700 dark:text-orange-300 font-medium">
+                  ⬇️ 點下方按鈕完成匯入 ⬇️
+                </p>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleConfirm}
+                  disabled={confirming || (summary.toCreate === 0 && summary.toUpdate === 0)}
+                  className={
+                    summary.toCreate + summary.toUpdate > 0
+                      ? "flex-1 h-12 text-base font-semibold bg-orange-600 hover:bg-orange-700 text-white shadow-lg shadow-orange-600/30 ring-2 ring-orange-300 ring-offset-2 animate-pulse hover:animate-none"
+                      : "flex-1"
+                  }
+                >
+                  {confirming ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      匯入中…
+                    </>
+                  ) : (
+                    <>
+                      ✅ 確認匯入（{summary.toCreate + summary.toUpdate} 筆）
+                    </>
+                  )}
+                </Button>
+                <Button variant="outline" onClick={resetAll} disabled={confirming} type="button">
+                  取消
+                </Button>
+              </div>
+              {stagingId && (
+                <p className="text-[10px] text-muted-foreground text-center">
+                  資料來源：bookmarklet staging <code className="font-mono">{stagingId.slice(0, 8)}…</code>
+                </p>
+              )}
             </div>
           </div>
         )}

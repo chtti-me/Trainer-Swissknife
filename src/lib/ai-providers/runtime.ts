@@ -106,6 +106,38 @@ function extractMessage(err: unknown): string {
   }
 }
 
+/**
+ * 從 OpenAI SDK 錯誤物件抽出「provider 真正回的 response body」，最多 1 KB。
+ *
+ * 為什麼需要：OpenAI SDK 的 `BadRequestError.message` 通常已含 JSON 摘要，但 Groq /
+ * OpenRouter 等供應商會把「真正的 root cause」（例如 `model_decommissioned`、
+ * `tool_use_failed`、`context_length_exceeded`、`invalid_api_key` 等）放在
+ * `error.error.code` 與 `error.error.message` 裡，光看 SDK message 看不出來。
+ */
+function extractProviderErrorBody(err: unknown): string | null {
+  if (!err || typeof err !== "object") return null;
+  const o = err as Record<string, unknown>;
+  // OpenAI SDK 4.x：err.error.* 是供應商實際回的 JSON
+  const inner = o.error;
+  if (inner && typeof inner === "object") {
+    try {
+      return JSON.stringify(inner).slice(0, 1000);
+    } catch {
+      /* fall through */
+    }
+  }
+  // 退路：err.response.data.*
+  const resp = o.response as { data?: unknown } | undefined;
+  if (resp && resp.data) {
+    try {
+      return JSON.stringify(resp.data).slice(0, 1000);
+    } catch {
+      /* fall through */
+    }
+  }
+  return null;
+}
+
 function shouldSwitchOnError(cfg: FallbackConfig, err: unknown): boolean {
   const status = extractStatus(err);
   if (status === undefined) {
@@ -202,7 +234,17 @@ export async function callWithFallback<T>(args: CallWithFallbackArgs<T>): Promis
       lastError = err;
       const message = extractMessage(err);
       const status = extractStatus(err);
+      const providerBody = extractProviderErrorBody(err);
       recordError(provider, `${status ?? "?"} ${message}`);
+
+      // 把實際失敗原因寫進 server log；usage-stats 只留簡短訊息，
+      // 但 root cause（model_decommissioned / tool_use_failed / context_length_exceeded ...）
+      // 必須在這裡 console.error 出來，否則排查時 Render logs 完全沒線索。
+      console.error(
+        `[ai-fallback] feature=${args.feature} provider=${provider} model=${ctx.model} ` +
+          `status=${status ?? "?"} message=${(message || "").slice(0, 200)}` +
+          (providerBody ? ` body=${providerBody}` : "")
+      );
 
       // 已 commit（streaming 已開始往前端寫）→ 不再嘗試切換
       if (committed) {
@@ -213,6 +255,11 @@ export async function callWithFallback<T>(args: CallWithFallbackArgs<T>): Promis
       if (canSwitch && i < attemptList.length - 1) {
         recordSwitchOut(provider);
         setCooldown(provider, cfg.thresholds.cooldownSeconds);
+        console.warn(
+          `[ai-fallback] switching ${provider} → ${attemptList[i + 1]} ` +
+            `(feature=${args.feature}, reason=error_status, status=${status ?? "?"}, ` +
+            `cooldown=${cfg.thresholds.cooldownSeconds}s)`
+        );
         args.onProviderSwitch?.({
           feature: args.feature,
           fromProvider: provider,

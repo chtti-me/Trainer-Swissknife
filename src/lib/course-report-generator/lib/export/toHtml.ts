@@ -92,9 +92,38 @@ export function exportToHtml(
     bodyInner = cloned.outerHTML;
   }
 
-  const linearNote =
+  // 之前曾在 linear 模式 body 最上方加一行灰字說明，但「閱報的人」不需要看
+  // 這個技術細節（會困惑「為什麼有這行字」），所以移除。差異留在按鈕標籤
+  // 與面板說明就好，匯出檔本身保持乾淨。
+
+  /*
+   * Linear 模式專屬 CSS：
+   *   - .course-report-linear-block 自身的 height auto + overflow visible
+   *     已在 inline style 寫過（覆蓋率較高），這裡再用 !important 兜底。
+   *   - 內部所有 div / section / article（屬於「容器型」元素）都強制
+   *     height auto + overflow visible，避免子層仍鎖死高度（例如
+   *     CenteredTextBlock 的 containerRef、TableBlockView 的 wrapper）
+   *     讓內容溢出後撞到下一個 block。
+   *   - 排除 img / video / iframe / canvas / svg：這些有 intrinsic 尺寸，
+   *     強制 auto 會破圖或變形。
+   */
+  const linearScopedCss =
     mode === "linear"
-      ? `<p style="margin: 0 0 16px; color:#64748b; font-size: 12px;">📄 線性排版模式：所有區塊按上下順序排列，避免互相遮蓋。如需保留原 canvas 自由版型，請改用「下載 HTML（自由版型）」。</p>`
+      ? `
+  /*
+   * 注意：規則只套到 `block 內部容器`，不套到 `.course-report-linear-block`
+   * 自身（self），因為 self 在 inline style 已正確設 height: auto + min-height
+   * 保留 banner 視覺重量。如果 self 也用 !important 覆蓋會把 min-height 打掉。
+   */
+  .course-report-linear-block > div,
+  .course-report-linear-block > div div,
+  .course-report-linear-block > div section,
+  .course-report-linear-block > div article {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+`
       : "";
 
   const html = `<!DOCTYPE html>
@@ -105,12 +134,11 @@ export function exportToHtml(
 <style>
   body { margin: 24px; background: #f1f5f9; font-family: 'Noto Sans TC', sans-serif; }
   .course-report-export-wrap { background: #fff; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border-radius: 8px; max-width: 1340px; margin: 0 auto; }
-  table { border-collapse: collapse; }
+  table { border-collapse: collapse; }${linearScopedCss}
 </style>
 </head>
 <body>
 <div class="course-report-export-wrap">
-${linearNote}
 ${bodyInner}
 </div>
 </body>
@@ -161,19 +189,39 @@ function buildLinearLayout(cloned: HTMLElement, source: HTMLElement): string {
   // 把每個 block 從 absolute 改成 normal flow
   for (const it of items) {
     if (!it.el) continue;
-    // override 掉 inline style 中的 absolute 相關屬性
+    // override 掉 inline style 中的 absolute / 定位相關屬性
     it.el.style.position = "static";
-    it.el.style.left = "";
-    it.el.style.top = "";
+    it.el.style.removeProperty("left");
+    it.el.style.removeProperty("top");
+    it.el.style.removeProperty("right");
+    it.el.style.removeProperty("bottom");
+    it.el.style.removeProperty("z-index");
+    it.el.style.removeProperty("transform");
     // 維持原 block 視覺寬度，居中（避免長報告占滿 1340 太空曠）
     it.el.style.width = `${Math.round(it.w)}px`;
     it.el.style.maxWidth = "100%";
+    /*
+     * 修核心 Bug：原本只設 minHeight、沒清掉 inline 來的 `height: <fixed>px`，
+     * 加上 `overflow: visible` —— 結果 box 高度被鎖死，內容（例如表格列數比
+     * 編輯時設的高度多）就「畫到 box 之外」，而下一個 block 的 normal flow
+     * 位置仍按 box 高度算，**直接畫在前一個 block 溢出的內容上**，視覺
+     * 看起來就是「銜接的 banner 蓋住了表格中段的列」。
+     *
+     * 修法：強制 `height: auto`，box 跟內容一起長高，後面 block 自然往下推。
+     * minHeight 仍保留原 height 作下限（保住純 banner 的視覺高度）。
+     */
+    it.el.style.height = "auto";
     it.el.style.minHeight = `${Math.round(it.h)}px`;
     it.el.style.marginLeft = "auto";
     it.el.style.marginRight = "auto";
     it.el.style.marginBottom = "16px";
     // linear 模式下不再 hidden 內容，讓內容自然撐高（避免被裁）
     it.el.style.overflow = "visible";
+
+    // 用 class 標記，搭配 body <style> 內的 !important 規則強制把
+    // 內部「容器型 div」的 height/overflow 都釋放（直接 modify 子層的
+    // inline style 不可靠 —— 它們的 height 是 px 值，不是 "100%"）
+    it.el.classList.add("course-report-linear-block");
   }
 
   return `<div style="display: flex; flex-direction: column; align-items: stretch;">

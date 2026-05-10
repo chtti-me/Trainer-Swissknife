@@ -156,9 +156,19 @@ export function ExportMenu({
       iframeDoc.close();
 
       // 3. 等 iframe 內 web font / image 載完
+      // 注意：用 document.write 注入內容時，部分瀏覽器（Chromium / Safari）的
+      // iframe load event 不會再觸發；用 readyState 判斷 + 3 秒 timeout 兜底，
+      // 避免 PNG 處理一直卡在「處理中」永不返回。
       await new Promise<void>((resolve) => {
-        if (iframeDoc.readyState === "complete") resolve();
-        else iframe!.addEventListener("load", () => resolve(), { once: true });
+        if (iframeDoc.readyState === "complete") return resolve();
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          resolve();
+        };
+        iframe!.addEventListener("load", finish, { once: true });
+        setTimeout(finish, 3000);
       });
       // 多給瀏覽器一輪 layout（iframe 內 fonts.ready 不一定可靠）
       await new Promise<void>((r) => setTimeout(r, 200));

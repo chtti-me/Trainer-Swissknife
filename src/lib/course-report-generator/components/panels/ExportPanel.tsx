@@ -131,12 +131,20 @@ export function ExportPanel({ getExportRoot }: Props) {
       toast("已下載 PPTX", "success");
     });
 
-  // HTML
+  // HTML（線性版型 - 推薦；按 y 排序、不重疊）
   const onHtml = () =>
     wrap("html", async () => {
       const node = await getReadyExportRoot();
-      exportToHtml(node, filename, report.title || "課程規劃報告");
-      toast("已下載 HTML", "success");
+      exportToHtml(node, filename, report.title || "課程規劃報告", "linear");
+      toast("已下載 HTML（線性版型）", "success");
+    });
+
+  // HTML 自由版型（保留 canvas 原 absolute layout；給刻意做多欄版面的人）
+  const onHtmlAbsolute = () =>
+    wrap("html-abs", async () => {
+      const node = await getReadyExportRoot();
+      exportToHtml(node, filename + "-自由版型", report.title || "課程規劃報告", "absolute");
+      toast("已下載 HTML（自由版型）", "success");
     });
 
   return (
@@ -146,11 +154,19 @@ export function ExportPanel({ getExportRoot }: Props) {
       <ExportBtn icon={<FileText className="h-4 w-4" />} label="下載 PDF" busy={busy === "pdf"} onClick={onPdf} />
       <ExportBtn icon={<FileImage className="h-4 w-4" />} label="下載 PNG（單張圖）" busy={busy === "png"} onClick={onPng} />
       <ExportBtn icon={<Presentation className="h-4 w-4" />} label="下載 PPTX（簡報）" busy={busy === "pptx"} onClick={onPptx} />
-      <ExportBtn icon={<Code2 className="h-4 w-4" />} label="下載 HTML（單檔可開）" busy={busy === "html"} onClick={onHtml} />
+      <ExportBtn icon={<Code2 className="h-4 w-4" />} label="下載 HTML（線性版型，推薦）" busy={busy === "html"} onClick={onHtml} />
+      {!isFormMode && (
+        <ExportBtn
+          icon={<Code2 className="h-4 w-4" />}
+          label="下載 HTML（自由版型，原 canvas）"
+          busy={busy === "html-abs"}
+          onClick={onHtmlAbsolute}
+        />
+      )}
       <p className="mt-1 text-[10px] text-muted-foreground">
         {isFormMode
           ? "目前是制式表單模式：DOCX 為完全可編輯的 Word 文件；PPTX 會以表單截圖切片。"
-          : "目前是自由畫布模式：DOCX 採 HTML+Word 相容方式；PPTX 會把每個元素轉成投影片元素。"}
+          : "目前是自由畫布模式：DOCX 採 HTML+Word 相容方式；PPTX 會把每個元素轉成投影片元素。HTML 預設線性版型（避免 block 重疊），如刻意做多欄並排，請改用自由版型。"}
       </p>
     </div>
   );

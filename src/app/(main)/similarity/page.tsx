@@ -140,18 +140,18 @@ export default function SimilarityPage() {
         description="比對規劃中的班次與全院既有開班資料，找出相似班次"
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* 左側：輸入與篩選 */}
-        <div className="lg:col-span-4 space-y-4">
+      <div className="space-y-6">
+        {/* 上排：待比較班次（左 50%）｜ 比對篩選條件（右 50%）— grid 預設 align stretch + h-full 即可等高 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
           {/* 待比較班次 */}
-          <Card>
+          <Card className="h-full flex flex-col">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Target className="w-4 h-4 text-primary" />
                 待比較班次
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 flex-1">
               <div className="space-y-1.5">
                 <Label className="text-xs">班名 *</Label>
                 <Input placeholder="例：資安事件分析實務班" value={className} onChange={(e) => setClassName(e.target.value)} />
@@ -218,15 +218,15 @@ export default function SimilarityPage() {
             </CardContent>
           </Card>
 
-          {/* 篩選條件 */}
-          <Card>
+          {/* 比對篩選條件 */}
+          <Card className="h-full flex flex-col">
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Search className="w-4 h-4 text-primary" />
                 比對篩選條件
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-3 flex-1">
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1.5">
                   <Label className="text-xs">起始日期 *</Label>
@@ -295,13 +295,13 @@ export default function SimilarityPage() {
           </Card>
         </div>
 
-        {/* 右側：結果 */}
-        <div className="lg:col-span-8 space-y-4">
+        {/* 下方：比對結果 */}
+        <div className="space-y-4">
           {!hasSearched ? (
             <Card className="h-96 flex items-center justify-center">
               <div className="text-center space-y-3">
                 <GitCompareArrows className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-                <p className="text-muted-foreground">請在左側輸入待比較的班次資料，並設定篩選條件後執行檢測</p>
+                <p className="text-muted-foreground">請輸入待比較的班次資料，並設定篩選條件後執行檢測</p>
               </div>
             </Card>
           ) : loading ? (

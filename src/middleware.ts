@@ -10,6 +10,17 @@ import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const PUBLIC_PATHS = ["/api/auth", "/api/health", "/login", "/_next", "/favicon.ico"];
+
+/**
+ * 不需要 next-auth cookie 但仍會經過 middleware（會套 rate limit）的 endpoint。
+ * 這些 endpoint 會自己用其他方式認證（例如 form payload 內的個人 token）。
+ *
+ * - /api/sync/tis/bookmarklet-receive：來自 tis.cht.com.tw 的跨站 form POST，
+ *   瀏覽器在 SameSite=Lax 規則下不會帶我們 domain 的 cookie，必須用 form 裡的
+ *   bookmarklet token 認證；不能在 middleware 用 cookie 把它擋下（會回成 {"error":"未授權"}）。
+ */
+const TOKEN_AUTH_API_PATHS = ["/api/sync/tis/bookmarklet-receive"];
+
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 120;
 
@@ -49,6 +60,11 @@ export async function middleware(req: NextRequest) {
         { error: "請求過於頻繁，請稍後再試" },
         { status: 429 }
       );
+    }
+
+    // 跳過 cookie 認證（這類 endpoint 自己會用 form payload 內的 token 驗）
+    if (TOKEN_AUTH_API_PATHS.some((p) => pathname.startsWith(p))) {
+      return NextResponse.next();
     }
 
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });

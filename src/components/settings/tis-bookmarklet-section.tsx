@@ -12,9 +12,16 @@
  *（Content Security Policy，內容安全政策）擋跨站 script src，使用者會看到「點了沒反應」。
  * 所以本元件會先從 /api/sync/tis/bookmarklet.js 抓完整程式碼，再把整段塞進
  * javascript: URL；書籤在 TIS 頁面執行時不需要載入外部 script。
+ *
+ * 【React 19 sanitizer 繞過】
+ * React 19 會把 <a href="javascript:..."> 的 href 自動改寫成
+ *   javascript:throw new Error("React has blocked a javascript: URL as a security precaution.")
+ * 結果使用者拖到書籤列拿到的是這行 throw，根本不是真的 bookmarklet。
+ * 解法：完全不把 href 當 prop 給 React，改用 useEffect + setAttribute 直接操作 DOM，
+ * React 因 props 沒給 href 就不會去碰它，瀏覽器拖拉時拿到的就是真實的 javascript: URL。
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +34,15 @@ export function TisBookmarkletSection() {
   const [loadingBookmarklet, setLoadingBookmarklet] = useState(true);
   const [bookmarkletError, setBookmarkletError] = useState<string | null>(null);
   const [rotating, setRotating] = useState(false);
+  const dragLinkRef = useRef<HTMLAnchorElement | null>(null);
+
+  // 不能把 javascript: URL 當 prop 傳給 React 19（會被 sanitize 成 throw）。
+  // 用 setAttribute 直接寫到 DOM 上，React 不會碰它，瀏覽器拖拉時拿到的才是真值。
+  useEffect(() => {
+    if (dragLinkRef.current && bookmarkletHref) {
+      dragLinkRef.current.setAttribute("href", bookmarkletHref);
+    }
+  }, [bookmarkletHref]);
 
   /** 重新從 server 取得最新版（含個人 token）的 bookmarklet 並組成 javascript: URL */
   const reloadBookmarklet = useCallback(async () => {
@@ -117,9 +133,10 @@ export function TisBookmarkletSection() {
               <p className="text-xs text-muted-foreground mb-3">
                 把下方紫色按鈕<strong>拖到瀏覽器書籤列</strong>，命名建議「TIS→瑞士刀」
               </p>
-              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+              {/* React 19 會 block javascript: URL — 不能用 href prop，改在 useEffect 用 setAttribute 寫到 DOM */}
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages, jsx-a11y/anchor-is-valid */}
               <a
-                href={bookmarkletHref}
+                ref={dragLinkRef}
                 onClick={(e) => {
                   e.preventDefault();
                   toast(
@@ -128,6 +145,7 @@ export function TisBookmarkletSection() {
                   );
                 }}
                 draggable
+                title="拖到書籤列建立『TIS→瑞士刀』書籤"
                 className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-purple-600 text-white font-semibold cursor-grab active:cursor-grabbing shadow-md hover:bg-purple-700 transition no-underline"
               >
                 <Bookmark className="w-4 h-4" />

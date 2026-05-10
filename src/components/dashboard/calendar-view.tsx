@@ -6,6 +6,7 @@
  * - 週曆：自訂格狀版面（類似月曆但僅 1~2 週），完整顯示班名，支援單週/雙週切換
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
@@ -598,11 +599,20 @@ function HoverPanel({
     });
   }, [hoverInfo]);
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       ref={panelRef}
-      className="fixed z-[100] max-w-sm w-72 rounded-lg border bg-popover text-popover-foreground shadow-xl p-3 space-y-1.5"
-      style={{ left: pos.left, top: pos.top, visibility: pos.ready ? "visible" : "hidden" }}
+      className="max-w-sm w-72 rounded-lg border bg-popover text-popover-foreground shadow-xl p-3 space-y-1.5"
+      style={{
+        position: "fixed",
+        left: pos.left,
+        top: pos.top,
+        zIndex: 9999,
+        visibility: pos.ready ? "visible" : "hidden",
+        pointerEvents: pos.ready ? "auto" : "none",
+      }}
       onMouseEnter={() => {
         panelHovered.current = true;
         if (hoverTimeout.current) clearTimeout(hoverTimeout.current);
@@ -628,6 +638,7 @@ function HoverPanel({
           </button>
         ))}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

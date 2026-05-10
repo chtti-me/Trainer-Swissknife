@@ -27,7 +27,6 @@ import {
   ArrowLeft,
   Save,
   RefreshCw,
-  Download,
   FileText,
   Pencil,
   Check,
@@ -44,6 +43,7 @@ import {
 import { CoursePlanFormView } from "../../components/course-plan-form-view";
 import { AuxiliaryDocsPanel } from "../../components/auxiliary-docs-panel";
 import { DraftVersionsPanel } from "../../components/draft-versions-panel";
+import { ExportMenu } from "../../components/export-menu";
 
 interface RequestDetail {
   id: string;
@@ -329,64 +329,3 @@ export default function CoursePlanDraftPage() {
   );
 }
 
-function ExportMenu({ requestId }: { requestId: string }) {
-  const [busy, setBusy] = useState<string | null>(null);
-  const { toast } = useToast();
-  const formats: Array<{ key: "markdown" | "html" | "json" | "docx"; label: string }> = [
-    { key: "markdown", label: "Markdown" },
-    { key: "html", label: "HTML" },
-    { key: "json", label: "JSON" },
-    { key: "docx", label: "Word (.docx)" },
-  ];
-  const handleExport = async (format: "markdown" | "html" | "json" | "docx") => {
-    setBusy(format);
-    try {
-      const res = await fetch(`/api/course-planner/requests/${requestId}/export`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ format }),
-      });
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt.slice(0, 200));
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `course-plan-${requestId}.${format === "markdown" ? "md" : format}`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      toast(e instanceof Error ? e.message : "匯出失敗", "error");
-    } finally {
-      setBusy(null);
-    }
-  };
-  return (
-    <div className="relative">
-      <details className="inline-block">
-        <summary className="list-none cursor-pointer">
-          <Button variant="outline" asChild>
-            <span>
-              <Download className="h-4 w-4 mr-1" /> 匯出
-            </span>
-          </Button>
-        </summary>
-        <div className="absolute right-0 mt-1 z-10 rounded-md border bg-white dark:bg-slate-900 dark:border-slate-700 shadow-md min-w-[140px]">
-          {formats.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              className="block w-full px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50"
-              onClick={() => handleExport(f.key)}
-              disabled={busy != null}
-            >
-              {busy === f.key ? "匯出中…" : f.label}
-            </button>
-          ))}
-        </div>
-      </details>
-    </div>
-  );
-}

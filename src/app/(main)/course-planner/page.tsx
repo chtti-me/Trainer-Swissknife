@@ -19,9 +19,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Wand2, Upload, FileText, Sparkles, Clock, History, Cpu } from "lucide-react";
+import { Loader2, Wand2, Upload, FileText, Sparkles, Clock, History, Cpu, Trash2 } from "lucide-react";
 import { readResponseJson } from "@/lib/read-response-json";
 import { useToast } from "@/components/ui/toaster";
+import { ExportMenu } from "./components/export-menu";
 
 type AiProviderChoice = "" | "gemini" | "openai" | "groq";
 
@@ -84,6 +85,7 @@ export default function CoursePlannerEntryPage() {
   const [submitting, setSubmitting] = useState(false);
   const [recent, setRecent] = useState<RecentRequest[]>([]);
   const [recentLoading, setRecentLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const refreshRecent = useCallback(async () => {
     setRecentLoading(true);
@@ -97,6 +99,31 @@ export default function CoursePlannerEntryPage() {
       setRecentLoading(false);
     }
   }, []);
+
+  const handleDelete = useCallback(
+    async (id: string, displayTitle: string) => {
+      const ok = window.confirm(
+        `確定要刪除這筆規劃記錄嗎？\n\n「${displayTitle}」\n\n` +
+          `刪除後將同時清除所有 Skill 執行紀錄、草稿版本與最終開班計畫表，且無法復原。`,
+      );
+      if (!ok) return;
+      setDeletingId(id);
+      try {
+        const res = await fetch(`/api/course-planner/requests/${id}`, { method: "DELETE" });
+        const data = await readResponseJson<{ ok?: boolean; error?: string }>(res);
+        if (!res.ok) throw new Error(data.error || "刪除失敗");
+        toast(`已刪除「${displayTitle}」`, "success");
+        // 樂觀更新 + 背景刷新
+        setRecent((prev) => prev.filter((r) => r.id !== id));
+        void refreshRecent();
+      } catch (e) {
+        toast(e instanceof Error ? e.message : "刪除失敗", "error");
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [refreshRecent, toast],
+  );
 
   useEffect(() => {
     void refreshRecent();
@@ -322,9 +349,11 @@ export default function CoursePlannerEntryPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <History className="h-5 w-5 text-slate-500 dark:text-slate-400" /> 最近的規劃
+            <History className="h-5 w-5 text-slate-500 dark:text-slate-400" /> 規劃執行記錄
           </CardTitle>
-          <CardDescription>顯示最近 50 筆，可繼續編輯或重看草案。</CardDescription>
+          <CardDescription>
+            每次執行都會保留，除非手動刪除。已完成的規劃可直接下載結果報告（HTML / PNG / Markdown / Word / JSON）。
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {recentLoading ? (
@@ -335,27 +364,84 @@ export default function CoursePlannerEntryPage() {
             <div className="text-sm text-slate-500 dark:text-slate-400">尚未建立任何規劃需求。</div>
           ) : (
             <ul className="divide-y dark:divide-slate-800">
-              {recent.map((r) => (
-                <li key={r.id} className="py-3">
-                  <Link href={`/course-planner/${r.id}`} className="flex items-start justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded p-2 -m-2">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-slate-800 dark:text-slate-100">{r.title || "（未命名）"}</span>
-                        <Badge className={STATUS_COLOR[r.status] ?? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"}>
-                          {STATUS_LABEL[r.status] ?? r.status}
-                        </Badge>
-                        {r.currentSkill && r.status === "running" && (
-                          <Badge variant="outline" className="text-xs">執行中：{r.currentSkill}</Badge>
-                        )}
+              {recent.map((r) => {
+                const displayTitle = r.title || "（未命名）";
+                const canExport = r.status === "completed";
+                return (
+                  <li key={r.id} className="py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      {/* 左：跳轉區（標題、狀態、需求摘要） */}
+                      <Link
+                        href={`/course-planner/${r.id}`}
+                        className="min-w-0 flex-1 -m-2 rounded p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      >
+                        <div className="mb-1 flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-slate-800 dark:text-slate-100">
+                            {displayTitle}
+                          </span>
+                          <Badge
+                            className={
+                              STATUS_COLOR[r.status] ??
+                              "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                            }
+                          >
+                            {STATUS_LABEL[r.status] ?? r.status}
+                          </Badge>
+                          {r.currentSkill && r.status === "running" && (
+                            <Badge variant="outline" className="text-xs">
+                              執行中：{r.currentSkill}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="line-clamp-2 text-sm text-slate-600 dark:text-slate-300">
+                          {r.rawInputText.slice(0, 160)}
+                        </div>
+                      </Link>
+
+                      {/* 右：時間 + 動作（下載 / 刪除） */}
+                      <div className="flex shrink-0 flex-col items-end gap-2">
+                        <div className="flex items-center gap-1 whitespace-nowrap text-xs text-slate-400 dark:text-slate-500">
+                          <Clock className="h-3 w-3" />
+                          {new Date(r.createdAt).toLocaleString()}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {canExport ? (
+                            <ExportMenu
+                              requestId={r.id}
+                              size="sm"
+                              variant="outline"
+                              label="下載"
+                            />
+                          ) : (
+                            <span
+                              className="text-[11px] text-slate-400 dark:text-slate-500"
+                              title="尚未完成 11 個 Skill，無法下載結果報告"
+                            >
+                              未完成
+                            </span>
+                          )}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            disabled={deletingId === r.id}
+                            onClick={() => void handleDelete(r.id, displayTitle)}
+                            className="h-7 px-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-950/30"
+                            title="刪除這筆規劃記錄（無法復原）"
+                            aria-label="刪除"
+                          >
+                            {deletingId === r.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">{r.rawInputText.slice(0, 160)}</div>
                     </div>
-                    <div className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap flex items-center gap-1">
-                      <Clock className="h-3 w-3" /> {new Date(r.createdAt).toLocaleString()}
-                    </div>
-                  </Link>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>

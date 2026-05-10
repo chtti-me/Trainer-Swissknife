@@ -4,12 +4,11 @@ import { ZodError, type z } from "zod";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
-  createAiClientFor,
   getAiProviderFor,
   getModelFor,
-  hasConfiguredApiKeyFor,
   type AiProvider,
 } from "@/lib/ai-provider";
+import { callWithFallback } from "@/lib/ai-providers/runtime";
 import { loadCachedSkillContext, PLANNING_INCLUDED_GLOBAL_SLUGS, PLANNING_INCLUDED_SLUG_PREFIXES } from "@/lib/ai-skills";
 import {
   buildSystemPrompt,
@@ -244,14 +243,11 @@ export async function runSkill<TIn, TOut extends { reasoning: string }>(
   });
 
   let hit429 = false;
+  // 實際 callWithFallback 跑成功的 provider / model（可能與一開始 resolveProviderAndModel 結果不同）
+  let actualProvider: AiProvider = provider;
+  let actualModel: string = model;
 
   try {
-    if (!hasConfiguredApiKeyFor(provider)) {
-      const envName =
-        provider === "openai" ? "OPENAI_API_KEY" : provider === "gemini" ? "GEMINI_API_KEY" : "GROQ_API_KEY";
-      throw new Error(`尚未設定 ${envName}，無法以 ${provider} 執行 ${skill.name} Skill。`);
-    }
-
     const systemPrompt = buildSystemPrompt(
       ROLE_PREAMBLE,
       skill.systemPrompt,
@@ -268,27 +264,9 @@ export async function runSkill<TIn, TOut extends { reasoning: string }>(
       ? `${baseUserMessage}\n\n${options.skillContextAppend}`
       : baseUserMessage;
 
-    const client = createAiClientFor(provider);
     const temperature = skill.temperature ?? 0.4;
 
-    const callOnce = async (extraNote?: string) => {
-      const finalUser = extraNote
-        ? `${userMessage}\n\n[修正提示] ${extraNote}\n請只回 JSON、不要其他文字、不要省略任何 schema 上的必填欄位。`
-        : userMessage;
-      // 三家都吃 response_format: json_object（OpenAI 原生、Gemini OpenAI-compat、Groq OpenAI-compat 皆支援）
-      const response = await client.chat.completions.create({
-        model,
-        temperature,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: finalUser },
-        ],
-      });
-      return response.choices[0]?.message?.content || "{}";
-    };
-
-    /** 偵測 OpenAI / Gemini 各種 429 / quota 變體訊息 */
+    /** 偵測 OpenAI / Gemini 各種 429 / quota 變體訊息（保留：用來 set hit429 給 orchestrator） */
     const is429 = (err: unknown): boolean => {
       if (!err) return false;
       const e = err as { status?: number; statusCode?: number; code?: string; message?: string };
@@ -297,56 +275,60 @@ export async function runSkill<TIn, TOut extends { reasoning: string }>(
       return /\b429\b|rate[_ -]?limit|quota|exceeded|RESOURCE_EXHAUSTED|too many requests/i.test(msg);
     };
 
-    /** 把 429 包成友善訊息（讓培訓師理解這是 quota 用完，不是程式 bug） */
-    const friendly429 = (originalErr: unknown): Error => {
+    /**
+     * 把「全部 provider 試完都失敗」的錯誤包成友善訊息。
+     * callWithFallback 會自動切 OpenRouter → Gemini → Groq；走完全失敗才會冒到這裡。
+     */
+    const friendlyExhaustedError = (originalErr: unknown): Error => {
       const original = originalErr instanceof Error ? originalErr.message : String(originalErr);
-      const providerLabel =
-        provider === "openai" ? "OpenAI" : provider === "gemini" ? "Gemini" : "Groq";
-      const dailyHint =
-        provider === "gemini"
-          ? "\nGemini Free Tier 每日上限約 250 次請求／模型，跑滿一次完整 11 Skill 規劃約用 11~25 次（含重試）。"
-          : provider === "groq"
-            ? "\nGroq Free Tier 上限因模型而異：llama-3.3-70b-versatile ≈ 30 RPM / 12K TPM / 1000 RPD；openai/gpt-oss-120b ≈ 30 RPM / 8K TPM / 1000 RPD。詳見 https://console.groq.com/docs/rate-limits。"
-            : "";
-      const switchHint =
-        provider === "gemini"
-          ? "改用 Groq（先在 .env 補上 GROQ_API_KEY，課程規劃幫手頁面右上「執行引擎」切到 Groq；或設 COURSE_PLANNER_AI_PROVIDER=groq）"
-          : provider === "groq"
-            ? "改用 Gemini（在課程規劃幫手頁面右上「執行引擎」切到 Gemini）"
-            : "改用 Gemini 或 Groq（在課程規劃幫手頁面右上「執行引擎」切換）";
+      const isQuotaIssue = is429(originalErr);
       return new Error(
-        `${providerLabel} API 額度已用完（429 Too Many Requests，已自動退避 5 次仍失敗）。${dailyHint}\n` +
+        (isQuotaIssue
+          ? `所有已啟用的 AI 供應商都遇到 429／quota 用盡。\n`
+          : `所有已啟用的 AI 供應商都呼叫失敗。\n`) +
           `處理方式（擇一）：\n` +
-          `1. 等待配額重置：每分鐘配額幾分鐘後恢復；每日配額隔日 0 時（太平洋時間）重置\n` +
-          `2. ${switchHint}\n` +
+          `1. 等待配額重置：Gemini 每日配額太平洋時間 0 時重置；Groq RPM 配額幾分鐘後恢復\n` +
+          `2. 到「系統設定 → AI 服務設定」啟用更多 fallback provider（Nvidia / xAI 等）\n` +
           `3. 提高 Skill 間隔：把 .env 的 COURSE_PLANNER_SKILL_DELAY_MS 設大（目前預設 4500ms）\n` +
           `（原始錯誤：${original.slice(0, 200)}）`,
       );
     };
 
-    /** 指數退避重試（針對 429）。一般驗證錯則只重試 1 次（把錯訊息送回給 LLM 修正）。 */
-    const callWithRetry = async (extraNote?: string): Promise<string> => {
-      const maxAttempts = 5;
-      const backoffMs = [3000, 8000, 15000, 30000, 60000];
-      let lastErr: unknown;
-      for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        try {
-          return await callOnce(extraNote);
-        } catch (err) {
-          lastErr = err;
-          if (is429(err)) hit429 = true;
-          if (!is429(err) || attempt === maxAttempts - 1) {
-            if (is429(err)) throw friendly429(err);
-            throw err;
-          }
-          const wait = backoffMs[attempt] ?? 60000;
-          console.warn(
-            `[course-planner ${skill.name}] 429 rate-limit，第 ${attempt + 1} 次退避 ${wait}ms 後重試`,
-          );
-          await new Promise((r) => setTimeout(r, wait));
-        }
+    /**
+     * 用 callWithFallback 包起來的單次呼叫；任一 provider 拿 400/429/5xx 自動切下一家。
+     * 失敗時 set hit429 旗標給外層 orchestrator 動態加大 skill 間隔。
+     */
+    const callOnce = async (extraNote?: string): Promise<string> => {
+      const finalUser = extraNote
+        ? `${userMessage}\n\n[修正提示] ${extraNote}\n請只回 JSON、不要其他文字、不要省略任何 schema 上的必填欄位。`
+        : userMessage;
+      try {
+        const { value, provider: usedProvider } = await callWithFallback({
+          feature: "course_planner",
+          explicitProvider: options.provider ?? null,
+          run: async ({ client, model: ctxModel }) => {
+            // 使用者帶 explicit model 時用 explicit；否則用 ctx 給的（fallback 後的對應 model）
+            const useModel = options.model || ctxModel;
+            const response = await client.chat.completions.create({
+              model: useModel,
+              temperature,
+              response_format: { type: "json_object" },
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: finalUser },
+              ],
+            });
+            return { content: response.choices[0]?.message?.content || "{}", usedModel: useModel };
+          },
+        });
+        actualProvider = usedProvider;
+        actualModel = value.usedModel;
+        return value.content;
+      } catch (err) {
+        if (is429(err)) hit429 = true;
+        // callWithFallback 已經把所有可用 provider 試完都失敗了；包成友善訊息
+        throw friendlyExhaustedError(err);
       }
-      throw lastErr;
     };
 
     /**
@@ -390,15 +372,17 @@ export async function runSkill<TIn, TOut extends { reasoning: string }>(
     let lastValidationErr: unknown = null;
     let parseAttemptOk = false;
 
-    // 第一次：不帶修正提示
+    // 第一次：不帶修正提示。callOnce 內部已用 callWithFallback，
+    // 任一 provider 拿 400/429/5xx 自動切下一家；全部試完才會 throw。
+    // 對「friendlyExhaustedError」/「全部 provider 都試完」訊息直接重 throw（不該用 schema 重試吃掉 quota 訊息）。
     try {
-      const content = await callWithRetry();
+      const content = await callOnce();
       parsed = tryParseJson(content);
       validated = skill.outputSchema.parse(parsed);
       parseAttemptOk = true;
     } catch (firstErr) {
-      if (firstErr instanceof Error && firstErr.message.includes("API 額度已用完")) throw firstErr;
-      if (is429(firstErr)) throw friendly429(firstErr);
+      // friendlyExhaustedError 訊息特徵：「所有已啟用的 AI 供應商」字串
+      if (firstErr instanceof Error && firstErr.message.includes("所有已啟用的 AI 供應商")) throw firstErr;
       lastValidationErr = firstErr;
     }
 
@@ -407,7 +391,7 @@ export async function runSkill<TIn, TOut extends { reasoning: string }>(
     for (let attempt = 0; !parseAttemptOk && attempt < MAX_VALIDATION_RETRIES; attempt++) {
       const correctionNote = buildCorrectionNote(lastValidationErr, parsed, attempt);
       try {
-        const contentRetry = await callWithRetry(correctionNote);
+        const contentRetry = await callOnce(correctionNote);
         const retryParsed = tryParseJson(contentRetry);
         const retryValidated = skill.outputSchema.parse(retryParsed);
         parsed = retryParsed;
@@ -417,8 +401,7 @@ export async function runSkill<TIn, TOut extends { reasoning: string }>(
           console.warn(`[course-planner ${skill.name}] schema 驗證在第 ${attempt + 2} 次嘗試成功`);
         }
       } catch (retryErr) {
-        if (retryErr instanceof Error && retryErr.message.includes("API 額度已用完")) throw retryErr;
-        if (is429(retryErr)) throw friendly429(retryErr);
+        if (retryErr instanceof Error && retryErr.message.includes("所有已啟用的 AI 供應商")) throw retryErr;
         lastValidationErr = retryErr;
       }
     }
@@ -435,8 +418,13 @@ export async function runSkill<TIn, TOut extends { reasoning: string }>(
         reasoning: validated.reasoning,
         status: "success",
         durationMs,
+        // 寫回 callWithFallback 實際成功的 model（可能與一開始 resolveProviderAndModel 不同）
+        model: actualModel,
       },
     });
+
+    // 標記沒被使用變數（actualProvider 目前沒進 DB，但保留以防未來要寫 provider 欄位）
+    void actualProvider;
 
     return { output: validated, runId: run.id, durationMs, reasoning: validated.reasoning, hit429 };
   } catch (err) {

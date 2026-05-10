@@ -2,15 +2,17 @@
  * 【EDM Generator AI Text Proxy】
  *
  * 接收 EDM Generator 客戶端 `trainerAcademyAiAdapter.generateText(opts)` 的請求，
- * 透過瑞士刀現成的 `createAiClient()`（OpenAI-compatible，自動依 AI_PROVIDER
- * 切換 OpenAI / Gemini）轉呼叫，返回 `{ text, model }`。
+ * 走瑞士刀 `callWithFallback`（OpenAI-compatible），自動在 OpenRouter → Gemini →
+ * Groq 之間切換 provider，返回 `{ text, model, provider }`。
  *
  * 翻譯重點：
  *   - `systemInstruction` → messages[0] 的 system role
  *   - `user`：字串直接傳；陣列形式翻成 OpenAI 多模態 content parts
  *     （`text` 與 `image_url`，後者吃 data URL）
  *   - `responseSchema`：盡可能用 `response_format: { type: 'json_schema' }`，
- *     若 provider 不支援則 fallback 到 `json_object` 模式，仍可拿到 JSON 字串。
+ *     若 provider 不支援則 fallback 到 `json_object` 模式（內部 fallback，
+ *     不算 provider 失敗）；若 json_object 也失敗才會冒到 callWithFallback
+ *     觸發 provider 切換。
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";

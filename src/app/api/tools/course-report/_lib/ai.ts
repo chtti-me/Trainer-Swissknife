@@ -1,19 +1,22 @@
 /**
  * 【課程規劃報告產生器 - 共用 server-side AI helper】
  *
- * 統一處理 OpenAI-compatible 的 chat.completions（用瑞士刀 createAiClient），
- * 並支援 `response_format: json_schema`（失敗自動 fallback 到 `json_object`）。
+ * 統一處理 OpenAI-compatible 的 chat.completions，並走瑞士刀的 `callWithFallback`
+ * 實現多 provider 自動切換（OpenRouter → Gemini → Groq）。
+ *
+ * 兩層 fallback：
+ *   1. `response_format: json_schema` 失敗自動退到 `json_object`（同 provider 內，
+ *      因為不同 provider 對 strict schema 支援不一）
+ *   2. 整個 run 拿 400/402/413/429/5xx 由 callWithFallback 切到下一家 provider
  *
  * 目的是讓 ai/extract、ai/optimize-text、ai/find-highlights、ai/chart
  * 等 route 都用同一份程式做 AI 呼叫，不要每個 route 抄一次。
  */
 import "server-only";
 import {
-  createAiClient,
-  getAiProviderFor,
-  getModelFor,
   type AiProvider,
 } from "@/lib/ai-provider";
+import { callWithFallback } from "@/lib/ai-providers/runtime";
 import type { ChatCompletionContentPart, ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 export interface AiTextRequest {
@@ -50,59 +53,60 @@ function userToContent(user: AiTextRequest["user"]): string | ChatCompletionCont
 }
 
 export async function generateAiText(req: AiTextRequest): Promise<AiTextResult> {
-  const provider = req.provider ?? getAiProviderFor("course_report");
-  const model = req.model ?? getModelFor("course_report", provider);
-  const client = createAiClient();
-
   const messages: ChatCompletionMessageParam[] = [
     { role: "system", content: req.systemInstruction },
     { role: "user", content: userToContent(req.user) },
   ];
 
-  const baseParams = {
-    model,
-    messages,
-    temperature: typeof req.temperature === "number" ? req.temperature : 0.5,
-  };
-
-  let text = "";
+  // 用 callWithFallback 包起來：任一 provider 拿 400/402/413/429/5xx 自動切下一家。
+  // schema 模式的「json_schema → json_object」內部 fallback 在 run 內各 provider 跑一次（不算 provider 失敗）。
   try {
-    if (req.responseSchema) {
-      try {
-        const resp = await client.chat.completions.create({
-          ...baseParams,
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "course_report_response",
-              schema: req.responseSchema,
-              strict: false,
-            },
-          },
-        });
-        text = resp.choices[0]?.message?.content || "";
-      } catch (jsonSchemaErr) {
-        console.warn(
-          "[course-report ai] json_schema 模式失敗，回退至 json_object：",
-          jsonSchemaErr
-        );
-        const resp = await client.chat.completions.create({
-          ...baseParams,
-          response_format: { type: "json_object" },
-        });
-        text = resp.choices[0]?.message?.content || "";
-      }
-    } else {
-      const resp = await client.chat.completions.create(baseParams);
-      text = resp.choices[0]?.message?.content || "";
-    }
+    const { value, provider: usedProvider } = await callWithFallback({
+      feature: "course_report",
+      explicitProvider: req.provider ?? null,
+      run: async ({ client, model: ctxModel }) => {
+        const useModel = req.model || ctxModel;
+        const baseParams = {
+          model: useModel,
+          messages,
+          temperature: typeof req.temperature === "number" ? req.temperature : 0.5,
+        };
+        if (req.responseSchema) {
+          try {
+            const resp = await client.chat.completions.create({
+              ...baseParams,
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: "course_report_response",
+                  schema: req.responseSchema,
+                  strict: false,
+                },
+              },
+            });
+            return { text: resp.choices[0]?.message?.content || "", usedModel: useModel };
+          } catch (jsonSchemaErr) {
+            console.warn(
+              "[course-report ai] json_schema 模式失敗，回退至 json_object：",
+              jsonSchemaErr
+            );
+            const resp = await client.chat.completions.create({
+              ...baseParams,
+              response_format: { type: "json_object" },
+            });
+            return { text: resp.choices[0]?.message?.content || "", usedModel: useModel };
+          }
+        }
+        const resp = await client.chat.completions.create(baseParams);
+        return { text: resp.choices[0]?.message?.content || "", usedModel: useModel };
+      },
+    });
+    return { text: value.text, model: value.usedModel, provider: usedProvider };
   } catch (err) {
     console.error("[course-report ai] 失敗：", err);
     const message = err instanceof Error ? err.message : "未知錯誤";
     throw new Error(`AI 呼叫失敗：${message}`);
   }
-
-  return { text, model, provider };
 }
 
 /** 安全 JSON parse；失敗時 throw 帶 raw 字串的錯誤訊息 */

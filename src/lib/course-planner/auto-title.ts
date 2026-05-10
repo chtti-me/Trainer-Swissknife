@@ -1,11 +1,6 @@
 import "server-only";
-import {
-  createAiClientFor,
-  getAiProviderFor,
-  getModelFor,
-  hasConfiguredApiKeyFor,
-  type AiProvider,
-} from "@/lib/ai-provider";
+import { type AiProvider } from "@/lib/ai-provider";
+import { callWithFallback } from "@/lib/ai-providers/runtime";
 
 /**
  * 課程規劃幫手 — 自動命名（pipeline 開頭呼叫一次）
@@ -34,35 +29,37 @@ const MAX_INPUT_CHARS = 4000;
 
 /**
  * 依 rawInputText 產生 12~22 字的工作標題；失敗會 throw。
+ *
+ * 使用 callWithFallback：任一 provider 拿 400/429/5xx 自動切下一家，
+ * 確保 pipeline 開頭的「自動命名」高機率成功。
  */
 export async function generateAutoTitle(
   rawInputText: string,
   providerOverride?: AiProvider | null,
 ): Promise<string> {
-  const provider = getAiProviderFor("course_planner", providerOverride ?? null);
-  if (!hasConfiguredApiKeyFor(provider)) {
-    throw new Error(`auto-title: 未設定 ${provider} API key`);
-  }
-  const model = getModelFor("course_planner", provider);
-  const client = createAiClientFor(provider);
-
   const text =
     rawInputText.length > MAX_INPUT_CHARS
       ? `${rawInputText.slice(0, MAX_INPUT_CHARS)}\n…（已截斷，僅供命名靈感）`
       : rawInputText;
 
-  const res = await client.chat.completions.create({
-    model,
-    temperature: 0.4,
-    max_tokens: 80,
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: text },
-    ],
+  const { value } = await callWithFallback({
+    feature: "course_planner",
+    explicitProvider: providerOverride ?? null,
+    run: async ({ client, model }) => {
+      const res = await client.chat.completions.create({
+        model,
+        temperature: 0.4,
+        max_tokens: 80,
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: text },
+        ],
+      });
+      return (res.choices[0]?.message?.content ?? "").trim();
+    },
   });
 
-  const raw = (res.choices[0]?.message?.content ?? "").trim();
-  return cleanTitle(raw);
+  return cleanTitle(value);
 }
 
 /**

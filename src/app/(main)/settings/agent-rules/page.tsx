@@ -155,15 +155,21 @@ export default function AgentRulesPage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
-      <div className="flex items-center justify-between">
-        <PageHeading
-          title="Agent 規則管理"
-          description="定義 AI 助理「小瑞」必須遵守的行為約束。全院規則由管理員維護，個人規則可自行設定。"
-        />
-        <Button onClick={openCreate} size="sm" className="gap-1.5">
-          <Plus className="h-4 w-4" /> 新增規則
-        </Button>
-      </div>
+      {/*
+        修 Bug：原本外層用 `flex justify-between` 把按鈕跟 PageHeading 並排，
+        導致按鈕跑到頁面最右上角，跟 navbar 的「系統管理員/資訊學系」UserTray
+        貼太近、視覺打架。改用 PageHeading 內建的 `trailing` slot —— 它會把
+        按鈕放在 UserTray **左側**、與標題置頂對齊，這才是設計上預期的位置。
+      */}
+      <PageHeading
+        title="Agent 規則管理"
+        description="定義 AI 助理「小瑞」必須遵守的行為約束。全院規則由管理員維護，個人規則可自行設定。"
+        trailing={
+          <Button onClick={openCreate} size="sm" className="gap-1.5">
+            <Plus className="h-4 w-4" /> 新增規則
+          </Button>
+        }
+      />
 
       {loading ? (
         <SkeletonCard lines={3} />
@@ -206,11 +212,22 @@ export default function AgentRulesPage() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        {/*
+          修 Bug：DialogContent 預設 top:50% + translate-y:-50% 居中，但沒有
+          max-height + overflow，內容超過視窗就會被上下截斷（看不到 Slug、
+          也按不到下方的「取消／建立」按鈕）。
+
+          修法：
+          - DialogContent: `max-h-[90vh] flex flex-col` 限制總高 + 直向排列
+          - Header / Footer: `shrink-0` 固定不縮
+          - 中間表單: 包一層 `overflow-y-auto -mx-6 px-6` 讓表單可內部捲動
+            （-mx-6 + px-6 是為了讓捲軸不蓋到原本 p-6 的內距）
+        */}
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col">
+          <DialogHeader className="shrink-0">
             <DialogTitle>{editingId ? "編輯規則" : "新增規則"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto -mx-6 px-6 flex-1 min-h-0">
             {!editingId && (
               <div className="space-y-1.5">
                 <Label>Slug（代號）</Label>
@@ -285,7 +302,7 @@ export default function AgentRulesPage() {
               <p className="text-sm text-destructive">{error}</p>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               取消
             </Button>

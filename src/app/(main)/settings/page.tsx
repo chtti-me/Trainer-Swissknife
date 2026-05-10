@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Database, GitCompareArrows, Info, UserCog, Sparkles, Shield, ScrollText, Plug } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { AiServiceSettings } from "@/components/settings/ai-service-settings";
+import { TisBookmarkletSection } from "@/components/settings/tis-bookmarklet-section";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -208,19 +209,21 @@ export default function SettingsPage() {
                 <p className="font-medium">TIS 頁面抓取器（Bookmarklet 一鍵抓）</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   使用者登入 TIS 後點瀏覽器書籤 →
-                  在 TIS 頁面以同源 fetch 抓取 12 個月份 → 自動 POST 到本系統解析入庫。
-                  避免使用者手動逐月另存 HTML。
+                  在 TIS 頁面以同源 fetch 抓取 12 個月份 → 自動 POST 回本系統解析入庫。
+                  避免使用者手動逐月另存 HTML。下方有書籤拖拉與使用步驟。
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  限制：本系統部署在海外（Render
-                  Singapore）、無法直接連線 TIS 內網，故所有抓取都需在使用者本機瀏覽器內發起。
+                  架構：所有 TIS fetch 都在使用者瀏覽器內發起（同源、不受 CORS 限制），
+                  本系統 server 不接觸 TIS 帳密或 session。
                 </p>
               </div>
-              <Badge variant="outline" className="shrink-0">v2.1 規劃中</Badge>
+              <Badge className="bg-green-100 text-green-800 shrink-0">已啟用</Badge>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {isAdmin && <TisBookmarkletSection />}
     </div>
   );
 }

@@ -273,6 +273,46 @@ model SyncJob {
 }
 
 // ============================================================
+// TIS 頁面抓取器：暫存 staging
+// ============================================================
+/**
+ * TisIngestStaging：Bookmarklet 從 TIS 抓回的 12 個月份 HTML 暫存區。
+ *
+ * 為什麼需要這張表：
+ *   Bookmarklet 在 tis.cht.com.tw 上 fetch 完 12 個月 HTML 後，要把資料送回我們系統。
+ *   如果用 fetch 跨域 POST，會被 CORS 卡（且要處理 next-auth cookie 的 SameSite）；
+ *   改用 form auto-submit + 新分頁 navigation 把瀏覽器導到我們 domain，
+ *   此時瀏覽器自動帶我們 domain 的 session cookie 即可通過 next-auth 驗證。
+ *   收到後不能直接走 ingest（因為 redirect 出去後，後續 confirm 階段需要再次拿到原 HTML），
+ *   所以暫存到此表，由 /sync 頁面用 stagingId 取出走原本的 ingest/confirm 兩階段流程。
+ *
+ * 生命週期：
+ *   - createdAt + 1 小時自動視為過期（API 端會檢查）
+ *   - 完成 confirm 後不立刻刪除，留 1 小時方便管理員回頭看；
+ *     真正清除靠後續可選的 cron job 或下次 receive 時順手 sweep。
+ */
+model TisIngestStaging {
+  id        String   @id @default(uuid())
+  /// 觸發本次暫存的使用者 id（next-auth user.id）；只有同一人能 GET 取出
+  createdBy String   @map("created_by")
+  /// JSON：{ items: [{ name, content, sizeKb }, ...], userAgent, referer }
+  payload   Json     @map("payload")
+  /// 元統計，方便 /sync 頁面快速顯示「12 個月、共 X KB」
+  itemCount Int      @default(0) @map("item_count")
+  totalKb   Int      @default(0) @map("total_kb")
+  /// 是否已經成功 apply 進 TrainingClass（confirm 階段會回寫 true）
+  consumed  Boolean  @default(false)
+  consumedAt DateTime? @map("consumed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  expiresAt DateTime @map("expires_at")
+
+  @@index([createdBy, createdAt])
+  @@index([expiresAt])
+  @@map("tis_ingest_staging")
+}
+
+// ============================================================
 // AI 技能脈絡（全院共用 + 個人；多版本，僅最新版預設寫入 Prompt）
 // ============================================================
 model AiGlobalSkillDefinition {

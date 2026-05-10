@@ -13,7 +13,8 @@
  *   - 詳細項目摺疊（預設摺起來，使用者要看才展開）
  *   - 上傳檔案大小無限制（client 端讀檔，後端 parse；TIS 一個月 HTML 通常 50-200KB）
  */
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ import {
   ChevronDown,
   ChevronRight,
   Cloud,
+  Bookmark,
 } from "lucide-react";
 import { useToast } from "@/components/ui/toaster";
 
@@ -103,18 +105,24 @@ export interface TisHtmlUploaderProps {
 
 export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
   const { toast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const fileRef = useRef<HTMLInputElement>(null);
+  const stagingProcessed = useRef<Set<string>>(new Set());
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [analyzing, setAnalyzing] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [ingestResult, setIngestResult] = useState<IngestResponse | null>(null);
   const [showAllEntries, setShowAllEntries] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  /** 標記目前 files 是來自 bookmarklet（顯示徽章用），與其 staging id（confirm 完成時 PATCH） */
+  const [stagingId, setStagingId] = useState<string | null>(null);
 
   function resetAll() {
     setFiles([]);
     setIngestResult(null);
     setShowAllEntries(false);
+    setStagingId(null);
     if (fileRef.current) fileRef.current.value = "";
   }
 
@@ -137,13 +145,13 @@ export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
     setIngestResult(null);
   }
 
-  async function handleAnalyze() {
-    if (files.length === 0) return;
+  async function runAnalyze(entries: FileEntry[]) {
+    if (entries.length === 0) return;
     setAnalyzing(true);
     setIngestResult(null);
     try {
       const fd = new FormData();
-      for (const e of files) fd.append("files", e.file);
+      for (const e of entries) fd.append("files", e.file);
       const res = await fetch("/api/sync/tis/ingest", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok) {
@@ -165,6 +173,61 @@ export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
       setAnalyzing(false);
     }
   }
+
+  async function handleAnalyze() {
+    await runAnalyze(files);
+  }
+
+  /**
+   * 接收來自 bookmarklet 的 staging：
+   *   /sync?tisStagingId=xxx → fetch GET /api/sync/tis/staging/[id]
+   *   → 把 items 包成 FileEntry → setFiles + 自動 analyze
+   */
+  useEffect(() => {
+    const id = searchParams?.get("tisStagingId");
+    if (!id) return;
+    if (stagingProcessed.current.has(id)) return;
+    stagingProcessed.current.add(id);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/sync/tis/staging/${id}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          toast(`載入 bookmarklet 抓取資料失敗：${data.error ?? res.statusText}`, "error");
+          return;
+        }
+        const data = (await res.json()) as {
+          items: Array<{ name: string; content: string }>;
+        };
+        if (cancelled) return;
+        const entries: FileEntry[] = data.items.map((it) => ({
+          file: new File([it.content], it.name, { type: "text/html" }),
+          content: it.content,
+        }));
+        if (entries.length === 0) {
+          toast("Staging 內容為空", "error");
+          return;
+        }
+        setFiles(entries);
+        setStagingId(id);
+        toast(`從 bookmarklet 收到 ${entries.length} 份 HTML，自動分析中…`, "info");
+        await runAnalyze(entries);
+      } catch (e) {
+        if (!cancelled) toast(`載入失敗：${String(e)}`, "error");
+      } finally {
+        // 清掉 query string，避免 reload 時重複觸發
+        if (!cancelled) {
+          router.replace("/sync");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   async function handleConfirm() {
     if (!ingestResult || files.length === 0) return;
@@ -194,6 +257,10 @@ export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
         }`,
         r.failedCount > 0 ? "info" : "success"
       );
+      // 若來源是 staging，標記 consumed（不阻擋主流程）
+      if (stagingId) {
+        fetch(`/api/sync/tis/staging/${stagingId}`, { method: "PATCH" }).catch(() => {});
+      }
       resetAll();
       onSyncDone?.();
     } catch (e) {
@@ -212,15 +279,19 @@ export function TisHtmlUploader({ onSyncDone }: TisHtmlUploaderProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <Cloud className="w-4 h-4 text-blue-600" />
-          TIS HTML 上傳同步
-          <Badge variant="outline" className="text-xs ml-1">只讀同步</Badge>
+          TIS HTML 同步
+          <Badge variant="outline" className="text-xs ml-1">只讀</Badge>
+          {stagingId && (
+            <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 text-xs">
+              <Bookmark className="w-3 h-3 mr-1" />
+              來自 Bookmarklet
+            </Badge>
+          )}
         </CardTitle>
         <CardDescription>
-          將 TIS「開班計畫表列表」每月份 HTML 拖到此區塊，系統會解析後與資料庫比對，預覽差異無誤再確認匯入。
-          <br />
-          <span className="text-xs">
-            建議搭配 SingleFile 瀏覽器擴充功能將 12 個月份 HTML 一次存下，再一次拖入完成全年同步。
-          </span>
+          兩種來源：(1) 直接拖檔 — 在 TIS 用瀏覽器另存「開班計畫表」HTML 後拖到下方；
+          (2) Bookmarklet 一鍵抓 — 在 /settings 拖書籤到瀏覽器書籤列，於 TIS 點該書籤即可自動回傳到此頁。
+          兩種都會走同一個 dry-run 預覽 → 確認匯入流程。
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

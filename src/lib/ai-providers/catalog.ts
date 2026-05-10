@@ -53,6 +53,11 @@ export interface ProviderCatalogEntry {
    * 注意：API 限制隨時可能調整，這裡只是「給管理員心理準備」的非官方備忘。
    */
   freeTierNote?: string;
+  /**
+   * 地理限制警語（UI 顯示醒目 banner）。目前僅 Google Gemini 有此問題：
+   * 免費 API key 對發起請求的 IP 做 geo check，台灣 / Render SG 常踩雷。
+   */
+  geoRestrictionWarning?: string;
   /** 主要顏色（UI 卡片用，tailwind 色系字串） */
   brandColor: string;
   /** 是否預設啟用（render.yaml 已內建欄位） */
@@ -61,9 +66,59 @@ export interface ProviderCatalogEntry {
 
 /**
  * 6 家供應商完整目錄。
- * 排列順序：免費 / 入門難度低的排前面（Gemini → OpenRouter → Groq → NVIDIA → OpenAI → xAI）。
+ *
+ * 排列順序（v2 後調整）：
+ *   OpenRouter → Groq → Gemini → NVIDIA → OpenAI → xAI
+ *
+ * 為什麼 Gemini 從第 1 降到第 3：
+ *   Google Gemini 免費版（AI Studio key）對發起 IP 有「User location」地理檢查，
+ *   台灣家用 IP / Render Singapore 出口 IP 都常踩到 `400 User location is not supported
+ *   for the API use.`，造成 demo 場景失靈。OpenRouter 自家 server 在 US、無此檢查，
+ *   且也提供 Gemini Flash:free 模型轉發；Groq 同樣無地理限制且速度極快。
+ *   故將前兩個預設啟用名額讓給更穩定的 OpenRouter / Groq。
  */
 export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
+  {
+    id: "openrouter",
+    displayName: "OpenRouter",
+    shortDescription:
+      "AI 模型聚合服務，一把 key 可呼叫 100+ 模型；提供多支 free 模型（含 Llama、Mistral、Gemini Flash 等）。Server 在 US，無地理限制。",
+    defaultBaseUrl: "https://openrouter.ai/api/v1",
+    apiKeyConsoleUrl: "https://openrouter.ai/keys",
+    envVars: {
+      apiKey: "OPENROUTER_API_KEY",
+      baseUrl: "OPENROUTER_BASE_URL",
+      chatModel: "OPENROUTER_MODEL",
+      planningModel: "OPENROUTER_MODEL_PLANNING",
+    },
+    // OpenRouter 內建多款 free 模型；預設挑一個穩定且 context 大的免費模型
+    defaultChatModel: "meta-llama/llama-3.3-70b-instruct:free",
+    defaultPlanningModel: "meta-llama/llama-3.3-70b-instruct:free",
+    freeTierNote:
+      "Free tier：模型名稱結尾帶 `:free` 的免費，每日約 50 次 / 模型；綁信用卡可解鎖更高頻次與付費模型。",
+    brandColor: "purple",
+    enabledByDefault: true,
+  },
+  {
+    id: "groq",
+    displayName: "Groq Cloud",
+    shortDescription:
+      "LPU 推論硬體，速度極快（typical 500+ tokens/s）；提供 Llama 3.3 70B、Mixtral、Gemma 等開源模型。無地理限制。",
+    defaultBaseUrl: "https://api.groq.com/openai/v1",
+    apiKeyConsoleUrl: "https://console.groq.com/keys",
+    envVars: {
+      apiKey: "GROQ_API_KEY",
+      baseUrl: "GROQ_BASE_URL",
+      chatModel: "GROQ_MODEL",
+      planningModel: "GROQ_MODEL_PLANNING",
+    },
+    defaultChatModel: "llama-3.3-70b-versatile",
+    defaultPlanningModel: "llama-3.3-70b-versatile",
+    freeTierNote:
+      "Free tier：依模型不同 RPM 30~60、RPD 7000~14000；速度很快但會有「同帳號全模型共享 token quota」的限制。",
+    brandColor: "orange",
+    enabledByDefault: true,
+  },
   {
     id: "gemini",
     displayName: "Google Gemini",
@@ -83,48 +138,9 @@ export const PROVIDER_CATALOG: ProviderCatalogEntry[] = [
     defaultEmbeddingModel: "gemini-embedding-001",
     freeTierNote:
       "Free tier：gemini-2.5-flash 約 RPM 10、RPD 250、TPM 250k；用完當日（UTC 0:00）才重置。實測「400 status code (no body)」最常見的成因就是 RPD 用光。",
+    geoRestrictionWarning:
+      "⚠️ 免費 API key 有地理限制：對發起請求的 server IP 做 location 檢查，台灣家用 IP / Render Singapore region 都常踩到 `User location is not supported`，建議改用 OpenRouter（也能用 Gemini 模型且無地理限制）。",
     brandColor: "blue",
-    enabledByDefault: true,
-  },
-  {
-    id: "openrouter",
-    displayName: "OpenRouter",
-    shortDescription:
-      "AI 模型聚合服務，一把 key 可呼叫 100+ 模型；提供多支 free 模型（含 Llama、Mistral、Gemini Flash 等）。",
-    defaultBaseUrl: "https://openrouter.ai/api/v1",
-    apiKeyConsoleUrl: "https://openrouter.ai/keys",
-    envVars: {
-      apiKey: "OPENROUTER_API_KEY",
-      baseUrl: "OPENROUTER_BASE_URL",
-      chatModel: "OPENROUTER_MODEL",
-      planningModel: "OPENROUTER_MODEL_PLANNING",
-    },
-    // OpenRouter 內建多款 free 模型；預設挑一個穩定且 context 大的免費模型
-    defaultChatModel: "meta-llama/llama-3.3-70b-instruct:free",
-    defaultPlanningModel: "meta-llama/llama-3.3-70b-instruct:free",
-    freeTierNote:
-      "Free tier：模型名稱結尾帶 `:free` 的免費，每日約 50 次 / 模型；綁信用卡可解鎖更高頻次與付費模型。",
-    brandColor: "purple",
-    enabledByDefault: false,
-  },
-  {
-    id: "groq",
-    displayName: "Groq Cloud",
-    shortDescription:
-      "LPU 推論硬體，速度極快（typical 500+ tokens/s）；提供 Llama 3.3 70B、Mixtral、Gemma 等開源模型。",
-    defaultBaseUrl: "https://api.groq.com/openai/v1",
-    apiKeyConsoleUrl: "https://console.groq.com/keys",
-    envVars: {
-      apiKey: "GROQ_API_KEY",
-      baseUrl: "GROQ_BASE_URL",
-      chatModel: "GROQ_MODEL",
-      planningModel: "GROQ_MODEL_PLANNING",
-    },
-    defaultChatModel: "llama-3.3-70b-versatile",
-    defaultPlanningModel: "llama-3.3-70b-versatile",
-    freeTierNote:
-      "Free tier：依模型不同 RPM 30~60、RPD 7000~14000；速度很快但會有「同帳號全模型共享 token quota」的限制。",
-    brandColor: "orange",
     enabledByDefault: false,
   },
   {

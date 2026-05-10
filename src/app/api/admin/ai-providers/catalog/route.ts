@@ -25,7 +25,9 @@ export async function GET() {
     defaultEmbeddingModel: p.defaultEmbeddingModel ?? null,
     envVars: p.envVars,
     freeTierNote: p.freeTierNote ?? null,
+    geoRestrictionWarning: p.geoRestrictionWarning ?? null,
     brandColor: p.brandColor,
+    enabledByDefault: p.enabledByDefault,
     apiKeyConfigured: hasConfiguredApiKeyFor(p.id),
   }));
 

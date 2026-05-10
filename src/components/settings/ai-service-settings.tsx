@@ -61,6 +61,10 @@ interface CatalogItem {
     embeddingModel?: string;
   };
   freeTierNote: string | null;
+  /** 地理限制警告（目前僅 Gemini 有；UI 顯示醒目 banner） */
+  geoRestrictionWarning: string | null;
+  /** catalog 預設是否啟用（資訊用，UI 顯示「Recommended」） */
+  enabledByDefault: boolean;
   brandColor: string;
   apiKeyConfigured: boolean;
 }
@@ -400,6 +404,14 @@ function ProviderCard({
         </a>
       </div>
 
+      {/* 地理限制警告（Gemini 等供應商有 IP 區域檢查時顯示） */}
+      {item.geoRestrictionWarning && (
+        <div className="text-xs bg-rose-50 border border-rose-300 rounded p-2 mb-3 flex gap-2">
+          <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0 text-rose-600" />
+          <span className="text-rose-900">{item.geoRestrictionWarning}</span>
+        </div>
+      )}
+
       {/* Free tier 提示 */}
       {item.freeTierNote && (
         <div className="text-xs bg-white/60 border rounded p-2 mb-3 flex gap-2">
@@ -512,13 +524,11 @@ function ProviderCard({
                 </div>
               </div>
             ) : (
-              <div className="px-3 py-2 text-xs text-rose-700 flex items-start gap-2">
-                <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-                <div>
-                  <p>失敗：{testResult.error || "未知錯誤"}</p>
-                  {testResult.status && <p>HTTP {testResult.status}</p>}
-                </div>
-              </div>
+              <TestErrorDisplay
+                provider={item.id}
+                error={testResult.error || "未知錯誤"}
+                status={testResult.status}
+              />
             )}
           </div>
         )}
@@ -571,6 +581,101 @@ function EnvRow({
       >
         <span className="text-[10px]">KEY=val</span>
       </Button>
+    </div>
+  );
+}
+
+/**
+ * 「測試 + 列模型」失敗時的智能診斷顯示。
+ * 偵測常見錯誤模式給出對應建議，避免管理員自行 google。
+ */
+function TestErrorDisplay({
+  provider,
+  error,
+  status,
+}: {
+  provider: AiProvider;
+  error: string;
+  status: number | null;
+}) {
+  const lower = error.toLowerCase();
+
+  // 已知錯誤模式 → 對應建議
+  let diagnosis: { title: string; advice: string; severity: "high" | "medium" } | null = null;
+
+  if (lower.includes("user location is not supported")) {
+    diagnosis = {
+      title: "Google Gemini 地理限制",
+      advice:
+        "免費 Gemini API key 對發起 server IP 做地理檢查，台灣家用 IP / Render Singapore region 都常踩到。建議改用 OpenRouter（也能用 Gemini Flash 模型且 server 在 US 無地理限制），或將 Gemini 升級為付費版。",
+      severity: "high",
+    };
+  } else if (status === 401 || lower.includes("invalid api key") || lower.includes("unauthorized")) {
+    diagnosis = {
+      title: "API key 無效",
+      advice: `這把 ${provider} key 沒被該供應商認可。請到「申請 / 管理 Key」頁重新取一把，或檢查貼上時前後有沒有多空白字元。`,
+      severity: "high",
+    };
+  } else if (status === 429 || lower.includes("rate limit") || lower.includes("quota")) {
+    diagnosis = {
+      title: "用量已達上限",
+      advice:
+        "這把 key 短期內被叫太多次，或當日免費額度已用完。等候 cooldown / 隔日重置，或啟用 Fallback Runtime 自動切換到下一家供應商。",
+      severity: "medium",
+    };
+  } else if (status === 403 || lower.includes("forbidden") || lower.includes("permission")) {
+    diagnosis = {
+      title: "權限不足",
+      advice: `這把 ${provider} key 沒有「list models」權限，可能 scope 太窄或是過期。請重新生成一把預設權限的 key。`,
+      severity: "high",
+    };
+  } else if (lower.includes("fetch failed") || lower.includes("network") || lower.includes("timeout")) {
+    diagnosis = {
+      title: "連不到供應商",
+      advice:
+        "Server 端 fetch 失敗，可能是供應商當下無回應 / 防火牆阻擋。Render Singapore 偶爾會有出口 IP 段被特定供應商擋的情況；稍後再試或換家。",
+      severity: "medium",
+    };
+  } else if (status && status >= 500) {
+    diagnosis = {
+      title: "供應商伺服器錯誤",
+      advice: "對方 server 5xx，與你的 key 無關。稍後再試。",
+      severity: "medium",
+    };
+  }
+
+  return (
+    <div className="px-3 py-2 text-xs text-rose-700 space-y-2">
+      <div className="flex items-start gap-2">
+        <XCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+        <div className="flex-1">
+          <p className="font-medium">失敗：{error}</p>
+          {status && <p className="opacity-70">HTTP {status}</p>}
+        </div>
+      </div>
+      {diagnosis && (
+        <div
+          className={`rounded p-2 flex gap-2 ${
+            diagnosis.severity === "high"
+              ? "bg-rose-100 border border-rose-300"
+              : "bg-amber-50 border border-amber-300"
+          }`}
+        >
+          <AlertTriangle
+            className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${
+              diagnosis.severity === "high" ? "text-rose-600" : "text-amber-600"
+            }`}
+          />
+          <div className="space-y-1">
+            <p className={`font-semibold ${diagnosis.severity === "high" ? "text-rose-900" : "text-amber-900"}`}>
+              診斷：{diagnosis.title}
+            </p>
+            <p className={diagnosis.severity === "high" ? "text-rose-800" : "text-amber-800"}>
+              {diagnosis.advice}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

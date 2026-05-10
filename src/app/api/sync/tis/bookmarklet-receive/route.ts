@@ -1,25 +1,29 @@
 /**
- * 【TIS Bookmarklet 接收端點】POST
+ * 【TIS Bookmarklet 接收端點】POST + OPTIONS
  *
- * 由 bookmarklet 動態產生的 form auto-submit 過來，body 是 application/x-www-form-urlencoded：
- *   - `payload`：JSON 字串，內含 `items: [{ name, content, sizeKb }, ...]`
+ * 來源：tis.cht.com.tw 的 cross-site fetch POST，body 是 multipart/form-data：
  *   - `token`：個人 bookmarklet token（每位 user 一組，存在 user.bookmarkletToken）
+ *   - `ua`、`sourceUrl`：metadata
+ *   - `html`：可重複；每個 part 是一份 HTML File（filename 是月份 .html，type 是 text/html）
  *
- * 認證：
- *   原本想用 next-auth cookie 認證，但跨站 form POST（從 tis.cht.com.tw 送過來）
- *   瀏覽器在 SameSite=Lax 規則下不會帶 cookie → 必然 401。
- *   所以改為 token 認證：bookmarklet 在 /api/sync/tis/bookmarklet.js 產生時就嵌入了該使用者的個人 token，
- *   這裡用 token 反查 user，完全不依賴 cookie。
+ * 演進歷史（為什麼長成這樣）：
+ *   v1: 用 form auto-submit + JSON.stringify 整包 payload 進 hidden input
+ *       → cookie 被 SameSite=Lax 擋掉，401
+ *   v2: 改用 token 認證；form 仍 auto-submit + JSON 字串
+ *       → 大 payload 用 application/x-www-form-urlencoded 編碼後膨脹 3 倍 + 各層轉碼問題
+ *   v3: enctype 改 multipart/form-data，仍 JSON 字串
+ *       → 「Bad escaped character at position 2665」：r.text() 預設用 UTF-8 解碼 TIS 的 Big5
+ *         頁面，破壞了某些 byte → 後續 JSON.stringify 產生不合法 escape 序列
+ *   v4 (本版): 完全跳過 JSON 字串化
+ *       - bookmarklet 端用 r.arrayBuffer() 拿原始 bytes
+ *       - 每個 HTML 包成 Blob 當 multipart File part 上傳（binary safe，零編碼）
+ *       - 改用 fetch 而非 form auto-submit，能拿到 server 回應 stagingId 後 window.open
+ *       - 必須開 CORS（Access-Control-Allow-Origin tis.cht.com.tw）才能讓 client 讀到回應
  *
- * 流程：
- *   1. 從 form 拿 token → 反查 user（找不到 401，並建議去 /settings 重新拖書籤）
- *   2. 簡單防呆：item count > 0 且 < 30、單筆 size < 2MB、總和 < 30MB
- *   3. 暫存到 TisIngestStaging（expiresAt = now + 1hr）
- *   4. 303 redirect 到 /sync?tisStagingId=<uuid>
+ * 認證：用 form 內 token 反查 user，不依賴 cookie。
  *
- * 為什麼不直接 ingest？
- *   要走兩階段：使用者必須在 /sync 頁面預覽 dry-run diff 後才能 confirm。
- *   把資料暫存到 DB 是因為 redirect 後 browser 不會重送 body，必須由 GET /staging/[id] 取回。
+ * 回應：成功時 200 + JSON { stagingId }；失敗時 4xx + JSON { error, detail }。
+ *       client 拿到 stagingId 後，自己 window.open(`/sync?tisStagingId=...`)。
  */
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -31,128 +35,83 @@ const MAX_ITEMS = 30;
 const MAX_SINGLE_KB = 2048;
 const MAX_TOTAL_KB = 30 * 1024;
 
-interface IncomingItem {
-  name?: unknown;
-  content?: unknown;
-  sizeKb?: unknown;
+const ALLOWED_ORIGIN = "https://tis.cht.com.tw";
+
+function corsHeaders(): Record<string, string> {
+  return {
+    "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "content-type",
+    "Access-Control-Max-Age": "600",
+  };
 }
 
-function escHtml(s: string): string {
-  return s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-function htmlError(title: string, detail: string, backTo?: string): NextResponse {
-  // 預設 escape，避免未來 caller 帶外部資料時 XSS。
-  // 對於需要保留已轉義 token（如除錯片段）的場景，請自行用 escHtml 後傳入；
-  // 但一般用法只要傳純中文 / 數字字串即可。
-  const safeTitle = escHtml(title);
-  const safeDetail = escHtml(detail);
-  const backHtml = backTo
-    ? `<p style="margin-top:18px"><a href="${escHtml(backTo)}" style="color:#2563eb">← 返回 ${escHtml(backTo)}</a></p>`
-    : "";
-  return new NextResponse(
-    `<!doctype html><html lang=zh-Hant><meta charset=utf-8><title>${safeTitle}</title>` +
-      `<body style="font-family:system-ui,sans-serif;max-width:840px;margin:80px auto;padding:0 20px;color:#0f172a">` +
-      `<h1 style="color:#dc2626">${safeTitle}</h1>` +
-      `<pre style="white-space:pre-wrap;word-break:break-all;background:#f1f5f9;padding:12px;border-radius:6px;font-size:12px;line-height:1.5">${safeDetail}</pre>` +
-      `${backHtml}` +
-      `</body></html>`,
-    {
-      status: 400,
-      headers: { "content-type": "text/html; charset=utf-8" },
-    }
+function jsonErr(status: number, error: string, detail?: string): NextResponse {
+  return NextResponse.json(
+    { error, detail },
+    { status, headers: corsHeaders() }
   );
 }
 
+export async function OPTIONS() {
+  // CORS preflight。multipart/form-data 是 simple request，理論上瀏覽器不會發 preflight，
+  // 但保險起見仍實作（例如 fetch 加了非 simple header 時會 trigger）。
+  return new NextResponse(null, { status: 204, headers: corsHeaders() });
+}
+
 export async function POST(req: NextRequest) {
-  let payloadRaw: string | null = null;
-  let tokenRaw: string | null = null;
+  let fd: FormData;
   try {
-    const fd = await req.formData();
-    const v = fd.get("payload");
-    if (typeof v === "string") payloadRaw = v;
-    const t = fd.get("token");
-    if (typeof t === "string") tokenRaw = t;
-  } catch {
-    return htmlError("讀取資料失敗", "form-data 解析失敗。請重新從 TIS 頁面點書籤。");
+    fd = await req.formData();
+  } catch (e) {
+    return jsonErr(400, "form-data 解析失敗", e instanceof Error ? e.message : String(e));
   }
 
-  if (!tokenRaw) {
-    return htmlError(
-      "缺少 token（舊版 bookmarklet）",
-      "你的 bookmarklet 是舊版，沒有附帶個人 token。請到「系統設定」頁重新拖一次「📚 TIS→瑞士刀」到書籤列。",
-      "/settings"
-    );
+  const tokenRaw = fd.get("token");
+  if (typeof tokenRaw !== "string" || !tokenRaw) {
+    return jsonErr(401, "缺少 token", "請到「系統設定」頁重新拖一次「📚 TIS→瑞士刀」到書籤列。");
   }
+
   const user = await findUserByBookmarkletToken(tokenRaw);
   if (!user) {
-    return htmlError(
-      "未授權",
-      "bookmarklet token 無效或已被重置。請到「系統設定」頁重新拖一次「📚 TIS→瑞士刀」到書籤列。",
-      "/settings"
-    );
+    return jsonErr(401, "未授權", "bookmarklet token 無效或已被重置。請到「系統設定」頁重新拖一次新書籤。");
   }
   const userId = user.id;
 
-  if (!payloadRaw) {
-    return htmlError("缺少 payload", "Body 沒有 payload 欄位。Bookmarklet 可能執行錯誤。");
+  // 取所有 html parts
+  const htmlEntries = fd.getAll("html");
+  if (htmlEntries.length === 0) {
+    return jsonErr(400, "沒有抓到任何 HTML", "Bookmarklet 回傳了 0 個 HTML；可能 TIS session 過期或被擋。");
   }
-
-  let parsed: { items?: IncomingItem[]; ua?: string; sourceUrl?: string };
-  try {
-    parsed = JSON.parse(payloadRaw);
-  } catch (parseErr) {
-    // 為了 debug，把 payload 樣本連同錯誤一起回給 user
-    // （HTML escape 由 htmlError 統一處理；這裡只負責把不可見的控制字元換成 \xXX 才看得到）
-    const visualize = (s: string) =>
-      s.replace(/[\u0000-\u001f\u007f]/g, (c) => "\\x" + c.charCodeAt(0).toString(16).padStart(2, "0"));
-    const len = payloadRaw.length;
-    const head = visualize(payloadRaw.slice(0, 200));
-    const tail = visualize(payloadRaw.slice(-200));
-    const errMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
-    return htmlError(
-      "payload 非合法 JSON",
-      `JSON.parse error: ${errMsg}\n\n` +
-        `payload 長度：${len} chars\n` +
-        `前 200 字：\n${head}\n\n` +
-        `後 200 字：\n${tail}`,
-      "/settings"
-    );
-  }
-
-  const items = Array.isArray(parsed.items) ? parsed.items : [];
-  if (items.length === 0) {
-    return htmlError("沒有抓到任何資料", "Bookmarklet 回傳了 0 個 HTML；可能 TIS session 過期或被擋。", "/sync");
-  }
-  if (items.length > MAX_ITEMS) {
-    return htmlError(
-      "資料過多",
-      `一次最多接收 ${MAX_ITEMS} 個 HTML，本次傳來 ${items.length} 個；請減少月份範圍。`,
-      "/sync"
-    );
+  if (htmlEntries.length > MAX_ITEMS) {
+    return jsonErr(400, "資料過多", `一次最多接收 ${MAX_ITEMS} 個 HTML，本次傳來 ${htmlEntries.length} 個。`);
   }
 
   const sanitized: Array<{ name: string; content: string; sizeKb: number }> = [];
   let totalKb = 0;
-  for (const it of items) {
-    const name = typeof it.name === "string" ? it.name.slice(0, 200) : "(unnamed)";
-    const content = typeof it.content === "string" ? it.content : "";
-    const sizeKb = Math.ceil(content.length / 1024);
+
+  for (const entry of htmlEntries) {
+    if (typeof entry === "string") {
+      // 不應該發生（client 一律包成 Blob），但保險起見
+      const sizeKb = Math.ceil(entry.length / 1024);
+      sanitized.push({ name: "(string)", content: entry, sizeKb });
+      totalKb += sizeKb;
+      continue;
+    }
+    const file = entry as File;
+    const name = (file.name || "(unnamed)").slice(0, 200);
+    // 用 ArrayBuffer 拿到原始 bytes，用 BOM / meta tag 偵測 charset 後 decode
+    const buf = await file.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    const sizeKb = Math.ceil(bytes.byteLength / 1024);
     if (sizeKb > MAX_SINGLE_KB) {
-      return htmlError(
-        "單筆 HTML 過大",
-        `${name} = ${sizeKb} KB（上限 ${MAX_SINGLE_KB} KB）；TIS 頁面異常或抓到非預期內容。`,
-        "/sync"
-      );
+      return jsonErr(400, "單筆 HTML 過大", `${name} = ${sizeKb} KB（上限 ${MAX_SINGLE_KB} KB）；TIS 頁面異常或抓到非預期內容。`);
     }
     totalKb += sizeKb;
     if (totalKb > MAX_TOTAL_KB) {
-      return htmlError("總資料量過大", `累計 ${totalKb} KB 超過 ${MAX_TOTAL_KB} KB 上限。`, "/sync");
+      return jsonErr(400, "總資料量過大", `累計 ${totalKb} KB 超過 ${MAX_TOTAL_KB} KB 上限。`);
     }
+    const content = decodeHtmlBytes(bytes);
     sanitized.push({ name, content, sizeKb });
   }
 
@@ -161,22 +120,24 @@ export async function POST(req: NextRequest) {
     /OpenClass_ClassList2|開班計畫表/.test(s.content)
   ).length;
   if (tisLikeCount === 0) {
-    return htmlError(
+    return jsonErr(
+      400,
       "回傳內容不像 TIS 開班計畫表",
-      "可能是 TIS session 過期被導到登入頁；請先在 TIS 頁面手動重新登入後再點書籤。",
-      "/sync"
+      "可能是 TIS session 過期被導到登入頁；請先在 TIS 頁面手動重新登入後再點書籤。"
     );
   }
 
-  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+  const ua = fd.get("ua");
+  const sourceUrl = fd.get("sourceUrl");
 
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
   const staging = await prisma.tisIngestStaging.create({
     data: {
       createdBy: userId,
       payload: {
         items: sanitized,
-        ua: typeof parsed.ua === "string" ? parsed.ua.slice(0, 500) : null,
-        sourceUrl: typeof parsed.sourceUrl === "string" ? parsed.sourceUrl.slice(0, 500) : null,
+        ua: typeof ua === "string" ? ua.slice(0, 500) : null,
+        sourceUrl: typeof sourceUrl === "string" ? sourceUrl.slice(0, 500) : null,
       },
       itemCount: sanitized.length,
       totalKb,
@@ -185,7 +146,46 @@ export async function POST(req: NextRequest) {
     select: { id: true },
   });
 
-  const target = new URL("/sync", req.url);
-  target.searchParams.set("tisStagingId", staging.id);
-  return NextResponse.redirect(target, 303);
+  return NextResponse.json(
+    { stagingId: staging.id, itemCount: sanitized.length, totalKb },
+    { status: 200, headers: corsHeaders() }
+  );
+}
+
+/**
+ * 從 raw bytes 偵測 HTML charset 並解碼成字串。
+ *
+ * TIS 開班計畫表頁面 (jap/OpenClass/OpenClass_ClassList2.jsp) 是經典的 BIG5 / windows-950 編碼。
+ * 流程：先掃 meta charset；找不到就根據 byte 模式猜（UTF-8 BOM / valid UTF-8 / 否則用 Big5）。
+ * 用 Node 內建 TextDecoder（支援 'big5' / 'utf-8' 等標準 encoding label）。
+ */
+function decodeHtmlBytes(bytes: Uint8Array): string {
+  // 先用 ASCII 解前 4KB（charset 宣告通常在 <head> 開頭）
+  const headPlain = new TextDecoder("ascii").decode(bytes.subarray(0, Math.min(bytes.byteLength, 4096)));
+  let charset: string | null = null;
+  // 1. <meta http-equiv="Content-Type" content="text/html; charset=big5">
+  const m1 = headPlain.match(/<meta[^>]+content\s*=\s*["'][^"']*charset=([^"';\s]+)/i);
+  if (m1) charset = m1[1].toLowerCase();
+  // 2. <meta charset="big5">
+  if (!charset) {
+    const m2 = headPlain.match(/<meta[^>]+charset\s*=\s*["']?([\w-]+)/i);
+    if (m2) charset = m2[1].toLowerCase();
+  }
+  // 3. 沒宣告：UTF-8 BOM 優先
+  if (!charset && bytes.byteLength >= 3 && bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
+    charset = "utf-8";
+  }
+  // 4. 沒宣告也沒 BOM：TIS 預設 big5
+  if (!charset) charset = "big5";
+
+  // alias 正規化
+  if (/^(big5|big5-hkscs|cp950|windows-950|ms950)$/i.test(charset)) charset = "big5";
+  if (/^utf-?8$/i.test(charset)) charset = "utf-8";
+
+  try {
+    return new TextDecoder(charset).decode(bytes);
+  } catch {
+    // 若 runtime 不支援該 encoding，退回 utf-8（會有亂碼但至少不丟資料）
+    return new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  }
 }

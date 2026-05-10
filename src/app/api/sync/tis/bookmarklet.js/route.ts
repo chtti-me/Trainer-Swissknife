@@ -145,11 +145,16 @@ function buildBookmarkletScript(opts: { receiveUrl: string; appOrigin: string; t
     "    var results = []; var doneCount = 0;\n" +
     "    var promises = months.map(function(mm){\n" +
     "      var url = 'https://tis.cht.com.tw/jap/OpenClass/OpenClass_ClassList2.jsp?yy=' + year + '&mm=' + mm + '&department=' + dept;\n" +
+    // 改用 arrayBuffer：保留原始 byte，不做 UTF-8 解碼。
+    // 原因：TIS 多頁面為 Big5 / windows-950 編碼，r.text() 會用 UTF-8 解碼，
+    // 一旦遇到非 UTF-8 序列就會插入 U+FFFD 或破壞 backslash 結構，導致後續 JSON.stringify 產出
+    // 不合法的 escape（用戶實測：「Bad escaped character at position 2665」）。
+    // 改成 ArrayBuffer + Blob 可完整把 raw bytes 送回 server，由 cheerio 解析時自行偵測 charset。
     "      return fetch(url, { credentials: 'include' })\n" +
-    "        .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })\n" +
-    "        .then(function(text){\n" +
-    "          var sizeKb = Math.round(text.length / 1024);\n" +
-    "          results.push({ name: year + '_' + mm + '_dept' + dept + '.html', content: text, sizeKb: sizeKb });\n" +
+    "        .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })\n" +
+    "        .then(function(buf){\n" +
+    "          var sizeKb = Math.round(buf.byteLength / 1024);\n" +
+    "          results.push({ name: year + '_' + mm + '_dept' + dept + '.html', buf: buf, sizeKb: sizeKb });\n" +
     "          doneCount++;\n" +
     "          log('✔ ' + year + '/' + mm + ' 抓回 ' + sizeKb + ' KB（' + doneCount + '/' + months.length + '）', '#059669');\n" +
     "        })\n" +
@@ -166,38 +171,57 @@ function buildBookmarkletScript(opts: { receiveUrl: string; appOrigin: string; t
     "    });\n" +
     "  }\n" +
     "\n" +
+    // 改成 fetch + FormData + Blob：每個 HTML 一個 multipart part，binary safe，完全跳過 JSON 字串化。
+    // 用 fetch 而不是 form auto-submit，是為了能拿到 server 回應 stagingId 並 window.open 帶過去。
+    // 跨站 fetch POST + multipart/form-data 是 simple request（不需 preflight）；
+    // 但要讀 response 必須 server 回 Access-Control-Allow-Origin。
     "  function submitToReceive(results) {\n" +
-    "    var form = document.createElement('form');\n" +
-    "    form.method = 'POST';\n" +
-    "    form.action = RECEIVE_URL;\n" +
-    "    form.target = '_blank';\n" +
-    // multipart/form-data 對大 payload binary safe，不會像 urlencoded 那樣
-    // 把 byte URL-encode 成 %XX 導致 body 膨脹 3 倍（容易撞到 body size 限制）。
-    // 也避免 cross-site POST 時各層 proxy 對 urlencoded 的詭異截斷。
-    "    form.enctype = 'multipart/form-data';\n" +
-    "    form.style.display = 'none';\n" +
-    "    var payload = JSON.stringify({\n" +
-    "      items: results,\n" +
-    "      ua: navigator.userAgent,\n" +
-    "      sourceUrl: location.href\n" +
-    "    });\n" +
-    "    var input = document.createElement('input');\n" +
-    "    input.type = 'hidden';\n" +
-    "    input.name = 'payload';\n" +
-    "    input.value = payload;\n" +
-    "    form.appendChild(input);\n" +
-    "    var tokenInput = document.createElement('input');\n" +
-    "    tokenInput.type = 'hidden';\n" +
-    "    tokenInput.name = 'token';\n" +
-    "    tokenInput.value = BOOKMARKLET_TOKEN;\n" +
-    "    form.appendChild(tokenInput);\n" +
-    "    document.body.appendChild(form);\n" +
-    "    form.submit();\n" +
-    "    form.remove();\n" +
-    "    log('✅ 已開新分頁送出，請切到該分頁確認匯入。', '#059669');\n" +
     "    var btn = document.getElementById('tswk-go');\n" +
-    "    btn.textContent = '已送出（可關閉本面板）';\n" +
-    "    btn.style.background = '#059669';\n" +
+    "    btn.textContent = '送出中…';\n" +
+    "    var fd = new FormData();\n" +
+    "    fd.append('token', BOOKMARKLET_TOKEN);\n" +
+    "    fd.append('ua', navigator.userAgent);\n" +
+    "    fd.append('sourceUrl', location.href);\n" +
+    "    for (var i = 0; i < results.length; i++) {\n" +
+    "      var r = results[i];\n" +
+    "      var blob = new Blob([r.buf], { type: 'text/html' });\n" +
+    "      fd.append('html', blob, r.name);\n" +
+    "    }\n" +
+    "    fetch(RECEIVE_URL, {\n" +
+    "      method: 'POST',\n" +
+    "      body: fd,\n" +
+    "      mode: 'cors',\n" +
+    // 不要帶 cookie：跨站帶 cookie 在 SameSite=Lax 下會被擋；token 已在 form 內
+    "      credentials: 'omit'\n" +
+    "    })\n" +
+    "      .then(function(res){\n" +
+    "        return res.text().then(function(text){\n" +
+    "          return { ok: res.ok, status: res.status, body: text };\n" +
+    "        });\n" +
+    "      })\n" +
+    "      .then(function(out){\n" +
+    "        if (!out.ok) {\n" +
+    "          log('✖ 送出失敗 HTTP ' + out.status, '#dc2626');\n" +
+    "          log(out.body.slice(0, 400), '#94a3b8');\n" +
+    "          btn.textContent = '送出失敗'; btn.style.background = '#dc2626';\n" +
+    "          return;\n" +
+    "        }\n" +
+    "        var data = null; try { data = JSON.parse(out.body); } catch(e) {}\n" +
+    "        var stagingId = data && data.stagingId;\n" +
+    "        if (!stagingId) {\n" +
+    "          log('✖ server 回應缺少 stagingId：' + out.body.slice(0, 200), '#dc2626');\n" +
+    "          btn.textContent = '送出失敗'; btn.style.background = '#dc2626';\n" +
+    "          return;\n" +
+    "        }\n" +
+    "        log('✅ 已送出，正在開新分頁進入 /sync …', '#059669');\n" +
+    "        window.open(APP_ORIGIN + '/sync?tisStagingId=' + encodeURIComponent(stagingId), '_blank');\n" +
+    "        btn.textContent = '已送出（可關閉本面板）';\n" +
+    "        btn.style.background = '#059669';\n" +
+    "      })\n" +
+    "      .catch(function(err){\n" +
+    "        log('✖ 送出時錯誤：' + err.message, '#dc2626');\n" +
+    "        btn.textContent = '送出失敗'; btn.style.background = '#dc2626';\n" +
+    "      });\n" +
     "  }\n" +
     "})();\n"
   );

@@ -27,6 +27,10 @@ model User {
   department String?
   role       String   @default("trainer") // trainer | admin
   campus     String?  // 院本部 | 台中所 | 高雄所
+  /// TIS Bookmarklet 用：跨站 form POST 不會帶 next-auth cookie（SameSite=Lax 規則），
+  /// 因此每位使用者個別配發一個長 random token 嵌進其 bookmarklet 中，
+  /// receive endpoint 用 token 反查使用者，繞過 cookie session 限制。
+  bookmarkletToken String? @unique @map("bookmarklet_token")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
 

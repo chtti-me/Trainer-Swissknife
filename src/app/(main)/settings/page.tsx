@@ -9,7 +9,7 @@ import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Database, GitCompareArrows, Info, UserCog, Sparkles, Shield, ScrollText, Plug } from "lucide-react";
+import { GitCompareArrows, Info, UserCog, Sparkles, Shield, ScrollText, Plug } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { AiServiceSettings } from "@/components/settings/ai-service-settings";
 import { TisBookmarkletSection } from "@/components/settings/tis-bookmarklet-section";
@@ -167,59 +167,6 @@ export default function SettingsPage() {
           <p className="text-xs text-muted-foreground">
             v4.0 採用「雙引擎」：向量嵌入（AI 判讀語意）+ 文字字詞（Jaccard/bigram 抓字面近似），在資料庫端以 pgvector HNSW 索引加速語意搜尋，再疊加開班條件（院區、類別、難度等）規則分數，全面提升相似度判斷準確度。
           </p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Database className="w-4 h-4 text-primary" />
-            資料來源設定
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">手動匯入 Excel / CSV</p>
-                <p className="text-xs text-muted-foreground">透過檔案上傳匯入班次資料</p>
-              </div>
-              <Badge className="bg-green-100 text-green-800">已啟用</Badge>
-            </div>
-            <div className="flex items-start justify-between p-3 border rounded-lg gap-4">
-              <div className="flex-1">
-                <p className="font-medium">TIS 只讀同步器（HTML 上傳版）</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  將 TIS「開班計畫表列表」每月份 HTML 上傳到本系統 →
-                  解析 → 預覽差異 →確認後 upsert 進 TrainingClass。
-                  搭配 SingleFile 擴充功能可一次存全年 12 個月份。
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  入口：
-                  <a href="/sync" className="text-primary underline ml-1">
-                    資料同步紀錄
-                  </a>
-                  → 「TIS HTML 上傳同步」區塊
-                </p>
-              </div>
-              <Badge className="bg-green-100 text-green-800 shrink-0">已啟用</Badge>
-            </div>
-            <div className="flex items-start justify-between p-3 border rounded-lg gap-4">
-              <div className="flex-1">
-                <p className="font-medium">TIS 頁面抓取器（Bookmarklet 一鍵抓）</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  使用者登入 TIS 後點瀏覽器書籤 →
-                  在 TIS 頁面以同源 fetch 抓取 12 個月份 → 自動 POST 回本系統解析入庫。
-                  避免使用者手動逐月另存 HTML。下方有書籤拖拉與使用步驟。
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  架構：所有 TIS fetch 都在使用者瀏覽器內發起（同源、不受 CORS 限制），
-                  本系統 server 不接觸 TIS 帳密或 session。
-                </p>
-              </div>
-              <Badge className="bg-green-100 text-green-800 shrink-0">已啟用</Badge>
-            </div>
-          </div>
         </CardContent>
       </Card>
 

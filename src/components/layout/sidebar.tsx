@@ -36,6 +36,8 @@ import {
   FileText,
   Radio,
   ExternalLink,
+  Shield,
+  ScrollText,
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState, useTransition } from "react";
@@ -57,51 +59,61 @@ type NavEntry = {
 };
 
 const mainNav: NavEntry[] = [
-  { href: "/agent", label: "AI 助理（小瑞）", icon: Bot },
   { href: "/dashboard", label: "培訓師儀表板", icon: LayoutDashboard },
-  { href: "/course-planner", label: "課程規劃幫手", icon: BookOpen },
-  { href: "/similarity", label: "開班相似度檢測", icon: GitCompareArrows },
-  { href: "/classroom-suggestions", label: "教室預約建議", icon: School },
-  { href: "/personal-instructor-network", label: "個人師資人脈", icon: ContactRound },
   {
     href: "https://live-class-hub.vercel.app/admin",
-    label: "直播課程管理後台",
+    label: "直播課程管理",
     icon: Radio,
     external: true,
   },
+  { href: "/agent", label: "AI 助理（小瑞）", icon: Bot },
+  { href: "/similarity", label: "開班相似度檢測", icon: GitCompareArrows },
+  { href: "/course-planner", label: "課程規劃幫手", icon: BookOpen },
+  { href: "/personal-instructor-network", label: "個人師資人脈", icon: ContactRound },
+  { href: "/classroom-suggestions", label: "教室預約建議", icon: School },
 ];
 
 const toolboxNav: NavEntry[] = [
+  { href: "/tools/edm-generator", label: "EDM產生器", icon: Mail },
   { href: "/course-planner/skills", label: "課程規劃工具箱", icon: Layers },
-  { href: "/tools/teleprompter", label: "讀稿提詞機", icon: Monitor },
-  {
-    href: "https://online-pdf-reader.vercel.app/",
-    label: "線上PDF閱讀器",
-    icon: FileText,
-    external: true,
-  },
-  { href: "/tools/presentation", label: "互動簡報製作器", icon: Presentation },
-  { href: "/tools/report-writer", label: "業務會報撰寫器", icon: PenTool },
-  { href: "/tools/course-report", label: "課程規劃報告產生器", icon: FileBarChart2 },
+  { href: "/tools/course-report", label: "課程報告", icon: FileBarChart2 },
+  { href: "/tools/report-writer", label: "業務會報", icon: PenTool },
+  { href: "/tools/presentation", label: "互動簡報", icon: Presentation },
   {
     href: "https://taiwanveo.github.io/Course-Category-Relationship-Diagram/",
-    label: "課程分類圖製作器",
+    label: "課程分類圖",
     icon: Network,
     external: true,
   },
-  { href: "/tools/edm-generator", label: "EDM產生器", icon: Mail },
+  {
+    href: "https://online-pdf-reader.vercel.app/",
+    label: "PDF閱讀器",
+    icon: FileText,
+    external: true,
+  },
+  { href: "/tools/teleprompter", label: "讀稿提詞機", icon: Monitor },
 ];
 
-const secondaryNav: NavEntry[] = [
-  { href: "/sync", label: "資料同步紀錄", icon: RefreshCw },
+/**
+ * 系統管理區：依使用者要求的最終順序為
+ *   培訓師名冊 → 使用者管理(admin) → AI 技能脈絡 → Agent 規則管理
+ *   → 審計日誌 → 資料同步記錄 → 系統設定
+ *
+ * `usersIsAdminOnly` 標記用以套用紅色 admin 樣式；不是 admin 時整個項目會被過濾掉。
+ */
+type SecondaryEntry = NavEntry & { adminOnly?: boolean };
+
+const secondaryNavAll: SecondaryEntry[] = [
   { href: "/trainers", label: "培訓師名冊", icon: UserRound },
+  { href: "/settings/users", label: "使用者管理", icon: UserCog, adminOnly: true },
   { href: "/settings/ai-skills", label: "AI 技能脈絡", icon: Brain },
+  { href: "/settings/agent-rules", label: "Agent 規則管理", icon: Shield },
+  { href: "/settings/audit-log", label: "審計日誌", icon: ScrollText },
+  { href: "/sync", label: "資料同步記錄", icon: RefreshCw },
   { href: "/settings", label: "系統設定", icon: Settings },
 ];
 
-const adminOnlyNav: NavEntry[] = [{ href: "/settings/users", label: "使用者管理", icon: UserCog }];
-
-const ALL_NAV_ENTRIES: NavEntry[] = [...mainNav, ...toolboxNav, ...secondaryNav, ...adminOnlyNav];
+const ALL_NAV_ENTRIES: NavEntry[] = [...mainNav, ...toolboxNav, ...secondaryNavAll];
 
 function navDestinationLabel(href: string): string {
   return ALL_NAV_ENTRIES.find((item) => item.href === href)?.label ?? "新頁面";
@@ -409,13 +421,17 @@ export function Sidebar() {
             <p className={cn("text-[9px] font-semibold text-muted-foreground uppercase tracking-wide mb-1 px-1.5", collapsed && "hidden")}>
               系統管理
             </p>
-            {secondaryNav.map((item) => (
-              <SidebarNavLink key={item.href} {...item} {...navLinkProps} visual="secondary" />
-            ))}
-
-            {isAdmin &&
-              adminOnlyNav.map((item) => (
-                <SidebarNavLink key={item.href} {...item} {...navLinkProps} visual="admin" />
+            {secondaryNavAll
+              .filter((item) => !item.adminOnly || isAdmin)
+              .map((item) => (
+                <SidebarNavLink
+                  key={item.href}
+                  href={item.href}
+                  label={item.label}
+                  icon={item.icon}
+                  {...navLinkProps}
+                  visual={item.adminOnly ? "admin" : "secondary"}
+                />
               ))}
           </nav>
 

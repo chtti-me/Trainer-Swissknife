@@ -1,25 +1,30 @@
 /**
  * 【TIS Bookmarklet 載入端點】GET
  *
- * 回傳一段「在 tis.cht.com.tw 上執行」的 JavaScript：
+ * 重要變更（v2）：
+ *   原本依賴 receive 端用 next-auth cookie 認證 → 跨站 form POST 時 SameSite=Lax 不會帶 cookie，
+ *   結果使用者收到「未授權」。改為「個人 token 認證」：
+ *     1. 此 endpoint 必須登入；未登入時回傳一段 alert 用的 JS（防呆，但不會打斷 dev 流程）
+ *     2. 從 DB 取出（或新建）當前使用者的 user.bookmarkletToken
+ *     3. 把 token 嵌進回傳 JS 的 form payload；receive 用 token 認證
+ *
+ * 安全：
+ *   - 此 JS 為「個人化」內容（含個人 token），所以 cache-control 改為 private + 0 秒
+ *   - 第三方雖可能誘導使用者把書籤拖出去，但 hostname check 仍會擋住非 TIS 頁面執行
+ *
+ * 流程（client 端）：
  *   - 檢查 hostname；非 tis.cht.com.tw 則 alert 並退出
  *   - 在頁面右上角彈出懸浮面板（年份、月份、department 選擇 + 開始按鈕）
  *   - 同源 fetch 多個月份的 OpenClass_ClassList2.jsp（瀏覽器自動帶 TIS session cookie）
  *   - 進度條顯示
  *   - 完成後動態建 form auto-submit 到 /api/sync/tis/bookmarklet-receive
- *     （form submit + target=_blank 不受 CORS 限制，且瀏覽器會帶我們 domain 的 next-auth cookie）
- *
- * 為什麼不用 fetch 跨域 POST？
- *   1. 跨域要設 Allow-Credentials + Allow-Origin（不能是 *），且 next-auth cookie 是 SameSite=Lax，
- *      跨站 fetch 帶 cookie 在 Lax 下會被瀏覽器擋
- *   2. Form submit + target=_blank 是 navigation，瀏覽器一定會帶該 domain 的 cookie（Lax 允許），
- *      不需要任何 server 端 CORS 設定
- *
- * 安全：
- *   - 此檔不需要登入即可取得（純靜態 JS）；真正的權限檢查在 receive endpoint
- *   - 雖然第三方理論上可以從別的 domain 載這份 JS，但執行時 hostname check 會擋
+ *     （form submit + target=_blank 是 navigation，不受 CORS 擋；
+ *      因為改用 token，所以也不再需要 cookie）
  */
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { ensureBookmarkletToken } from "@/lib/tis/bookmarklet-token";
 
 export const dynamic = "force-dynamic";
 
@@ -33,26 +38,45 @@ function getAppOrigin(req: NextRequest): string {
   return `${proto}://${host}`;
 }
 
+function loginRequiredScript(appOrigin: string): string {
+  return (
+    "(function(){\n" +
+    "  alert('⚠️ 請先在 trainer-swissknife 登入後，再到「系統設定」頁面重新拖書籤到書籤列。\\n\\n登入頁：' + " +
+    JSON.stringify(`${appOrigin}/signin`) +
+    ");\n" +
+    "  try { window.open(" +
+    JSON.stringify(`${appOrigin}/signin`) +
+    ", '_blank'); } catch(e) {}\n" +
+    "})();\n"
+  );
+}
+
 export async function GET(req: NextRequest) {
   const appOrigin = getAppOrigin(req);
-  const receiveUrl = `${appOrigin}/api/sync/tis/bookmarklet-receive`;
-  // 注意：以下 JS 字串以模板字面值寫成；任何含有 `${}` 的子表達式都會被 TS 內插，
-  // 真正要在 client JS 內保留的字串請用 `\${}` 或字串拼接。
-  const js = buildBookmarkletScript({ receiveUrl, appOrigin });
+  const session = await getServerSession(authOptions);
+  const userId = (session?.user as { id?: string } | undefined)?.id;
+
+  let js: string;
+  if (!userId) {
+    js = loginRequiredScript(appOrigin);
+  } else {
+    const token = await ensureBookmarkletToken(userId);
+    const receiveUrl = `${appOrigin}/api/sync/tis/bookmarklet-receive`;
+    js = buildBookmarkletScript({ receiveUrl, appOrigin, token });
+  }
 
   return new NextResponse(js, {
     status: 200,
     headers: {
       "content-type": "application/javascript; charset=utf-8",
-      // 短 TTL：方便我們改完後使用者下次點馬上拿新版
-      "cache-control": "public, max-age=60",
-      // 允許從 tis.cht.com.tw 用 <script> 載入（其實 script 本來就不受 CORS 限制，加上保險）
+      // 個人 token 內容不可被 CDN / proxy 共用
+      "cache-control": "private, no-store, max-age=0",
       "access-control-allow-origin": "*",
     },
   });
 }
 
-function buildBookmarkletScript(opts: { receiveUrl: string; appOrigin: string }): string {
+function buildBookmarkletScript(opts: { receiveUrl: string; appOrigin: string; token: string }): string {
   // 為了避免 TS 模板字串和 client JS 模板字串混亂，這段全部用普通字串拼接。
   return (
     "/* trainer-swissknife TIS bookmarklet loader: " +
@@ -61,6 +85,7 @@ function buildBookmarkletScript(opts: { receiveUrl: string; appOrigin: string })
     "(function(){\n" +
     "  var APP_ORIGIN = " + JSON.stringify(opts.appOrigin) + ";\n" +
     "  var RECEIVE_URL = " + JSON.stringify(opts.receiveUrl) + ";\n" +
+    "  var BOOKMARKLET_TOKEN = " + JSON.stringify(opts.token) + ";\n" +
     "  var EXISTING = document.getElementById('trainer-swissknife-tis-grabber');\n" +
     "  if (EXISTING) { EXISTING.remove(); }\n" +
     "  if (!/(^|\\.)tis\\.cht\\.com\\.tw$/.test(location.hostname)) {\n" +
@@ -158,6 +183,11 @@ function buildBookmarkletScript(opts: { receiveUrl: string; appOrigin: string })
     "    input.name = 'payload';\n" +
     "    input.value = payload;\n" +
     "    form.appendChild(input);\n" +
+    "    var tokenInput = document.createElement('input');\n" +
+    "    tokenInput.type = 'hidden';\n" +
+    "    tokenInput.name = 'token';\n" +
+    "    tokenInput.value = BOOKMARKLET_TOKEN;\n" +
+    "    form.appendChild(tokenInput);\n" +
     "    document.body.appendChild(form);\n" +
     "    form.submit();\n" +
     "    form.remove();\n" +

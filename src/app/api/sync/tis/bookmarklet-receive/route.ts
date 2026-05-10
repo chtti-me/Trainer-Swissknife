@@ -1,24 +1,29 @@
 /**
  * 【TIS Bookmarklet 接收端點】POST
  *
- * 由 bookmarklet 動態產生的 form auto-submit 過來，body 是 application/x-www-form-urlencoded，
- * 唯一欄位 `payload` 是 JSON 字串，內含 `items: [{ name, content, sizeKb }, ...]`。
+ * 由 bookmarklet 動態產生的 form auto-submit 過來，body 是 application/x-www-form-urlencoded：
+ *   - `payload`：JSON 字串，內含 `items: [{ name, content, sizeKb }, ...]`
+ *   - `token`：個人 bookmarklet token（每位 user 一組，存在 user.bookmarkletToken）
+ *
+ * 認證：
+ *   原本想用 next-auth cookie 認證，但跨站 form POST（從 tis.cht.com.tw 送過來）
+ *   瀏覽器在 SameSite=Lax 規則下不會帶 cookie → 必然 401。
+ *   所以改為 token 認證：bookmarklet 在 /api/sync/tis/bookmarklet.js 產生時就嵌入了該使用者的個人 token，
+ *   這裡用 token 反查 user，完全不依賴 cookie。
  *
  * 流程：
- *   1. 驗 next-auth session（瀏覽器自動帶 cookie；form submit + Lax 在 navigation 場景允許）
- *      → 未登入：redirect 到 /signin?callbackUrl=...，登入後讓使用者自己重打
+ *   1. 從 form 拿 token → 反查 user（找不到 401，並建議去 /settings 重新拖書籤）
  *   2. 簡單防呆：item count > 0 且 < 30、單筆 size < 2MB、總和 < 30MB
  *   3. 暫存到 TisIngestStaging（expiresAt = now + 1hr）
- *   4. 302 redirect 到 /sync?tisStagingId=<uuid>
+ *   4. 303 redirect 到 /sync?tisStagingId=<uuid>
  *
  * 為什麼不直接 ingest？
  *   要走兩階段：使用者必須在 /sync 頁面預覽 dry-run diff 後才能 confirm。
  *   把資料暫存到 DB 是因為 redirect 後 browser 不會重送 body，必須由 GET /staging/[id] 取回。
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { findUserByBookmarkletToken } from "@/lib/tis/bookmarklet-token";
 
 export const dynamic = "force-dynamic";
 
@@ -52,27 +57,35 @@ function htmlError(title: string, detail: string, backTo?: string): NextResponse
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    // 未登入：先把使用者導到登入頁，登入後讓他自己再點一次書籤
-    const url = new URL("/signin", req.url);
-    url.searchParams.set("callbackUrl", "/sync");
-    url.searchParams.set("flash", "請先登入再執行 TIS 一鍵抓取");
-    return NextResponse.redirect(url, 303);
-  }
-  const userId = (session.user as { id?: string }).id;
-  if (!userId) {
-    return htmlError("無法辨識使用者", "Session 內缺少使用者 id，請重新登入。", "/sync");
-  }
-
   let payloadRaw: string | null = null;
+  let tokenRaw: string | null = null;
   try {
     const fd = await req.formData();
     const v = fd.get("payload");
     if (typeof v === "string") payloadRaw = v;
+    const t = fd.get("token");
+    if (typeof t === "string") tokenRaw = t;
   } catch {
     return htmlError("讀取資料失敗", "form-data 解析失敗。請重新從 TIS 頁面點書籤。");
   }
+
+  if (!tokenRaw) {
+    return htmlError(
+      "缺少 token（舊版 bookmarklet）",
+      "你的 bookmarklet 是舊版，沒有附帶個人 token。請到「系統設定」頁重新拖一次「📚 TIS→瑞士刀」到書籤列。",
+      "/settings"
+    );
+  }
+  const user = await findUserByBookmarkletToken(tokenRaw);
+  if (!user) {
+    return htmlError(
+      "未授權",
+      "bookmarklet token 無效或已被重置。請到「系統設定」頁重新拖一次「📚 TIS→瑞士刀」到書籤列。",
+      "/settings"
+    );
+  }
+  const userId = user.id;
+
   if (!payloadRaw) {
     return htmlError("缺少 payload", "Body 沒有 payload 欄位。Bookmarklet 可能執行錯誤。");
   }

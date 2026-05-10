@@ -284,8 +284,13 @@ export function UploadPanel({ userId, onAfterAiExtract }: Props) {
                     type="button"
                     title="移除"
                     onClick={async () => {
-                      const { deleteFile } = await import("../../lib/storage/idb");
-                      await deleteFile(userId, u.id);
+                      // 即使 IDB 例外（例如舊版 store 結構壞掉），UI 也要把卡片移掉
+                      try {
+                        const { deleteFile } = await import("../../lib/storage/idb");
+                        await deleteFile(userId, u.id);
+                      } catch (err) {
+                        console.warn("[course-report] deleteFile 失敗（仍移除 UI）：", err);
+                      }
                       removeUpload(u.id);
                     }}
                     className="rounded p-0.5 hover:bg-destructive/10"

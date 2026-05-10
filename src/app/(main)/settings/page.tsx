@@ -185,19 +185,38 @@ export default function SettingsPage() {
               </div>
               <Badge className="bg-green-100 text-green-800">已啟用</Badge>
             </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">TIS 只讀同步器</p>
-                <p className="text-xs text-muted-foreground">自動同步 TIS 系統資料</p>
+            <div className="flex items-start justify-between p-3 border rounded-lg gap-4">
+              <div className="flex-1">
+                <p className="font-medium">TIS 只讀同步器（HTML 上傳版）</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  將 TIS「開班計畫表列表」每月份 HTML 上傳到本系統 →
+                  解析 → 預覽差異 →確認後 upsert 進 TrainingClass。
+                  搭配 SingleFile 擴充功能可一次存全年 12 個月份。
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  入口：
+                  <a href="/sync" className="text-primary underline ml-1">
+                    資料同步紀錄
+                  </a>
+                  → 「TIS HTML 上傳同步」區塊
+                </p>
               </div>
-              <Badge variant="outline">v2 規劃中</Badge>
+              <Badge className="bg-green-100 text-green-800 shrink-0">已啟用</Badge>
             </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">TIS 頁面抓取器</p>
-                <p className="text-xs text-muted-foreground">登入 TIS 後抓取頁面資料</p>
+            <div className="flex items-start justify-between p-3 border rounded-lg gap-4">
+              <div className="flex-1">
+                <p className="font-medium">TIS 頁面抓取器（Bookmarklet 一鍵抓）</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  使用者登入 TIS 後點瀏覽器書籤 →
+                  在 TIS 頁面以同源 fetch 抓取 12 個月份 → 自動 POST 到本系統解析入庫。
+                  避免使用者手動逐月另存 HTML。
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  限制：本系統部署在海外（Render
+                  Singapore）、無法直接連線 TIS 內網，故所有抓取都需在使用者本機瀏覽器內發起。
+                </p>
               </div>
-              <Badge variant="outline">v2 規劃中</Badge>
+              <Badge variant="outline" className="shrink-0">v2.1 規劃中</Badge>
             </div>
           </div>
         </CardContent>

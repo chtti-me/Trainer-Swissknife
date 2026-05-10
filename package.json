@@ -63,6 +63,7 @@
     "@radix-ui/react-tooltip": "^1.1.6",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^1.4.0",
+    "cheerio": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

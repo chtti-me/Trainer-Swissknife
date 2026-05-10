@@ -14,6 +14,7 @@ import { formatDateTime } from "@/lib/utils";
 import { PageHeading } from "@/components/layout/page-heading";
 import { useToast } from "@/components/ui/toaster";
 import { TableSkeleton } from "@/components/ui/skeleton";
+import { TisHtmlUploader } from "@/components/sync/tis-html-uploader";
 
 interface SyncJob {
   id: string;
@@ -99,6 +100,8 @@ export default function SyncPage() {
           </div>
         }
       />
+
+      <TisHtmlUploader onSyncDone={fetchJobs} />
 
       <Card>
         <CardHeader>

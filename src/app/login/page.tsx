@@ -55,7 +55,9 @@ export default function LoginPage() {
         callbackUrl: `${window.location.origin}/dashboard`,
       });
       if (result?.error || result?.ok === false) {
-        setError("快速登入失敗。請重啟開發伺服器（dev server）後再試；若使用非 3000 埠，請確認 .env 已設定 AUTH_TRUST_HOST=true。");
+        setError(
+          "快速登入失敗。請確認：雲端已對資料庫執行 npm run db:seed（種子腳本）；Render 的 NEXTAUTH_URL 為目前造訪的 https 網址；本機換埠請對齊 NEXTAUTH_URL，或設 AUTH_TRUST_HOST=true 後重啟開發伺服器（dev server）。"
+        );
         return;
       }
       router.refresh();
@@ -90,7 +92,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="yourname@cht.com.tw"
+                  placeholder="yourname@cht-academy.tw"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -122,20 +124,20 @@ export default function LoginPage() {
                   variant="outline"
                   size="sm"
                   className="justify-start text-xs"
-                  onClick={() => quickLogin("admin@cht.com.tw", "admin123")}
+                  onClick={() => quickLogin("admin@cht-academy.tw", "admin123")}
                   disabled={loading}
                 >
-                  系統管理員（admin@cht.com.tw）
+                  系統管理員（admin@cht-academy.tw）
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   className="justify-start text-xs"
-                  onClick={() => quickLogin("trainer@cht.com.tw", "password123")}
+                  onClick={() => quickLogin("trainer1@cht-academy.tw", "password123")}
                   disabled={loading}
                 >
-                  黃建豪（培訓師，資訊學系，院本部）
+                  黃建豪（培訓師，trainer1@cht-academy.tw）
                 </Button>
               </div>
             </div>

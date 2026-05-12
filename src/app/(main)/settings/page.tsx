@@ -136,7 +136,22 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {isAdmin && <AiServiceSettings />}
+      {isAdmin ? (
+        <AiServiceSettings />
+      ) : (
+        <Card className="border-dashed">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-muted-foreground" />
+              AI 服務與 API Key
+            </CardTitle>
+            <CardDescription>
+              多供應商清單、測試連線、Fallback 鏈等設定僅限「系統管理員」帳號可見與操作（避免一般帳號接觸金鑰設定流程）。
+              若您需要調整全站 AI 金鑰或模型，請洽系統管理員；培訓師帳號仍可使用已啟用的 AI 功能。
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       <SimilaritySettings isAdmin={isAdmin} />
 

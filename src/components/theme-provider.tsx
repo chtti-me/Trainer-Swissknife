@@ -66,13 +66,11 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<ThemeConfig>({ color: "default", mode: "light" });
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const initial = getInitialTheme();
     setTheme(initial);
     applyTheme(initial);
-    setMounted(true);
   }, []);
 
   const persist = useCallback((next: ThemeConfig) => {
@@ -98,8 +96,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     [theme, persist]
   );
 
-  if (!mounted) return null;
-
+  // 不可在掛載前 return null：會讓子頁面（例如 /login）從 DOM／水合樹消失，
+  // Next.js App Router 下易觸發「Application error: a client-side exception」。
+  // 初始主題與 layout 的 beforeInteractive script 一致為 default/light，
+  // useEffect 再從 localStorage／系統偏好同步即可。
   return (
     <ThemeContext.Provider value={{ theme, setThemeColor, setThemeMode, toggleMode }}>
       {children}

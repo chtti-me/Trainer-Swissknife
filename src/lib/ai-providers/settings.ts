@@ -57,7 +57,7 @@ export interface FallbackConfig {
 
 export const DEFAULT_FALLBACK_THRESHOLDS: FallbackThresholds = {
   dailyRequestSoftLimit: null,
-  switchOnErrorStatuses: [400, 402, 408, 409, 413, 425, 429, 451, 500, 502, 503, 504],
+  switchOnErrorStatuses: [400, 402, 404, 408, 409, 413, 425, 429, 451, 500, 502, 503, 504],
   consecutiveErrorThreshold: 1,
   cooldownSeconds: 600,
 };
@@ -69,7 +69,7 @@ export const DEFAULT_FALLBACK_THRESHOLDS: FallbackThresholds = {
  * 為什麼要 merge：DB 裡可能存著一年前舊版本存的清單（沒有 402/413/451），
  * 若不 merge，使用者還是會踩到「Groq 413 TPM 超限不切」的舊 bug。
  */
-const REQUIRED_SWITCH_STATUSES = [400, 402, 413, 429, 502, 503, 504] as const;
+const REQUIRED_SWITCH_STATUSES = [400, 402, 404, 413, 429, 502, 503, 504] as const;
 
 /** 預設 chain：有 catalog enabledByDefault 為 true 的優先（目前只有 Gemini） */
 export function buildDefaultFallbackConfig(): FallbackConfig {

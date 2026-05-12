@@ -14,6 +14,7 @@
  */
 import "server-only";
 import {
+  getAiProviderFor,
   type AiProvider,
 } from "@/lib/ai-provider";
 import { callWithFallback } from "@/lib/ai-providers/runtime";
@@ -57,13 +58,14 @@ export async function generateAiText(req: AiTextRequest): Promise<AiTextResult> 
     { role: "system", content: req.systemInstruction },
     { role: "user", content: userToContent(req.user) },
   ];
+  const preferredProvider = req.provider ?? getAiProviderFor("course_report");
 
   // 用 callWithFallback 包起來：任一 provider 拿 400/402/413/429/5xx 自動切下一家。
   // schema 模式的「json_schema → json_object」內部 fallback 在 run 內各 provider 跑一次（不算 provider 失敗）。
   try {
     const { value, provider: usedProvider } = await callWithFallback({
       feature: "course_report",
-      explicitProvider: req.provider ?? null,
+      explicitProvider: preferredProvider,
       run: async ({ client, model: ctxModel }) => {
         const useModel = req.model || ctxModel;
         const baseParams = {
@@ -111,9 +113,9 @@ export async function generateAiText(req: AiTextRequest): Promise<AiTextResult> 
 
 /** 安全 JSON parse；失敗時 throw 帶 raw 字串的錯誤訊息 */
 export function safeJsonParse<T>(raw: string): T {
-  // 試著抽出 markdown code fence 中的 JSON
+  // 先試著抽出 markdown code fence 中的 JSON
   const fenceMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidate = fenceMatch ? fenceMatch[1].trim() : raw.trim();
+  const candidate = extractJsonCandidate(fenceMatch ? fenceMatch[1].trim() : raw.trim());
   try {
     return JSON.parse(candidate) as T;
   } catch (err) {
@@ -121,4 +123,43 @@ export function safeJsonParse<T>(raw: string): T {
       `AI 回應無法解析為 JSON：${err instanceof Error ? err.message : "?"}\n--- raw ---\n${raw.slice(0, 500)}`
     );
   }
+}
+
+function extractJsonCandidate(raw: string): string {
+  const text = raw.trim();
+  if (!text) return text;
+  if (text.startsWith("{") || text.startsWith("[")) return text;
+
+  const start = text.search(/[\{\[]/);
+  if (start < 0) return text;
+
+  const open = text[start];
+  const close = open === "{" ? "}" : "]";
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (ch === "\"") {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === open) depth++;
+    if (ch === close) {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+
+  return text.slice(start);
 }

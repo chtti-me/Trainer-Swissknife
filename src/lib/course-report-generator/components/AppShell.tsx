@@ -63,6 +63,10 @@ import {
 import { getTemplate } from "../lib/templates";
 import { getPalette } from "../lib/palettes";
 import { useToast } from "@/components/ui/toaster";
+import { toCanvas } from "html-to-image";
+import jsPDF from "jspdf";
+import { saveAs } from "file-saver";
+import { sanitizeFilename } from "../lib/utils";
 
 interface Props {
   userId: string;
@@ -87,7 +91,9 @@ export function AppShell({ userId }: Props) {
    * 不會有編輯介面的 input/textarea，也沒有 transform: scale 帶來的邊界裁切。
    */
   const exportRootRef = React.useRef<HTMLDivElement>(null);
+  const previewRootRef = React.useRef<HTMLDivElement>(null);
   const [modal, setModal] = React.useState<ModalKind>(null);
+  const [previewExportBusy, setPreviewExportBusy] = React.useState<"pdf" | "png" | null>(null);
 
   // 切到 canvas 模式時：若 canvas 為空，自動用模板生成初始版型
   const handleSwitchMode = (mode: "form" | "canvas") => {
@@ -125,6 +131,113 @@ export function AppShell({ userId }: Props) {
     if (!open) {
       if (kind === "upload" && aiBusy) return;
       setModal(null);
+    }
+  };
+
+  const getReadyPreviewRoot = async (): Promise<HTMLElement> => {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    if (typeof document !== "undefined" && document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch {
+        // 忽略字型等待失敗，仍嘗試輸出
+      }
+    }
+    const node = previewRootRef.current;
+    if (!node) throw new Error("找不到預覽畫面節點，請先開啟預覽視窗再試");
+
+    // 只抓「真正的預覽舞台」而不是外層可捲動容器，否則會只輸出可視區上半部。
+    const stage =
+      node.querySelector<HTMLElement>(".course-report-stage") ||
+      node.querySelector<HTMLElement>(".course-report-canvas-stage");
+    if (stage) return stage;
+
+    return node;
+  };
+
+  const exportPreviewAsPng = async () => {
+    setPreviewExportBusy("png");
+    try {
+      const node = await getReadyPreviewRoot();
+      const canvas = await toCanvas(node, {
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+        skipFonts: true,
+        cacheBust: true,
+      });
+      await new Promise<void>((resolve, reject) => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error("無法產生 PNG blob"));
+              return;
+            }
+            saveAs(blob, `${sanitizeFilename(report.title || "課程規劃報告-預覽")}-預覽.png`);
+            resolve();
+          },
+          "image/png",
+          1
+        );
+      });
+      toast("已下載預覽 PNG（與目前預覽畫面一致）", "success");
+    } catch (err) {
+      toast(`預覽 PNG 匯出失敗：${err instanceof Error ? err.message : "未知錯誤"}`, "error");
+    } finally {
+      setPreviewExportBusy(null);
+    }
+  };
+
+  const exportPreviewAsPdf = async () => {
+    setPreviewExportBusy("pdf");
+    try {
+      const node = await getReadyPreviewRoot();
+      const canvas = await toCanvas(node, {
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+        skipFonts: true,
+        cacheBust: true,
+      });
+      const pdf = new jsPDF({
+        orientation: canvas.width >= canvas.height ? "landscape" : "portrait",
+        unit: "pt",
+        format: "a4",
+      });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 24;
+      const targetW = pageW - margin * 2;
+      const ratio = targetW / canvas.width;
+      const targetH = canvas.height * ratio;
+      const pageContentH = pageH - margin * 2;
+
+      let drawn = 0;
+      let pageIndex = 0;
+      while (drawn < targetH) {
+        const sliceTopPx = Math.floor(drawn / ratio);
+        const sliceHeightPx = Math.min(Math.ceil(pageContentH / ratio), canvas.height - sliceTopPx);
+        if (sliceHeightPx <= 0) break;
+        const sub = document.createElement("canvas");
+        sub.width = canvas.width;
+        sub.height = sliceHeightPx;
+        const ctx = sub.getContext("2d");
+        if (!ctx) break;
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(0, 0, sub.width, sub.height);
+        ctx.drawImage(canvas, 0, sliceTopPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+        const dataUrl = sub.toDataURL("image/jpeg", 0.92);
+        if (pageIndex > 0) pdf.addPage();
+        pdf.addImage(dataUrl, "JPEG", margin, margin, targetW, sliceHeightPx * ratio);
+        drawn += sliceHeightPx * ratio;
+        pageIndex += 1;
+        if (pageIndex > 100) break;
+      }
+
+      pdf.save(`${sanitizeFilename(report.title || "課程規劃報告-預覽")}-預覽.pdf`);
+      toast("已下載預覽 PDF（與目前預覽畫面一致）", "success");
+    } catch (err) {
+      toast(`預覽 PDF 匯出失敗：${err instanceof Error ? err.message : "未知錯誤"}`, "error");
+    } finally {
+      setPreviewExportBusy(null);
     }
   };
 
@@ -308,11 +421,31 @@ export function AppShell({ userId }: Props) {
               <Eye className="h-5 w-5" />
               預覽（{report.mode === "form" ? "制式表單" : "自由畫布"}模式）
             </DialogTitle>
-            <DialogDescription>
-              這就是匯出後的呈現效果；確認沒問題後再回到編輯區或直接點「匯出」。
-            </DialogDescription>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <DialogDescription>
+                這就是匯出後的呈現效果；可直接把「目前預覽畫面」下載成 PDF / PNG（所見即所得）。
+              </DialogDescription>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={exportPreviewAsPdf}
+                  disabled={previewExportBusy !== null}
+                >
+                  {previewExportBusy === "pdf" ? "輸出中…" : "預覽轉 PDF"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={exportPreviewAsPng}
+                  disabled={previewExportBusy !== null}
+                >
+                  {previewExportBusy === "png" ? "輸出中…" : "預覽轉 PNG"}
+                </Button>
+              </div>
+            </div>
           </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-hidden">
+          <div ref={previewRootRef} className="min-h-0 flex-1 overflow-hidden">
             <PreviewView />
           </div>
         </DialogContent>

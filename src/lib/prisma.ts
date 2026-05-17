@@ -1,3 +1,11 @@
+import { config } from "dotenv";
+import path from "path";
+
+// 本機 Windows 常見：使用者環境變數 DATABASE_URL=localhost 蓋掉 .env 的 Supabase
+if (process.env.NODE_ENV !== "production") {
+  config({ path: path.join(process.cwd(), ".env"), override: true });
+}
+
 /**
  * 【資料庫連線（Prisma Client）】
  * 全專案共用一個連線物件，開發模式下重複使用同一個實例，避免連線爆量。

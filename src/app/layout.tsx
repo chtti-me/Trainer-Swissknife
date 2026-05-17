@@ -5,11 +5,10 @@
  * 產品版本：v4.0（雲端 PostgreSQL + pgvector 語意搜尋版）
  */
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth/next";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/providers";
-import { authOptions } from "@/lib/auth";
+import { getServerSessionSafe } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "培訓師瑞士刀 v4.0",
@@ -17,7 +16,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSessionSafe();
 
   return (
     <html lang="zh-TW" data-theme="default" suppressHydrationWarning>

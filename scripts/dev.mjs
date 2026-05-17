@@ -16,8 +16,10 @@ import { spawn, spawnSync } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
+import { loadProjectEnv } from "./load-project-env.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+loadProjectEnv(root);
 const port = Number(process.env.DEV_PORT || process.env.PORT || 3001);
 if (!Number.isInteger(port) || port < 1 || port > 65535) {
   console.error("[dev] DEV_PORT / PORT 必須為 1–65535 的整數。");

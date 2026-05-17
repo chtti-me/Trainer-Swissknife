@@ -68,4 +68,11 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  logger: {
+    error(code, metadata) {
+      // 瀏覽器殘留舊 session cookie（換 NEXTAUTH_SECRET、或正式站 cookie 帶到本機）時會解密失敗，屬預期情況。
+      if (code === "JWT_SESSION_ERROR") return;
+      console.error(`[next-auth][error][${code}]`, metadata);
+    },
+  },
 };

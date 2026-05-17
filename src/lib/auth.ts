@@ -6,6 +6,7 @@ import "server-only";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "./prisma";
+import { verifyUserPassword } from "./password";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -25,7 +26,9 @@ export const authOptions: NextAuthOptions = {
           where: { email },
         });
 
-        if (!user || user.password !== password) return null;
+        if (!user || !(await verifyUserPassword(user.password, password))) {
+          return null;
+        }
 
         return {
           id: user.id,
